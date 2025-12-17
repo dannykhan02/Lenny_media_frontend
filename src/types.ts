@@ -1,3 +1,19 @@
+// types.ts
+/// <reference types="vite/client" />
+
+// Vite environment variables type definitions
+interface ImportMetaEnv {
+  readonly VITE_API_URL: string
+  // Add other environment variables here as needed
+  // Example:
+  // readonly VITE_ANOTHER_VAR: string
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv
+}
+
+// Your existing types
 export interface Service {
   id: string;
   title: string;
