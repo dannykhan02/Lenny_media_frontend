@@ -6,7 +6,7 @@ import { useAuth } from '../hooks/useAuth';
 const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, adminExists } = useAuth();
 
   const navLinks = [
     { name: 'Home', path: '/' },
@@ -19,6 +19,15 @@ const Navbar: React.FC = () => {
   ];
 
   const isActive = (path: string) => location.pathname === path;
+
+  // Only show admin registration links when:
+  // 1. We're not loading
+  // 2. There's no user logged in
+  // 3. We know for sure that no admin exists
+  const showAdminRegistration = !isLoading && !user && adminExists === false;
+
+  // Always show admin login button when admin exists (or we're still checking)
+  const showAdminLogin = !isLoading && adminExists !== false;
 
   return (
     <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-stone-100 shadow-sm transition-all duration-300">
@@ -67,24 +76,27 @@ const Navbar: React.FC = () => {
                 Book Now
               </Link>
               
-              {!isLoading && !user && (
-                <>
-                  <Link
-                    to="/admin/register"
-                    className="bg-purple-500 text-white px-4 xl:px-5 py-2.5 rounded-full font-bold text-xs xl:text-sm tracking-wide shadow-lg hover:bg-purple-600 transition-all duration-300 whitespace-nowrap"
-                  >
-                    Register
-                  </Link>
-                  
-                  <Link
-                    to="/admin/login"
-                    className="bg-blue-500 text-white px-4 xl:px-5 py-2.5 rounded-full font-bold text-xs xl:text-sm tracking-wide shadow-lg hover:bg-blue-600 transition-all duration-300 whitespace-nowrap"
-                  >
-                    Admin Login
-                  </Link>
-                </>
+              {/* Admin Registration Button - only show when no admin exists */}
+              {showAdminRegistration && (
+                <Link
+                  to="/admin/register"
+                  className="bg-purple-500 text-white px-4 xl:px-5 py-2.5 rounded-full font-bold text-xs xl:text-sm tracking-wide shadow-lg hover:bg-purple-600 transition-all duration-300 whitespace-nowrap"
+                >
+                  Register First Admin
+                </Link>
               )}
               
+              {/* Admin Login Button - ALWAYS show when admin exists */}
+              {showAdminLogin && (
+                <Link
+                  to="/admin/login"
+                  className="bg-blue-500 text-white px-4 xl:px-5 py-2.5 rounded-full font-bold text-xs xl:text-sm tracking-wide shadow-lg hover:bg-blue-600 transition-all duration-300 whitespace-nowrap"
+                >
+                  Admin Login
+                </Link>
+              )}
+              
+              {/* Dashboard Button - only show when user is logged in AND is admin */}
               {user && user.role === 'ADMIN' && (
                 <Link
                   to="/admin/dashboard"
@@ -142,26 +154,29 @@ const Navbar: React.FC = () => {
                 Book Session
               </Link>
               
-              {!isLoading && !user && (
-                <>
-                  <Link
-                    to="/admin/register"
-                    onClick={() => setIsOpen(false)}
-                    className="block w-full bg-purple-500 text-white text-center py-4 rounded-2xl font-bold text-lg tracking-wide hover:bg-purple-600"
-                  >
-                    Admin Register
-                  </Link>
-                  
-                  <Link
-                    to="/admin/login"
-                    onClick={() => setIsOpen(false)}
-                    className="block w-full bg-blue-500 text-white text-center py-4 rounded-2xl font-bold text-lg tracking-wide hover:bg-blue-600"
-                  >
-                    Admin Login
-                  </Link>
-                </>
+              {/* Admin Registration Button - only show when no admin exists */}
+              {showAdminRegistration && (
+                <Link
+                  to="/admin/register"
+                  onClick={() => setIsOpen(false)}
+                  className="block w-full bg-purple-500 text-white text-center py-4 rounded-2xl font-bold text-lg tracking-wide hover:bg-purple-600"
+                >
+                  Register First Admin
+                </Link>
               )}
               
+              {/* Admin Login Button - ALWAYS show when admin exists */}
+              {showAdminLogin && (
+                <Link
+                  to="/admin/login"
+                  onClick={() => setIsOpen(false)}
+                  className="block w-full bg-blue-500 text-white text-center py-4 rounded-2xl font-bold text-lg tracking-wide hover:bg-blue-600"
+                >
+                  Admin Login
+                </Link>
+              )}
+              
+              {/* Dashboard Button - only show when user is logged in AND is admin */}
               {user && user.role === 'ADMIN' && (
                 <Link
                   to="/admin/dashboard"

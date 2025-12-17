@@ -1,7 +1,7 @@
 import React, { Suspense } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Camera, MessageCircle, Loader2, Instagram, Facebook, Twitter, MapPin, Phone, Mail } from 'lucide-react';
-import { AuthProvider, ProtectedRoute, ScrollToTop, PageLoader } from './context/AuthContext';
+import { AuthProvider, ProtectedRoute, ScrollToTop, PageLoader } from './context/AuthProvider';
 import Navbar from './components/Navbar';
 
 // Lazy Load Pages

@@ -1,28 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Camera, Lock, Mail, AlertCircle, Loader2, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 
 const AdminLogin: React.FC = () => {
-  const { login, checkAuth, isLoading: authLoading, user } = useAuth();
+  const { login, isLoading: authLoading } = useAuth();
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [checkingAdmin, setCheckingAdmin] = useState(true);
-
-  useEffect(() => {
-    const checkAdminStatus = async () => {
-      try {
-        await checkAuth();
-        setCheckingAdmin(false);
-      } catch (err) {
-        console.error('Failed to check admin status:', err);
-        setCheckingAdmin(false);
-      }
-    };
-
-    checkAdminStatus();
-  }, [checkAuth]);
 
   const handleSubmit = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -37,26 +24,13 @@ const AdminLogin: React.FC = () => {
 
     try {
       await login(email, password);
-      
-      // The AuthContext will handle the redirect and admin check
-      // If login is successful and user is admin, it will redirect automatically
+      // After successful login, redirect to dashboard
+      navigate('/admin/dashboard');
     } catch (err: any) {
-      setError(err.message || 'An error occurred during login');
-    } finally {
+      setError(err.message || 'Invalid email or password');
       setIsLoading(false);
     }
   };
-
-  if (checkingAdmin) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-stone-50 to-stone-100">
-        <div className="flex flex-col items-center">
-          <Loader2 className="h-10 w-10 text-gold-500 animate-spin mb-4" />
-          <p className="text-stone-600 font-serif">Checking admin status...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-stone-50 to-stone-100 px-4 py-12">

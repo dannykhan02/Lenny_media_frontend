@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Camera, Lock, Mail, User, Phone, AlertCircle, CheckCircle, Loader2, ArrowLeft } from 'lucide-react';
+import { Camera, Lock, Mail, User, Phone, AlertCircle, CheckCircle, Loader2, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -16,6 +16,8 @@ const RegisterFirstAdmin: React.FC = () => {
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [adminExists, setAdminExists] = useState<boolean | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [checkingAdmin, setCheckingAdmin] = useState(true);
 
   useEffect(() => {
@@ -82,7 +84,7 @@ const RegisterFirstAdmin: React.FC = () => {
         formData.full_name.trim()
       );
 
-      setSuccess('Admin account created successfully! Redirecting to login...');
+      setSuccess('Admin account created successfully! Redirecting to dashboard...');
       
       // Clear form
       setFormData({
@@ -92,9 +94,9 @@ const RegisterFirstAdmin: React.FC = () => {
         full_name: '',
       });
 
-      // Redirect to login after 2 seconds
+      // Redirect to dashboard after 2 seconds
       setTimeout(() => {
-        window.location.href = '/#/admin/login';
+        window.location.href = '/#/admin/dashboard';
       }, 2000);
 
     } catch (err: any) {
@@ -228,7 +230,7 @@ const RegisterFirstAdmin: React.FC = () => {
                 </div>
               </div>
 
-              {/* Password Field */}
+              {/* Password Field with Eye Toggle */}
               <div>
                 <label htmlFor="password" className="block text-sm font-semibold text-stone-700 mb-2">
                   Password
@@ -240,20 +242,31 @@ const RegisterFirstAdmin: React.FC = () => {
                   <input
                     id="password"
                     name="password"
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     value={formData.password}
                     onChange={handleChange}
-                    className="block w-full pl-12 pr-4 py-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent transition-all"
+                    className="block w-full pl-12 pr-12 py-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent transition-all"
                     placeholder="Min. 8 characters"
                     disabled={isLoading}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-auto"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5 text-stone-400 hover:text-stone-600" />
+                    ) : (
+                      <Eye className="h-5 w-5 text-stone-400 hover:text-stone-600" />
+                    )}
+                  </button>
                 </div>
                 <p className="mt-1 text-xs text-stone-500">
                   Must be at least 8 characters long
                 </p>
               </div>
 
-              {/* Confirm Password Field */}
+              {/* Confirm Password Field with Eye Toggle */}
               <div>
                 <label htmlFor="confirmPassword" className="block text-sm font-semibold text-stone-700 mb-2">
                   Confirm Password
@@ -265,14 +278,25 @@ const RegisterFirstAdmin: React.FC = () => {
                   <input
                     id="confirmPassword"
                     name="confirmPassword"
-                    type="password"
+                    type={showConfirmPassword ? "text" : "password"}
                     value={formData.confirmPassword}
                     onChange={handleChange}
                     onKeyPress={(e) => e.key === 'Enter' && handleSubmit(e as any)}
-                    className="block w-full pl-12 pr-4 py-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent transition-all"
+                    className="block w-full pl-12 pr-12 py-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent transition-all"
                     placeholder="Re-enter password"
                     disabled={isLoading}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-auto"
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-5 w-5 text-stone-400 hover:text-stone-600" />
+                    ) : (
+                      <Eye className="h-5 w-5 text-stone-600 hover:text-stone-600" />
+                    )}
+                  </button>
                 </div>
               </div>
 

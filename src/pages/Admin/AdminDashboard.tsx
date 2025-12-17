@@ -1,21 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Camera, LogOut, Users, Settings, BarChart, Loader2, CheckCircle } from 'lucide-react';
+import { useAuth } from '../../hooks/useAuth';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
-interface User {
-  id: string;
-  email: string;
-  role: string;
-  full_name: string;
-  phone?: string;
-  avatar_url?: string;
-}
-
 const AdminDashboard: React.FC = () => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const { logout, refreshAuth } = useAuth();
 
   useEffect(() => {
     fetchCurrentUser();
@@ -49,15 +42,9 @@ const AdminDashboard: React.FC = () => {
 
   const handleLogout = async () => {
     try {
-      await fetch(`${API_URL}/api/auth/logout`, {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-      });
-      
+      await logout();
+      // Force refresh auth state
+      refreshAuth();
       window.location.href = '/';
     } catch (err) {
       console.error('Logout failed:', err);
@@ -185,7 +172,7 @@ const AdminDashboard: React.FC = () => {
               <span className="font-medium text-stone-900">View Reports</span>
             </button>
             <button className="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-gold-500 hover:bg-gold-50 transition-all">
-              <Settings className="h-5 w-5 text-gold-600" />
+              <Settings className="h-5 w-5 text-gold-500" />
               <span className="font-medium text-stone-900">Settings</span>
             </button>
             <a 
