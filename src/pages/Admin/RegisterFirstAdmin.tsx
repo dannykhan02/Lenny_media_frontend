@@ -1,11 +1,15 @@
+// pages/Admin/RegisterFirstAdmin.tsx
 import React, { useState, useEffect } from 'react';
-import { Camera, Lock, Mail, User, Phone, AlertCircle, CheckCircle, Loader2, ArrowLeft, Eye, EyeOff } from 'lucide-react';
+import { Camera, Lock, Mail, User, AlertCircle, CheckCircle, Loader2, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
+import AdminAuthLayout from '../../components/AdminAuthLayout';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const RegisterFirstAdmin: React.FC = () => {
-  const { registerFirstAdmin, checkAuth, error: authError } = useAuth();
+  const { registerFirstAdmin, checkAuth } = useAuth();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -15,24 +19,56 @@ const RegisterFirstAdmin: React.FC = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [adminExists, setAdminExists] = useState<boolean | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [checkingAdmin, setCheckingAdmin] = useState(true);
+  const [adminExists, setAdminExists] = useState<boolean>(false);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const savedTheme = localStorage.getItem('admin-theme');
+    if (savedTheme) {
+      return savedTheme === 'dark';
+    }
+    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  });
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDarkMode]);
 
   useEffect(() => {
     const checkAdminStatus = async () => {
       try {
-        await checkAuth();
-        setCheckingAdmin(false);
+        const response = await fetch(`${API_URL}/api/auth/admin/exists`, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.exists) {
+            setAdminExists(true);
+            setTimeout(() => {
+              navigate('/admin/login');
+            }, 2000);
+          }
+        }
       } catch (err) {
         console.error('Failed to check admin status:', err);
+      } finally {
         setCheckingAdmin(false);
       }
     };
 
     checkAdminStatus();
-  }, [checkAuth]);
+  }, [navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -66,7 +102,7 @@ const RegisterFirstAdmin: React.FC = () => {
     return true;
   };
 
-  const handleSubmit = async (e: React.MouseEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess('');
@@ -86,7 +122,6 @@ const RegisterFirstAdmin: React.FC = () => {
 
       setSuccess('Admin account created successfully! Redirecting to dashboard...');
       
-      // Clear form
       setFormData({
         email: '',
         password: '',
@@ -94,9 +129,8 @@ const RegisterFirstAdmin: React.FC = () => {
         full_name: '',
       });
 
-      // Redirect to dashboard after 2 seconds
       setTimeout(() => {
-        window.location.href = '/#/admin/dashboard';
+        navigate('/admin/dashboard');
       }, 2000);
 
     } catch (err: any) {
@@ -108,48 +142,59 @@ const RegisterFirstAdmin: React.FC = () => {
 
   if (checkingAdmin) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-stone-50 to-stone-100">
+      <AdminAuthLayout>
         <div className="flex flex-col items-center">
           <Loader2 className="h-10 w-10 text-gold-500 animate-spin mb-4" />
-          <p className="text-stone-600 font-serif">Checking admin status...</p>
+          <p className={`font-serif ${isDarkMode ? 'text-stone-300' : 'text-stone-600'}`}>Checking admin status...</p>
         </div>
-      </div>
+      </AdminAuthLayout>
     );
   }
 
-  if (adminExists === true) {
+  if (adminExists) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-stone-50 to-stone-100 px-4">
-        <div className="max-w-md w-full bg-white rounded-2xl shadow-2xl p-8 text-center">
-          <div className="bg-blue-100 text-blue-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
-            <AlertCircle className="h-8 w-8" />
-          </div>
-          <h2 className="text-2xl font-bold text-stone-900 mb-4">Admin Already Exists</h2>
-          <p className="text-stone-600 mb-8">
-            An admin account has already been created. Redirecting to login...
-          </p>
-          <div className="flex items-center justify-center">
-            <Loader2 className="h-6 w-6 text-gold-500 animate-spin" />
+      <AdminAuthLayout>
+        <div className="w-full max-w-md">
+          <div className={`rounded-2xl shadow-xl p-8 text-center ${
+            isDarkMode ? 'bg-stone-900' : 'bg-white'
+          }`}>
+            <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 ${
+              isDarkMode ? 'bg-blue-900/50 text-blue-400' : 'bg-blue-100 text-blue-600'
+            }`}>
+              <AlertCircle className="h-8 w-8" />
+            </div>
+            <h2 className={`text-2xl font-bold mb-4 ${
+              isDarkMode ? 'text-white' : 'text-stone-900'
+            }`}>Admin Already Exists</h2>
+            <p className={`mb-6 ${
+              isDarkMode ? 'text-stone-400' : 'text-stone-600'
+            }`}>
+              An admin account has already been registered. Redirecting to login page...
+            </p>
+            <div className="flex items-center justify-center">
+              <Loader2 className="h-6 w-6 text-gold-500 animate-spin" />
+            </div>
+            <div className="mt-6">
+              <a
+                href="/#/admin/login"
+                className="text-gold-600 hover:text-gold-700 font-medium"
+              >
+                Click here if not redirected
+              </a>
+            </div>
           </div>
         </div>
-      </div>
+      </AdminAuthLayout>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-stone-50 to-stone-100 px-4 py-12">
-      <div className="max-w-md w-full">
-        {/* Back to Home */}
-        <a
-          href="/"
-          className="inline-flex items-center gap-2 text-stone-600 hover:text-stone-900 mb-8 transition-colors"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          <span className="font-medium">Back to Home</span>
-        </a>
-
+    <AdminAuthLayout>
+      <div className="w-full max-w-md">
         {/* Registration Card */}
-        <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
+        <div className={`rounded-2xl shadow-xl overflow-hidden ${
+          isDarkMode ? 'bg-stone-900' : 'bg-white'
+        }`}>
           {/* Header */}
           <div className="bg-gradient-to-r from-gold-600 to-gold-500 px-8 py-10 text-center">
             <div className="inline-flex items-center justify-center bg-white text-gold-600 p-4 rounded-2xl mb-4 shadow-lg">
@@ -164,23 +209,39 @@ const RegisterFirstAdmin: React.FC = () => {
           </div>
 
           {/* Form */}
-          <div className="px-8 py-10">
+          <form onSubmit={handleSubmit} className="px-8 py-10">
             {error && (
-              <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
+              <div className={`mb-6 rounded-lg p-4 flex items-start gap-3 ${
+                isDarkMode 
+                  ? 'bg-red-900/20 border border-red-800/50' 
+                  : 'bg-red-50 border border-red-200'
+              }`}>
                 <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-red-800 font-medium">Error</p>
-                  <p className="text-red-600 text-sm">{error}</p>
+                  <p className={`font-medium ${
+                    isDarkMode ? 'text-red-300' : 'text-red-800'
+                  }`}>Error</p>
+                  <p className={`text-sm ${
+                    isDarkMode ? 'text-red-400' : 'text-red-600'
+                  }`}>{error}</p>
                 </div>
               </div>
             )}
 
             {success && (
-              <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 flex items-start gap-3">
+              <div className={`mb-6 rounded-lg p-4 flex items-start gap-3 ${
+                isDarkMode 
+                  ? 'bg-green-900/20 border border-green-800/50' 
+                  : 'bg-green-50 border border-green-200'
+              }`}>
                 <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-green-800 font-medium">Success!</p>
-                  <p className="text-green-600 text-sm">{success}</p>
+                  <p className={`font-medium ${
+                    isDarkMode ? 'text-green-300' : 'text-green-800'
+                  }`}>Success!</p>
+                  <p className={`text-sm ${
+                    isDarkMode ? 'text-green-400' : 'text-green-600'
+                  }`}>{success}</p>
                 </div>
               </div>
             )}
@@ -188,7 +249,9 @@ const RegisterFirstAdmin: React.FC = () => {
             <div className="space-y-5">
               {/* Full Name Field */}
               <div>
-                <label htmlFor="full_name" className="block text-sm font-semibold text-stone-700 mb-2">
+                <label htmlFor="full_name" className={`block text-sm font-semibold mb-2 ${
+                  isDarkMode ? 'text-stone-300' : 'text-stone-700'
+                }`}>
                   Full Name
                 </label>
                 <div className="relative">
@@ -201,16 +264,23 @@ const RegisterFirstAdmin: React.FC = () => {
                     type="text"
                     value={formData.full_name}
                     onChange={handleChange}
-                    className="block w-full pl-12 pr-4 py-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent transition-all"
+                    className={`block w-full pl-12 pr-4 py-3 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent transition-all ${
+                      isDarkMode 
+                        ? 'bg-stone-800 border-stone-700 text-white placeholder-stone-500' 
+                        : 'border border-stone-300 text-stone-900'
+                    }`}
                     placeholder="John Doe"
-                    disabled={isLoading}
+                    disabled={isLoading || !!success}
+                    required
                   />
                 </div>
               </div>
 
               {/* Email Field */}
               <div>
-                <label htmlFor="email" className="block text-sm font-semibold text-stone-700 mb-2">
+                <label htmlFor="email" className={`block text-sm font-semibold mb-2 ${
+                  isDarkMode ? 'text-stone-300' : 'text-stone-700'
+                }`}>
                   Email Address
                 </label>
                 <div className="relative">
@@ -223,16 +293,23 @@ const RegisterFirstAdmin: React.FC = () => {
                     type="email"
                     value={formData.email}
                     onChange={handleChange}
-                    className="block w-full pl-12 pr-4 py-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent transition-all"
+                    className={`block w-full pl-12 pr-4 py-3 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent transition-all ${
+                      isDarkMode 
+                        ? 'bg-stone-800 border-stone-700 text-white placeholder-stone-500' 
+                        : 'border border-stone-300 text-stone-900'
+                    }`}
                     placeholder="admin@lennymedia.co.ke"
-                    disabled={isLoading}
+                    disabled={isLoading || !!success}
+                    required
                   />
                 </div>
               </div>
 
               {/* Password Field with Eye Toggle */}
               <div>
-                <label htmlFor="password" className="block text-sm font-semibold text-stone-700 mb-2">
+                <label htmlFor="password" className={`block text-sm font-semibold mb-2 ${
+                  isDarkMode ? 'text-stone-300' : 'text-stone-700'
+                }`}>
                   Password
                 </label>
                 <div className="relative">
@@ -245,14 +322,21 @@ const RegisterFirstAdmin: React.FC = () => {
                     type={showPassword ? "text" : "password"}
                     value={formData.password}
                     onChange={handleChange}
-                    className="block w-full pl-12 pr-12 py-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent transition-all"
+                    className={`block w-full pl-12 pr-12 py-3 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent transition-all ${
+                      isDarkMode 
+                        ? 'bg-stone-800 border-stone-700 text-white placeholder-stone-500' 
+                        : 'border border-stone-300 text-stone-900'
+                    }`}
                     placeholder="Min. 8 characters"
-                    disabled={isLoading}
+                    disabled={isLoading || !!success}
+                    required
+                    minLength={8}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-auto"
+                    disabled={isLoading || !!success}
                   >
                     {showPassword ? (
                       <EyeOff className="h-5 w-5 text-stone-400 hover:text-stone-600" />
@@ -261,14 +345,18 @@ const RegisterFirstAdmin: React.FC = () => {
                     )}
                   </button>
                 </div>
-                <p className="mt-1 text-xs text-stone-500">
+                <p className={`mt-1 text-xs ${
+                  isDarkMode ? 'text-stone-500' : 'text-stone-500'
+                }`}>
                   Must be at least 8 characters long
                 </p>
               </div>
 
               {/* Confirm Password Field with Eye Toggle */}
               <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-semibold text-stone-700 mb-2">
+                <label htmlFor="confirmPassword" className={`block text-sm font-semibold mb-2 ${
+                  isDarkMode ? 'text-stone-300' : 'text-stone-700'
+                }`}>
                   Confirm Password
                 </label>
                 <div className="relative">
@@ -281,20 +369,26 @@ const RegisterFirstAdmin: React.FC = () => {
                     type={showConfirmPassword ? "text" : "password"}
                     value={formData.confirmPassword}
                     onChange={handleChange}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSubmit(e as any)}
-                    className="block w-full pl-12 pr-12 py-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent transition-all"
+                    className={`block w-full pl-12 pr-12 py-3 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent transition-all ${
+                      isDarkMode 
+                        ? 'bg-stone-800 border-stone-700 text-white placeholder-stone-500' 
+                        : 'border border-stone-300 text-stone-900'
+                    }`}
                     placeholder="Re-enter password"
-                    disabled={isLoading}
+                    disabled={isLoading || !!success}
+                    required
+                    minLength={8}
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-auto"
+                    disabled={isLoading || !!success}
                   >
                     {showConfirmPassword ? (
                       <EyeOff className="h-5 w-5 text-stone-400 hover:text-stone-600" />
                     ) : (
-                      <Eye className="h-5 w-5 text-stone-600 hover:text-stone-600" />
+                      <Eye className="h-5 w-5 text-stone-400 hover:text-stone-600" />
                     )}
                   </button>
                 </div>
@@ -302,7 +396,7 @@ const RegisterFirstAdmin: React.FC = () => {
 
               {/* Submit Button */}
               <button
-                onClick={handleSubmit}
+                type="submit"
                 disabled={isLoading || !!success}
                 className="w-full bg-gold-500 text-stone-900 py-4 rounded-lg font-bold tracking-wide shadow-lg hover:bg-gold-400 disabled:bg-stone-300 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center gap-2 mt-6"
               >
@@ -323,21 +417,31 @@ const RegisterFirstAdmin: React.FC = () => {
             </div>
 
             {/* Additional Info */}
-            <div className="mt-8 pt-6 border-t border-stone-200">
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <p className="text-sm text-blue-800 font-medium mb-2">
+            <div className={`mt-8 pt-6 ${
+              isDarkMode ? 'border-stone-800' : 'border-stone-200'
+            } border-t`}>
+              <div className={`rounded-lg p-4 ${
+                isDarkMode 
+                  ? 'bg-blue-900/20 border border-blue-800/50' 
+                  : 'bg-blue-50 border border-blue-200'
+              }`}>
+                <p className={`text-sm font-medium mb-2 ${
+                  isDarkMode ? 'text-blue-300' : 'text-blue-800'
+                }`}>
                   First-time setup
                 </p>
-                <p className="text-xs text-blue-600">
+                <p className={`text-xs ${
+                  isDarkMode ? 'text-blue-400' : 'text-blue-600'
+                }`}>
                   This will create the first admin account for your Lenny Media platform. 
                   You'll be able to create additional admin and staff accounts after logging in.
                 </p>
               </div>
             </div>
-          </div>
+          </form>
         </div>
       </div>
-    </div>
+    </AdminAuthLayout>
   );
 };
 

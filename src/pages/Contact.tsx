@@ -1,14 +1,17 @@
 import React from 'react';
-import { MapPin, Phone, Mail, Clock, Instagram, Facebook, Twitter } from 'lucide-react';
+import { MapPin, Phone, Clock } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
 
 const Contact: React.FC = () => {
+  const { isDarkMode } = useTheme();
+  
   return (
-    <div className="bg-stone-50 min-h-screen">
+    <div className={`min-h-screen ${isDarkMode ? 'bg-stone-950' : 'bg-stone-50'}`}>
       {/* Header */}
-      <div className="bg-stone-900 py-16 px-4">
+      <div className={`${isDarkMode ? 'bg-stone-900' : 'bg-stone-900'} py-16 px-4`}>
         <div className="max-w-7xl mx-auto text-center">
-          <h1 className="font-serif text-4xl font-bold text-white mb-2">Get in Touch</h1>
-          <p className="text-stone-400">We'd love to hear from you. Here's how to reach us.</p>
+          <h1 className={`font-serif text-4xl font-bold ${isDarkMode ? 'text-white' : 'text-white'} mb-2`}>Get in Touch</h1>
+          <p className={`${isDarkMode ? 'text-stone-400' : 'text-stone-400'}`}>We'd love to hear from you. Here's how to reach us.</p>
         </div>
       </div>
 
@@ -16,44 +19,44 @@ const Contact: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
           {/* Card 1: Visit Us */}
-          <div className="bg-white p-8 rounded-xl shadow-lg text-center transform hover:-translate-y-1 transition-transform duration-300">
-            <div className="bg-stone-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+          <div className={`p-8 rounded-xl shadow-lg text-center transform hover:-translate-y-1 transition-transform duration-300 ${isDarkMode ? 'bg-stone-800 border-stone-700' : 'bg-white'}`}>
+            <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 ${isDarkMode ? 'bg-stone-700' : 'bg-stone-100'}`}>
               <MapPin className="h-8 w-8 text-gold-500" />
             </div>
-            <h3 className="font-serif text-xl font-bold text-stone-900 mb-2">Visit Our Studio</h3>
-            <p className="text-stone-600 mb-1">Juja Square, 1st Floor</p>
-            <p className="text-stone-600">Juja, Kenya</p>
-            <p className="text-stone-400 text-sm mt-2">(Next to the Highway)</p>
+            <h3 className={`font-serif text-xl font-bold ${isDarkMode ? 'text-white' : 'text-stone-900'} mb-2`}>Visit Our Studio</h3>
+            <p className={`${isDarkMode ? 'text-stone-300' : 'text-stone-600'} mb-1`}>Juja Square, 1st Floor</p>
+            <p className={`${isDarkMode ? 'text-stone-300' : 'text-stone-600'}`}>Juja, Kenya</p>
+            <p className={`${isDarkMode ? 'text-stone-400' : 'text-stone-400'} text-sm mt-2`}>Next to the Highway</p>
           </div>
 
           {/* Card 2: Contact Info */}
-          <div className="bg-white p-8 rounded-xl shadow-lg text-center transform hover:-translate-y-1 transition-transform duration-300">
-            <div className="bg-stone-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+          <div className={`p-8 rounded-xl shadow-lg text-center transform hover:-translate-y-1 transition-transform duration-300 ${isDarkMode ? 'bg-stone-800 border-stone-700' : 'bg-white'}`}>
+            <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 ${isDarkMode ? 'bg-stone-700' : 'bg-stone-100'}`}>
               <Phone className="h-8 w-8 text-gold-500" />
             </div>
-            <h3 className="font-serif text-xl font-bold text-stone-900 mb-2">Call or Email</h3>
-            <p className="text-stone-600 mb-1">+254 700 123 456</p>
-            <p className="text-stone-600">info@lennymedia.co.ke</p>
+            <h3 className={`font-serif text-xl font-bold ${isDarkMode ? 'text-white' : 'text-stone-900'} mb-2`}>Call or Email</h3>
+            <p className={`${isDarkMode ? 'text-stone-300' : 'text-stone-600'} mb-1`}>+254 700 123 456</p>
+            <p className={`${isDarkMode ? 'text-stone-300' : 'text-stone-600'}`}>info@lennymedia.co.ke</p>
             <div className="flex justify-center space-x-4 mt-6">
-              <a href="#" className="text-stone-400 hover:text-gold-500"><Instagram className="h-5 w-5"/></a>
-              <a href="#" className="text-stone-400 hover:text-gold-500"><Facebook className="h-5 w-5"/></a>
-              <a href="#" className="text-stone-400 hover:text-gold-500"><Twitter className="h-5 w-5"/></a>
+              <a href="#" className={`${isDarkMode ? 'text-stone-400 hover:text-gold-500' : 'text-stone-400 hover:text-gold-500'}`}>📷</a>
+              <a href="#" className={`${isDarkMode ? 'text-stone-400 hover:text-gold-500' : 'text-stone-400 hover:text-gold-500'}`}>👥</a>
+              <a href="#" className={`${isDarkMode ? 'text-stone-400 hover:text-gold-500' : 'text-stone-400 hover:text-gold-500'}`}>𝕏</a>
             </div>
           </div>
 
           {/* Card 3: Hours */}
-          <div className="bg-white p-8 rounded-xl shadow-lg text-center transform hover:-translate-y-1 transition-transform duration-300">
-            <div className="bg-stone-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+          <div className={`p-8 rounded-xl shadow-lg text-center transform hover:-translate-y-1 transition-transform duration-300 ${isDarkMode ? 'bg-stone-800 border-stone-700' : 'bg-white'}`}>
+            <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 ${isDarkMode ? 'bg-stone-700' : 'bg-stone-100'}`}>
               <Clock className="h-8 w-8 text-gold-500" />
             </div>
-            <h3 className="font-serif text-xl font-bold text-stone-900 mb-2">Working Hours</h3>
-            <p className="text-stone-600">Mon - Sat: 8:00 AM - 6:00 PM</p>
-            <p className="text-stone-600">Sunday: By Appointment</p>
+            <h3 className={`font-serif text-xl font-bold ${isDarkMode ? 'text-white' : 'text-stone-900'} mb-2`}>Working Hours</h3>
+            <p className={`${isDarkMode ? 'text-stone-300' : 'text-stone-600'}`}>Mon - Sat: 8:00 AM - 6:00 PM</p>
+            <p className={`${isDarkMode ? 'text-stone-300' : 'text-stone-600'}`}>Sunday: By Appointment</p>
           </div>
         </div>
 
         {/* Map Section */}
-        <div className="mt-12 bg-white p-4 rounded-xl shadow-lg">
+        <div className={`mt-12 ${isDarkMode ? 'bg-stone-800 border-stone-700' : 'bg-white'} p-4 rounded-xl shadow-lg`}>
           <div className="w-full h-96 bg-stone-200 rounded-lg overflow-hidden relative">
             {/* Embed Google Map placeholder. In real app, use an iframe or API */}
             <iframe 

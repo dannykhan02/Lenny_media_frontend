@@ -1,8 +1,11 @@
 import React from 'react';
 import { Camera, BookOpen, Users, Award, CheckCircle, ArrowRight, Zap, Sun, Layout, Briefcase, DollarSign, Calendar, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useTheme } from '../context/ThemeContext';
 
 const School: React.FC = () => {
+  const { isDarkMode } = useTheme();
+  
   const curriculum = [
     {
       week: "WEEK 1",
@@ -76,7 +79,7 @@ const School: React.FC = () => {
   ];
 
   return (
-    <div className="bg-white min-h-screen font-sans">
+    <div className={`min-h-screen font-sans ${isDarkMode ? 'bg-stone-950' : 'bg-white'}`}>
       {/* Hero Section */}
       <div className="relative min-h-[90vh] md:h-[85vh] w-full overflow-hidden bg-stone-900 text-white flex items-center">
         <div className="absolute inset-0">
@@ -134,33 +137,33 @@ const School: React.FC = () => {
       </div>
 
       {/* Course Overview Intro */}
-      <div id="overview" className="pt-20 pb-10 px-4 bg-white scroll-mt-24">
+      <div id="overview" className={`pt-20 pb-10 px-4 scroll-mt-24 ${isDarkMode ? 'bg-stone-950' : 'bg-white'}`}>
         <div className="max-w-4xl mx-auto text-center">
-            <h2 className="font-serif text-4xl font-bold text-stone-900 mb-6">Intensive Photography Course</h2>
-            <p className="text-xl text-stone-600 leading-relaxed mb-8">
+            <h2 className={`font-serif text-4xl font-bold mb-6 ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>Intensive Photography Course</h2>
+            <p className={`text-xl leading-relaxed mb-8 ${isDarkMode ? 'text-stone-300' : 'text-stone-600'}`}>
                 This intensive one-month course focuses on <span className="text-gold-600 font-bold">hands-on photography skills</span>, camera mastery, composition, lighting, editing, and real-world shooting. Students will graduate with confidence, a small portfolio, and practical knowledge they can immediately monetize.
             </p>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left mt-12">
-                <div className="bg-stone-50 p-6 rounded-2xl border border-stone-100 flex items-start gap-4">
-                    <div className="bg-white p-3 rounded-full shadow-sm text-gold-500"><Calendar className="w-6 h-6"/></div>
+                <div className={`p-6 rounded-2xl border flex items-start gap-4 ${isDarkMode ? 'bg-stone-900 border-stone-800' : 'bg-stone-50 border-stone-100'}`}>
+                    <div className={`p-3 rounded-full shadow-sm text-gold-500 ${isDarkMode ? 'bg-stone-800' : 'bg-white'}`}><Calendar className="w-6 h-6"/></div>
                     <div>
-                        <h4 className="font-bold text-stone-900">Duration</h4>
-                        <p className="text-stone-600">4 Weeks (Intensive)</p>
+                        <h4 className={`font-bold ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>Duration</h4>
+                        <p className={isDarkMode ? 'text-stone-300' : 'text-stone-600'}>4 Weeks (Intensive)</p>
                     </div>
                 </div>
-                <div className="bg-stone-50 p-6 rounded-2xl border border-stone-100 flex items-start gap-4">
-                     <div className="bg-white p-3 rounded-full shadow-sm text-gold-500"><DollarSign className="w-6 h-6"/></div>
+                <div className={`p-6 rounded-2xl border flex items-start gap-4 ${isDarkMode ? 'bg-stone-900 border-stone-800' : 'bg-stone-50 border-stone-100'}`}>
+                     <div className={`p-3 rounded-full shadow-sm text-gold-500 ${isDarkMode ? 'bg-stone-800' : 'bg-white'}`}><DollarSign className="w-6 h-6"/></div>
                     <div>
-                        <h4 className="font-bold text-stone-900">Investment</h4>
-                        <p className="text-stone-600">Ksh 15,000</p>
+                        <h4 className={`font-bold ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>Investment</h4>
+                        <p className={isDarkMode ? 'text-stone-300' : 'text-stone-600'}>Ksh 15,000</p>
                     </div>
                 </div>
-                <div className="bg-stone-50 p-6 rounded-2xl border border-stone-100 flex items-start gap-4">
-                     <div className="bg-white p-3 rounded-full shadow-sm text-gold-500"><Award className="w-6 h-6"/></div>
+                <div className={`p-6 rounded-2xl border flex items-start gap-4 ${isDarkMode ? 'bg-stone-900 border-stone-800' : 'bg-stone-50 border-stone-100'}`}>
+                     <div className={`p-3 rounded-full shadow-sm text-gold-500 ${isDarkMode ? 'bg-stone-800' : 'bg-white'}`}><Award className="w-6 h-6"/></div>
                     <div>
-                        <h4 className="font-bold text-stone-900">Certification</h4>
-                        <p className="text-stone-600">Certificate of Completion</p>
+                        <h4 className={`font-bold ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>Certification</h4>
+                        <p className={isDarkMode ? 'text-stone-300' : 'text-stone-600'}>Certificate of Completion</p>
                     </div>
                 </div>
             </div>
@@ -168,22 +171,22 @@ const School: React.FC = () => {
       </div>
 
       {/* Benefits & Ideal For Section */}
-      <div className="py-20 px-4 bg-stone-50 mt-10">
+      <div className={`py-20 px-4 mt-10 ${isDarkMode ? 'bg-stone-900' : 'bg-stone-50'}`}>
         <div className="max-w-7xl mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-stretch">
                 {/* Benefits */}
-                <div className="bg-white p-10 rounded-3xl shadow-sm border border-stone-100 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-gold-50 rounded-full blur-3xl -mr-10 -mt-10"></div>
-                    <h3 className="font-serif text-3xl font-bold text-stone-900 mb-8 flex items-center gap-3 relative z-10">
+                <div className={`p-10 rounded-3xl shadow-sm border relative overflow-hidden ${isDarkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'}`}>
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-gold-50 rounded-full blur-3xl -mr-10 -mt-10 opacity-20"></div>
+                    <h3 className={`font-serif text-3xl font-bold mb-8 flex items-center gap-3 relative z-10 ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>
                         What Students Get
                     </h3>
                     <ul className="space-y-6 relative z-10">
                         {benefits.map((benefit, idx) => (
                             <li key={idx} className="flex items-start gap-4 group">
-                                <div className="bg-green-100 p-1.5 rounded-full text-green-600 mt-0.5 group-hover:scale-110 transition-transform">
+                                <div className={`p-1.5 rounded-full text-green-600 mt-0.5 group-hover:scale-110 transition-transform ${isDarkMode ? 'bg-green-900/30' : 'bg-green-100'}`}>
                                     <CheckCircle className="w-5 h-5" />
                                 </div>
-                                <span className="text-lg text-stone-700 font-medium">{benefit}</span>
+                                <span className={`text-lg font-medium ${isDarkMode ? 'text-stone-300' : 'text-stone-700'}`}>{benefit}</span>
                             </li>
                         ))}
                     </ul>
@@ -191,18 +194,18 @@ const School: React.FC = () => {
 
                 {/* Ideal For */}
                 <div className="flex flex-col justify-center">
-                    <div className="inline-block p-2 bg-gold-100 rounded-lg w-fit mb-4">
+                    <div className={`inline-block p-2 rounded-lg w-fit mb-4 ${isDarkMode ? 'bg-gold-900/30' : 'bg-gold-100'}`}>
                         <Users className="w-6 h-6 text-gold-600" />
                     </div>
-                    <h3 className="font-serif text-3xl font-bold text-stone-900 mb-6">Ideal For</h3>
-                    <p className="text-stone-500 text-lg mb-8 leading-relaxed">
+                    <h3 className={`font-serif text-3xl font-bold mb-6 ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>Ideal For</h3>
+                    <p className={`text-lg mb-8 leading-relaxed ${isDarkMode ? 'text-stone-400' : 'text-stone-500'}`}>
                         This course is crafted to bridge the gap between passion and profession. Whether you are picking up a camera for the first time or looking to sharpen your skills for business, this program is for:
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {idealCandidates.map((candidate, idx) => (
-                            <div key={idx} className="bg-white p-5 rounded-2xl border border-stone-200 shadow-sm flex items-center gap-3 hover:border-gold-500 hover:shadow-md transition-all">
+                            <div key={idx} className={`p-5 rounded-2xl border shadow-sm flex items-center gap-3 hover:border-gold-500 hover:shadow-md transition-all ${isDarkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-200'}`}>
                                 <Star className="w-5 h-5 text-gold-500 fill-gold-500" />
-                                <span className="font-bold text-stone-800 text-sm">{candidate}</span>
+                                <span className={`font-bold text-sm ${isDarkMode ? 'text-stone-300' : 'text-stone-800'}`}>{candidate}</span>
                             </div>
                         ))}
                     </div>
@@ -212,50 +215,50 @@ const School: React.FC = () => {
       </div>
 
       {/* Curriculum Breakdown */}
-      <div id="curriculum" className="py-24 px-4 bg-white scroll-mt-24">
+      <div id="curriculum" className={`py-24 px-4 scroll-mt-24 ${isDarkMode ? 'bg-stone-950' : 'bg-white'}`}>
         <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
                 <span className="text-gold-500 font-bold uppercase tracking-widest text-sm mb-2 block">Syllabus</span>
-                <h2 className="font-serif text-4xl md:text-5xl font-bold text-stone-900 mb-4">Course Outline</h2>
-                <p className="text-stone-500">A structured path from basics to business.</p>
+                <h2 className={`font-serif text-4xl md:text-5xl font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>Course Outline</h2>
+                <p className={isDarkMode ? 'text-stone-400' : 'text-stone-500'}>A structured path from basics to business.</p>
             </div>
 
             <div className="space-y-8">
                 {curriculum.map((module, idx) => (
-                    <div key={idx} className="bg-stone-50 rounded-3xl p-8 shadow-sm hover:shadow-lg transition-all duration-300 border border-stone-100 relative overflow-hidden group">
+                    <div key={idx} className={`rounded-3xl p-8 shadow-sm hover:shadow-lg transition-all duration-300 border relative overflow-hidden group ${isDarkMode ? 'bg-stone-900 border-stone-800' : 'bg-stone-50 border-stone-100'}`}>
                         <div className="absolute top-0 left-0 w-2 h-full bg-gold-500 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300"></div>
                         <div className="flex flex-col lg:flex-row gap-8 lg:items-start">
                             {/* Week Header */}
                             <div className="lg:w-1/4 flex-shrink-0">
-                                <div className="inline-flex items-center gap-2 bg-stone-900 text-gold-500 px-4 py-2 rounded-full font-bold text-sm mb-4">
+                                <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full font-bold text-sm mb-4 ${isDarkMode ? 'bg-stone-800 text-gold-400' : 'bg-stone-900 text-gold-500'}`}>
                                     {module.icon} {module.week}
                                 </div>
-                                <h3 className="font-serif text-2xl font-bold text-stone-900 mb-2">{module.title}</h3>
-                                <p className="text-stone-500 text-sm leading-relaxed">{module.description}</p>
+                                <h3 className={`font-serif text-2xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>{module.title}</h3>
+                                <p className={`text-sm leading-relaxed ${isDarkMode ? 'text-stone-400' : 'text-stone-500'}`}>{module.description}</p>
                             </div>
 
                             {/* Divider (Desktop) */}
-                            <div className="hidden lg:block w-px bg-stone-200 self-stretch"></div>
+                            <div className={`hidden lg:block w-px self-stretch ${isDarkMode ? 'bg-stone-700' : 'bg-stone-200'}`}></div>
 
                             {/* Lessons */}
                             <div className="lg:w-1/2">
-                                <h4 className="font-bold text-stone-900 mb-4 uppercase text-xs tracking-wider text-stone-400">Lessons Covered</h4>
+                                <h4 className={`font-bold mb-4 uppercase text-xs tracking-wider ${isDarkMode ? 'text-stone-500' : 'text-stone-400'}`}>Lessons Covered</h4>
                                 <ul className="grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-8">
                                     {module.lessons.map((lesson, i) => (
-                                        <li key={i} className="flex items-start gap-3 text-stone-700">
+                                        <li key={i} className="flex items-start gap-3">
                                             <div className="w-1.5 h-1.5 rounded-full bg-gold-500 mt-2 flex-shrink-0"></div>
-                                            <span className="text-sm">{lesson}</span>
+                                            <span className={`text-sm ${isDarkMode ? 'text-stone-300' : 'text-stone-700'}`}>{lesson}</span>
                                         </li>
                                     ))}
                                 </ul>
                             </div>
 
                             {/* Practical */}
-                            <div className="lg:w-1/4 bg-white rounded-2xl p-6 border border-stone-100 shadow-sm">
-                                <h4 className="font-bold text-stone-900 mb-3 flex items-center gap-2">
+                            <div className={`lg:w-1/4 rounded-2xl p-6 border shadow-sm ${isDarkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'}`}>
+                                <h4 className={`font-bold mb-3 flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>
                                     <Zap className="w-4 h-4 text-gold-600" /> Practical Session
                                 </h4>
-                                <p className="text-stone-600 text-sm italic">
+                                <p className={`text-sm italic ${isDarkMode ? 'text-stone-400' : 'text-stone-600'}`}>
                                     "{module.practical}"
                                 </p>
                             </div>
@@ -267,7 +270,7 @@ const School: React.FC = () => {
             <div className="mt-16 text-center">
                 <Link 
                     to="/enrollment"
-                    className="inline-flex items-center gap-3 bg-stone-900 text-white px-10 py-5 rounded-full font-bold text-lg hover:bg-gold-500 hover:text-stone-900 transition-all duration-300 shadow-xl"
+                    className="inline-flex items-center gap-3 bg-gold-500 text-stone-900 px-10 py-5 rounded-full font-bold text-lg hover:bg-gold-600 transition-all duration-300 shadow-xl"
                 >
                     Enroll for This Course <ArrowRight className="w-5 h-5" />
                 </Link>
@@ -276,34 +279,34 @@ const School: React.FC = () => {
       </div>
 
       {/* Why Choose Us */}
-      <div className="py-24 px-4 bg-stone-50">
+      <div className={`py-24 px-4 ${isDarkMode ? 'bg-stone-900' : 'bg-stone-50'}`}>
         <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
-                <h2 className="font-serif text-4xl font-bold text-stone-900 mb-4">Why Learn With Us?</h2>
-                <p className="text-stone-500 max-w-2xl mx-auto text-lg">We don't just teach theory; we train you for the real world.</p>
+                <h2 className={`font-serif text-4xl font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>Why Learn With Us?</h2>
+                <p className={`max-w-2xl mx-auto text-lg ${isDarkMode ? 'text-stone-400' : 'text-stone-500'}`}>We don't just teach theory; we train you for the real world.</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div className="bg-white p-8 rounded-2xl border border-stone-100 hover:border-gold-500 transition-colors text-center group shadow-sm">
-                    <div className="w-16 h-16 bg-stone-50 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-gold-500 group-hover:text-stone-900 transition-colors shadow-inner">
-                        <Zap className="h-8 w-8 text-stone-700 group-hover:text-stone-900" />
+                <div className={`p-8 rounded-2xl border hover:border-gold-500 transition-colors text-center group shadow-sm ${isDarkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'}`}>
+                    <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-gold-500 group-hover:text-stone-900 transition-colors shadow-inner ${isDarkMode ? 'bg-stone-700' : 'bg-stone-50'}`}>
+                        <Zap className="h-8 w-8 group-hover:text-stone-900" />
                     </div>
-                    <h3 className="font-bold text-xl mb-3">Hands-On Training</h3>
-                    <p className="text-stone-500 leading-relaxed">Access to professional cameras, lenses, and lighting equipment. Learn by doing from day one.</p>
+                    <h3 className={`font-bold text-xl mb-3 ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>Hands-On Training</h3>
+                    <p className={`leading-relaxed ${isDarkMode ? 'text-stone-400' : 'text-stone-500'}`}>Access to professional cameras, lenses, and lighting equipment. Learn by doing from day one.</p>
                 </div>
-                <div className="bg-white p-8 rounded-2xl border border-stone-100 hover:border-gold-500 transition-colors text-center group shadow-sm">
-                    <div className="w-16 h-16 bg-stone-50 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-gold-500 group-hover:text-stone-900 transition-colors shadow-inner">
-                        <Users className="h-8 w-8 text-stone-700 group-hover:text-stone-900" />
+                <div className={`p-8 rounded-2xl border hover:border-gold-500 transition-colors text-center group shadow-sm ${isDarkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'}`}>
+                    <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-gold-500 group-hover:text-stone-900 transition-colors shadow-inner ${isDarkMode ? 'bg-stone-700' : 'bg-stone-50'}`}>
+                        <Users className="h-8 w-8 group-hover:text-stone-900" />
                     </div>
-                    <h3 className="font-bold text-xl mb-3">Expert Mentorship</h3>
-                    <p className="text-stone-500 leading-relaxed">Learn directly from Lenny Media's lead photographers with years of field experience in events and studio work.</p>
+                    <h3 className={`font-bold text-xl mb-3 ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>Expert Mentorship</h3>
+                    <p className={`leading-relaxed ${isDarkMode ? 'text-stone-400' : 'text-stone-500'}`}>Learn directly from Lenny Media's lead photographers with years of field experience in events and studio work.</p>
                 </div>
-                <div className="bg-white p-8 rounded-2xl border border-stone-100 hover:border-gold-500 transition-colors text-center group shadow-sm">
-                    <div className="w-16 h-16 bg-stone-50 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-gold-500 group-hover:text-stone-900 transition-colors shadow-inner">
-                        <Award className="h-8 w-8 text-stone-700 group-hover:text-stone-900" />
+                <div className={`p-8 rounded-2xl border hover:border-gold-500 transition-colors text-center group shadow-sm ${isDarkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'}`}>
+                    <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-gold-500 group-hover:text-stone-900 transition-colors shadow-inner ${isDarkMode ? 'bg-stone-700' : 'bg-stone-50'}`}>
+                        <Award className="h-8 w-8 group-hover:text-stone-900" />
                     </div>
-                    <h3 className="font-bold text-xl mb-3">Certification</h3>
-                    <p className="text-stone-500 leading-relaxed">Receive a recognized certificate upon completion and assistance with building your professional portfolio.</p>
+                    <h3 className={`font-bold text-xl mb-3 ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>Certification</h3>
+                    <p className={`leading-relaxed ${isDarkMode ? 'text-stone-400' : 'text-stone-500'}`}>Receive a recognized certificate upon completion and assistance with building your professional portfolio.</p>
                 </div>
             </div>
         </div>

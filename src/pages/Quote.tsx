@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Camera, Video, Check, Send, Sparkles, User, Mail, Phone, Building, Calendar, MapPin, DollarSign, MessageSquare, Instagram, Facebook, Globe, Search, Layers, ChevronRight, ArrowRight } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
 
 interface ServiceOption {
   id: string;
@@ -9,6 +10,7 @@ interface ServiceOption {
 }
 
 const Quote: React.FC = () => {
+  const { isDarkMode } = useTheme();
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [referralSource, setReferralSource] = useState<string>('');
   const [formData, setFormData] = useState({
@@ -73,26 +75,26 @@ const Quote: React.FC = () => {
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-stone-50 flex items-center justify-center px-4 relative overflow-hidden">
+      <div className={`min-h-screen flex items-center justify-center px-4 relative overflow-hidden ${isDarkMode ? 'bg-stone-950' : 'bg-stone-50'}`}>
          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gold-500/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2"></div>
-        <div className="max-w-xl w-full bg-white rounded-3xl p-12 text-center shadow-2xl border border-gold-100 relative z-10 animate-[fadeIn_0.5s_ease-out]">
-          <div className="w-24 h-24 bg-green-50 text-green-500 rounded-full flex items-center justify-center mx-auto mb-8 shadow-sm">
+        <div className={`max-w-xl w-full rounded-3xl p-12 text-center shadow-2xl relative z-10 animate-[fadeIn_0.5s_ease-out] ${isDarkMode ? 'bg-stone-900 border-stone-700' : 'bg-white border-gold-100'}`}>
+          <div className={`w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-8 shadow-sm ${isDarkMode ? 'bg-green-900/30 text-green-400' : 'bg-green-50 text-green-500'}`}>
             <Check className="w-12 h-12" />
           </div>
-          <h2 className="font-serif text-4xl font-bold text-stone-900 mb-6">Request Sent!</h2>
-          <p className="text-stone-600 mb-10 text-lg leading-relaxed">
+          <h2 className={`font-serif text-4xl font-bold mb-6 ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>Request Sent!</h2>
+          <p className={`mb-10 text-lg leading-relaxed ${isDarkMode ? 'text-stone-300' : 'text-stone-600'}`}>
             Thank you, <strong>{formData.name}</strong>. We have received your request. Our team is currently reviewing your details and will send a personalized proposal to <strong>{formData.email}</strong> shortly.
           </p>
           <div className="flex justify-center gap-4">
             <button 
                 onClick={() => setSubmitted(false)} 
-                className="px-8 py-3 bg-stone-100 text-stone-600 rounded-full font-bold hover:bg-stone-200 transition-colors"
+                className={`px-8 py-3 rounded-full font-bold transition-colors ${isDarkMode ? 'bg-stone-800 text-stone-300 hover:bg-stone-700' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'}`}
             >
                 New Request
             </button>
             <a 
                 href="/" 
-                className="px-8 py-3 bg-stone-900 text-white rounded-full font-bold hover:bg-gold-500 hover:text-stone-900 transition-all"
+                className="px-8 py-3 bg-gold-500 text-stone-900 rounded-full font-bold hover:bg-gold-600 transition-all"
             >
                 Back to Home
             </a>
@@ -103,9 +105,9 @@ const Quote: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-stone-50 font-sans">
+    <div className={`min-h-screen font-sans ${isDarkMode ? 'bg-stone-950' : 'bg-stone-50'}`}>
       {/* 1. Redesigned Hero */}
-      <div className="bg-stone-900 pt-32 pb-20 px-4 relative overflow-hidden">
+      <div className={`pt-32 pb-20 px-4 relative overflow-hidden ${isDarkMode ? 'bg-stone-900' : 'bg-stone-900'}`}>
         {/* Background Texture */}
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-10"></div>
         
@@ -181,20 +183,20 @@ const Quote: React.FC = () => {
       </div>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 relative z-10">
-        <form onSubmit={handleSubmit} className="bg-white rounded-[2rem] shadow-xl overflow-hidden border border-stone-100">
+        <form onSubmit={handleSubmit} className={`rounded-[2rem] shadow-xl overflow-hidden border ${isDarkMode ? 'bg-stone-900 border-stone-800' : 'bg-white border-stone-100'}`}>
           
           {/* Step 1: Service Selection */}
-          <div className="p-8 md:p-16 border-b border-stone-100">
+          <div className={`p-8 md:p-16 border-b ${isDarkMode ? 'border-stone-800' : 'border-stone-100'}`}>
             <div className="mb-10">
                 <span className="text-gold-500 font-bold tracking-widest uppercase text-xs mb-2 block">Step 01</span>
-                <h3 className="font-serif text-3xl font-bold text-stone-900">What do you need?</h3>
-                <p className="text-stone-500 mt-2">Select as many services as applicable by ticking the boxes.</p>
+                <h3 className={`font-serif text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>What do you need?</h3>
+                <p className={`mt-2 ${isDarkMode ? 'text-stone-400' : 'text-stone-500'}`}>Select as many services as applicable by ticking the boxes.</p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
                 {/* Photography Column */}
                 <div>
-                    <h4 className="flex items-center gap-2 font-bold text-stone-900 mb-6 text-lg">
+                    <h4 className={`flex items-center gap-2 font-bold mb-6 text-lg ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>
                         <Camera className="w-5 h-5 text-gold-500" /> Photography
                     </h4>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -204,14 +206,18 @@ const Quote: React.FC = () => {
                             onClick={() => toggleService(service.id)}
                             className={`cursor-pointer rounded-xl p-4 border-2 transition-all duration-200 flex items-center gap-4 group select-none
                             ${selectedServices.includes(service.id) 
-                                ? 'border-gold-500 bg-gold-50/40' 
-                                : 'border-stone-100 hover:border-gold-200 hover:bg-stone-50'}`}
+                                ? 'border-gold-500 bg-gold-900/20' 
+                                : isDarkMode 
+                                  ? 'border-stone-800 hover:border-gold-200 hover:bg-stone-800/50' 
+                                  : 'border-stone-100 hover:border-gold-200 hover:bg-stone-50'}`}
                         >
                             {/* Checkbox Visual */}
                             <div className={`w-6 h-6 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors duration-200
                                 ${selectedServices.includes(service.id) 
                                     ? 'bg-gold-500 border-gold-500 text-stone-900' 
-                                    : 'bg-white border-stone-300 group-hover:border-gold-400'}`}
+                                    : isDarkMode
+                                      ? 'bg-stone-800 border-stone-700 group-hover:border-gold-400'
+                                      : 'bg-white border-stone-300 group-hover:border-gold-400'}`}
                             >
                                 {selectedServices.includes(service.id) && <Check className="w-4 h-4" strokeWidth={4} />}
                             </div>
@@ -220,7 +226,7 @@ const Quote: React.FC = () => {
                                 <div className={`transition-colors ${selectedServices.includes(service.id) ? 'text-gold-600' : 'text-stone-400 group-hover:text-gold-500'}`}>
                                     {service.icon}
                                 </div>
-                                <span className={`font-bold text-sm truncate ${selectedServices.includes(service.id) ? 'text-stone-900' : 'text-stone-600'}`}>
+                                <span className={`font-bold text-sm truncate ${selectedServices.includes(service.id) ? isDarkMode ? 'text-white' : 'text-stone-900' : isDarkMode ? 'text-stone-300' : 'text-stone-600'}`}>
                                     {service.label}
                                 </span>
                             </div>
@@ -231,7 +237,7 @@ const Quote: React.FC = () => {
 
                 {/* Videography Column */}
                 <div>
-                     <h4 className="flex items-center gap-2 font-bold text-stone-900 mb-6 text-lg">
+                     <h4 className={`flex items-center gap-2 font-bold mb-6 text-lg ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>
                         <Video className="w-5 h-5 text-gold-500" /> Videography
                     </h4>
                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -241,14 +247,18 @@ const Quote: React.FC = () => {
                             onClick={() => toggleService(service.id)}
                             className={`cursor-pointer rounded-xl p-4 border-2 transition-all duration-200 flex items-center gap-4 group select-none
                             ${selectedServices.includes(service.id) 
-                                ? 'border-gold-500 bg-gold-50/40' 
-                                : 'border-stone-100 hover:border-gold-200 hover:bg-stone-50'}`}
+                                ? 'border-gold-500 bg-gold-900/20' 
+                                : isDarkMode 
+                                  ? 'border-stone-800 hover:border-gold-200 hover:bg-stone-800/50' 
+                                  : 'border-stone-100 hover:border-gold-200 hover:bg-stone-50'}`}
                         >
                             {/* Checkbox Visual */}
                              <div className={`w-6 h-6 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors duration-200
                                 ${selectedServices.includes(service.id) 
                                     ? 'bg-gold-500 border-gold-500 text-stone-900' 
-                                    : 'bg-white border-stone-300 group-hover:border-gold-400'}`}
+                                    : isDarkMode
+                                      ? 'bg-stone-800 border-stone-700 group-hover:border-gold-400'
+                                      : 'bg-white border-stone-300 group-hover:border-gold-400'}`}
                             >
                                 {selectedServices.includes(service.id) && <Check className="w-4 h-4" strokeWidth={4} />}
                             </div>
@@ -257,7 +267,7 @@ const Quote: React.FC = () => {
                                 <div className={`transition-colors ${selectedServices.includes(service.id) ? 'text-gold-600' : 'text-stone-400 group-hover:text-gold-500'}`}>
                                     {service.icon}
                                 </div>
-                                <span className={`font-bold text-sm truncate ${selectedServices.includes(service.id) ? 'text-stone-900' : 'text-stone-600'}`}>
+                                <span className={`font-bold text-sm truncate ${selectedServices.includes(service.id) ? isDarkMode ? 'text-white' : 'text-stone-900' : isDarkMode ? 'text-stone-300' : 'text-stone-600'}`}>
                                     {service.label}
                                 </span>
                             </div>
@@ -268,68 +278,116 @@ const Quote: React.FC = () => {
             </div>
             
             {selectedServices.length === 0 && (
-                <div className="mt-8 p-4 bg-red-50 text-red-600 rounded-xl text-sm flex items-center justify-center gap-2 animate-pulse">
+                <div className={`mt-8 p-4 rounded-xl text-sm flex items-center justify-center gap-2 animate-pulse ${isDarkMode ? 'bg-red-900/30 text-red-400' : 'bg-red-50 text-red-600'}`}>
                     Please tick the boxes for the services you are interested in.
                 </div>
             )}
           </div>
 
           {/* Step 2: Project & Contact Info */}
-          <div className="p-8 md:p-16 bg-stone-50/30">
+          <div className={`p-8 md:p-16 ${isDarkMode ? 'bg-stone-800/30' : 'bg-stone-50/30'}`}>
              <div className="mb-10">
                 <span className="text-gold-500 font-bold tracking-widest uppercase text-xs mb-2 block">Step 02</span>
-                <h3 className="font-serif text-3xl font-bold text-stone-900">Project Details</h3>
+                <h3 className={`font-serif text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>Project Details</h3>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Contact Info */}
                 <div className="lg:col-span-1 space-y-6">
-                    <h4 className="font-bold text-stone-900 border-b border-stone-200 pb-2 mb-4">Your Information</h4>
+                    <h4 className={`font-bold border-b pb-2 mb-4 ${isDarkMode ? 'text-white border-stone-700' : 'text-stone-900 border-stone-200'}`}>Your Information</h4>
                     
                     <div className="space-y-4">
                         <div className="group">
-                            <label className="text-xs font-bold text-stone-500 uppercase tracking-wide mb-1.5 block">Full Name</label>
-                            <input required type="text" name="name" value={formData.name} onChange={handleInputChange} className="w-full px-4 py-3 bg-white border border-stone-200 rounded-xl focus:ring-2 focus:ring-gold-500 focus:border-transparent outline-none transition-all" placeholder="Jane Doe" />
+                            <label className={`text-xs font-bold uppercase tracking-wide mb-1.5 block ${isDarkMode ? 'text-stone-400' : 'text-stone-500'}`}>Full Name</label>
+                            <input 
+                              required 
+                              type="text" 
+                              name="name" 
+                              value={formData.name} 
+                              onChange={handleInputChange} 
+                              className={`w-full px-4 py-3 rounded-xl focus:ring-2 focus:ring-gold-500 focus:border-transparent outline-none transition-all ${isDarkMode ? 'bg-stone-800 border-stone-700 text-white' : 'bg-white border-stone-200'}`} 
+                              placeholder="Jane Doe" 
+                            />
                         </div>
                          <div className="group">
-                            <label className="text-xs font-bold text-stone-500 uppercase tracking-wide mb-1.5 block">Email Address</label>
-                            <input required type="email" name="email" value={formData.email} onChange={handleInputChange} className="w-full px-4 py-3 bg-white border border-stone-200 rounded-xl focus:ring-2 focus:ring-gold-500 focus:border-transparent outline-none transition-all" placeholder="jane@example.com" />
+                            <label className={`text-xs font-bold uppercase tracking-wide mb-1.5 block ${isDarkMode ? 'text-stone-400' : 'text-stone-500'}`}>Email Address</label>
+                            <input 
+                              required 
+                              type="email" 
+                              name="email" 
+                              value={formData.email} 
+                              onChange={handleInputChange} 
+                              className={`w-full px-4 py-3 rounded-xl focus:ring-2 focus:ring-gold-500 focus:border-transparent outline-none transition-all ${isDarkMode ? 'bg-stone-800 border-stone-700 text-white' : 'bg-white border-stone-200'}`} 
+                              placeholder="jane@example.com" 
+                            />
                         </div>
                         <div className="group">
-                            <label className="text-xs font-bold text-stone-500 uppercase tracking-wide mb-1.5 block">Phone Number</label>
-                            <input required type="tel" name="phone" value={formData.phone} onChange={handleInputChange} className="w-full px-4 py-3 bg-white border border-stone-200 rounded-xl focus:ring-2 focus:ring-gold-500 focus:border-transparent outline-none transition-all" placeholder="+254 700 000 000" />
+                            <label className={`text-xs font-bold uppercase tracking-wide mb-1.5 block ${isDarkMode ? 'text-stone-400' : 'text-stone-500'}`}>Phone Number</label>
+                            <input 
+                              required 
+                              type="tel" 
+                              name="phone" 
+                              value={formData.phone} 
+                              onChange={handleInputChange} 
+                              className={`w-full px-4 py-3 rounded-xl focus:ring-2 focus:ring-gold-500 focus:border-transparent outline-none transition-all ${isDarkMode ? 'bg-stone-800 border-stone-700 text-white' : 'bg-white border-stone-200'}`} 
+                              placeholder="+254 700 000 000" 
+                            />
                         </div>
                          <div className="group">
-                            <label className="text-xs font-bold text-stone-500 uppercase tracking-wide mb-1.5 block">Organization (Optional)</label>
-                            <input type="text" name="company" value={formData.company} onChange={handleInputChange} className="w-full px-4 py-3 bg-white border border-stone-200 rounded-xl focus:ring-2 focus:ring-gold-500 focus:border-transparent outline-none transition-all" placeholder="Company Name" />
+                            <label className={`text-xs font-bold uppercase tracking-wide mb-1.5 block ${isDarkMode ? 'text-stone-400' : 'text-stone-500'}`}>Organization (Optional)</label>
+                            <input 
+                              type="text" 
+                              name="company" 
+                              value={formData.company} 
+                              onChange={handleInputChange} 
+                              className={`w-full px-4 py-3 rounded-xl focus:ring-2 focus:ring-gold-500 focus:border-transparent outline-none transition-all ${isDarkMode ? 'bg-stone-800 border-stone-700 text-white' : 'bg-white border-stone-200'}`} 
+                              placeholder="Company Name" 
+                            />
                         </div>
                     </div>
                 </div>
 
                 {/* Project Details */}
                 <div className="lg:col-span-2 space-y-6">
-                     <h4 className="font-bold text-stone-900 border-b border-stone-200 pb-2 mb-4">Event / Shoot Details</h4>
+                     <h4 className={`font-bold border-b pb-2 mb-4 ${isDarkMode ? 'text-white border-stone-700' : 'text-stone-900 border-stone-200'}`}>Event / Shoot Details</h4>
                      
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                          <div className="group">
-                            <label className="text-xs font-bold text-stone-500 uppercase tracking-wide mb-1.5 block">Preferred Date</label>
-                            <input type="date" name="date" value={formData.date} onChange={handleInputChange} className="w-full px-4 py-3 bg-white border border-stone-200 rounded-xl focus:ring-2 focus:ring-gold-500 focus:border-transparent outline-none transition-all" />
+                            <label className={`text-xs font-bold uppercase tracking-wide mb-1.5 block ${isDarkMode ? 'text-stone-400' : 'text-stone-500'}`}>Preferred Date</label>
+                            <input 
+                              type="date" 
+                              name="date" 
+                              value={formData.date} 
+                              onChange={handleInputChange} 
+                              className={`w-full px-4 py-3 rounded-xl focus:ring-2 focus:ring-gold-500 focus:border-transparent outline-none transition-all ${isDarkMode ? 'bg-stone-800 border-stone-700 text-white' : 'bg-white border-stone-200'}`} 
+                            />
                         </div>
                          <div className="group">
-                            <label className="text-xs font-bold text-stone-500 uppercase tracking-wide mb-1.5 block">Location / Venue</label>
-                            <input type="text" name="location" value={formData.location} onChange={handleInputChange} className="w-full px-4 py-3 bg-white border border-stone-200 rounded-xl focus:ring-2 focus:ring-gold-500 focus:border-transparent outline-none transition-all" placeholder="e.g. Windsor Golf Club" />
+                            <label className={`text-xs font-bold uppercase tracking-wide mb-1.5 block ${isDarkMode ? 'text-stone-400' : 'text-stone-500'}`}>Location / Venue</label>
+                            <input 
+                              type="text" 
+                              name="location" 
+                              value={formData.location} 
+                              onChange={handleInputChange} 
+                              className={`w-full px-4 py-3 rounded-xl focus:ring-2 focus:ring-gold-500 focus:border-transparent outline-none transition-all ${isDarkMode ? 'bg-stone-800 border-stone-700 text-white' : 'bg-white border-stone-200'}`} 
+                              placeholder="e.g. Windsor Golf Club" 
+                            />
                         </div>
                      </div>
 
                      <div className="group">
-                         <label className="text-xs font-bold text-stone-500 uppercase tracking-wide mb-1.5 block">Budget Range</label>
+                         <label className={`text-xs font-bold uppercase tracking-wide mb-1.5 block ${isDarkMode ? 'text-stone-400' : 'text-stone-500'}`}>Budget Range</label>
                          <div className="grid grid-cols-3 md:grid-cols-5 gap-2">
                              {['< 20k', '20k - 50k', '50k - 100k', '100k - 250k', '250k +'].map((range) => (
                                  <button 
                                     key={range}
                                     type="button"
                                     onClick={() => setFormData(prev => ({...prev, budget: range}))}
-                                    className={`px-2 py-3 rounded-lg text-sm font-medium border transition-all ${formData.budget === range ? 'bg-stone-900 text-gold-500 border-stone-900' : 'bg-white border-stone-200 text-stone-500 hover:border-gold-400'}`}
+                                    className={`px-2 py-3 rounded-lg text-sm font-medium border transition-all ${formData.budget === range 
+                                      ? 'bg-gold-500 text-stone-900 border-gold-500' 
+                                      : isDarkMode
+                                        ? 'bg-stone-800 border-stone-700 text-stone-300 hover:border-gold-400'
+                                        : 'bg-white border-stone-200 text-stone-500 hover:border-gold-400'}`}
                                  >
                                      {range}
                                  </button>
@@ -338,18 +396,26 @@ const Quote: React.FC = () => {
                      </div>
 
                      <div className="group">
-                        <label className="text-xs font-bold text-stone-500 uppercase tracking-wide mb-1.5 block">Project Description</label>
-                        <textarea required name="message" value={formData.message} onChange={handleInputChange} rows={4} className="w-full px-4 py-3 bg-white border border-stone-200 rounded-xl focus:ring-2 focus:ring-gold-500 focus:border-transparent outline-none transition-all resize-none" placeholder="Tell us about the project vision, specific shots required, or any other questions..."></textarea>
+                        <label className={`text-xs font-bold uppercase tracking-wide mb-1.5 block ${isDarkMode ? 'text-stone-400' : 'text-stone-500'}`}>Project Description</label>
+                        <textarea 
+                          required 
+                          name="message" 
+                          value={formData.message} 
+                          onChange={handleInputChange} 
+                          rows={4} 
+                          className={`w-full px-4 py-3 rounded-xl focus:ring-2 focus:ring-gold-500 focus:border-transparent outline-none transition-all resize-none ${isDarkMode ? 'bg-stone-800 border-stone-700 text-white' : 'bg-white border-stone-200'}`} 
+                          placeholder="Tell us about the project vision, specific shots required, or any other questions..."
+                        ></textarea>
                     </div>
                 </div>
             </div>
           </div>
 
           {/* Referral & Submit */}
-          <div className="p-8 md:p-16 border-t border-stone-100 bg-white">
+          <div className={`p-8 md:p-16 border-t ${isDarkMode ? 'bg-stone-900 border-stone-800' : 'bg-white border-stone-100'}`}>
              <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
                  <div className="w-full lg:w-auto">
-                    <label className="text-xs font-bold text-stone-400 uppercase tracking-wide mb-3 block">How did you find us?</label>
+                    <label className={`text-xs font-bold uppercase tracking-wide mb-3 block ${isDarkMode ? 'text-stone-400' : 'text-stone-400'}`}>How did you find us?</label>
                     <div className="flex flex-wrap gap-2">
                     {referralOptions.map(option => (
                         <button
@@ -358,8 +424,12 @@ const Quote: React.FC = () => {
                         onClick={() => setReferralSource(option.id)}
                         className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-200 border
                             ${referralSource === option.id 
-                            ? 'bg-gold-50 text-gold-700 border-gold-200' 
-                            : 'bg-stone-50 text-stone-500 border-transparent hover:bg-stone-100'}`}
+                            ? isDarkMode
+                              ? 'bg-gold-900/30 text-gold-400 border-gold-700'
+                              : 'bg-gold-50 text-gold-700 border-gold-200'
+                            : isDarkMode
+                              ? 'bg-stone-800 text-stone-400 border-transparent hover:bg-stone-700'
+                              : 'bg-stone-50 text-stone-500 border-transparent hover:bg-stone-100'}`}
                         >
                         {option.icon}
                         {option.label}

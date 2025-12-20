@@ -1,8 +1,11 @@
 import React from 'react';
 import { Camera, Video, Check, ArrowRight, Zap, Star, FileText } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useTheme } from '../context/ThemeContext';
 
 const Services: React.FC = () => {
+  const { isDarkMode } = useTheme();
+  
   const photographyServices = [
     { 
         title: 'Corporate Events Photography', 
@@ -94,9 +97,9 @@ const Services: React.FC = () => {
   ];
 
   return (
-    <div className="bg-stone-50 min-h-screen font-sans">
+    <div className={`min-h-screen font-sans ${isDarkMode ? 'bg-stone-950' : 'bg-stone-50'}`}>
       {/* Hero Header */}
-      <div className="relative bg-stone-950 pt-36 pb-24 px-4 overflow-hidden">
+      <div className={`pt-36 pb-24 px-4 overflow-hidden ${isDarkMode ? 'bg-stone-900' : 'bg-stone-950'}`}>
         <div className="absolute inset-0">
              {/* Richer Gold Gradient Background Effect */}
              <div className="absolute top-0 right-0 w-[900px] h-[900px] bg-gradient-to-b from-gold-600/10 to-transparent rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2"></div>
@@ -112,10 +115,10 @@ const Services: React.FC = () => {
             <span className="font-bold tracking-widest uppercase text-xs">Premium Quality Services</span>
           </div>
 
-          <h1 className="font-serif text-5xl md:text-7xl font-bold text-white mb-6 tracking-tight">
+          <h1 className={`font-serif text-5xl md:text-7xl font-bold mb-6 tracking-tight ${isDarkMode ? 'text-white' : 'text-white'}`}>
             Services & Investment
           </h1>
-          <p className="text-stone-300 max-w-2xl mx-auto text-xl leading-relaxed font-light">
+          <p className={`max-w-2xl mx-auto text-xl leading-relaxed font-light ${isDarkMode ? 'text-stone-300' : 'text-stone-300'}`}>
             Transparent pricing for world-class artistry. Choose the package that fits your vision.
           </p>
         </div>
@@ -126,28 +129,28 @@ const Services: React.FC = () => {
         {/* Photography Section */}
         <div className="mb-24">
           <div className="flex items-center gap-6 mb-12">
-            <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-lg border border-stone-100">
+            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg border ${isDarkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'}`}>
               <Camera className="h-8 w-8 text-gold-500" />
             </div>
             <div>
-              <h2 className="font-serif text-4xl font-bold text-stone-900">Photography</h2>
-              <p className="text-stone-500 text-lg">Stills that capture the soul.</p>
+              <h2 className={`font-serif text-4xl font-bold ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>Photography</h2>
+              <p className={`${isDarkMode ? 'text-stone-400' : 'text-stone-500'} text-lg`}>Stills that capture the soul.</p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {photographyServices.map((service, idx) => (
-              <div key={idx} className="bg-white rounded-3xl p-8 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 border border-stone-100 hover:border-gold-500/30 flex flex-col group relative overflow-hidden">
+              <div key={idx} className={`rounded-3xl p-8 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 border ${isDarkMode ? 'bg-stone-800 border-stone-700 hover:border-gold-500/30' : 'bg-white border-stone-100 hover:border-gold-500/30'} flex flex-col group relative overflow-hidden`}>
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-gold-300 to-gold-600 scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
                 
-                <h3 className="font-serif font-bold text-2xl text-stone-900 mb-2 group-hover:text-gold-600 transition-colors">{service.title}</h3>
-                <p className="text-stone-500 mb-6 text-sm leading-relaxed">{service.desc}</p>
+                <h3 className={`font-serif font-bold text-2xl mb-2 group-hover:text-gold-600 transition-colors ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>{service.title}</h3>
+                <p className={`mb-6 text-sm leading-relaxed ${isDarkMode ? 'text-stone-300' : 'text-stone-500'}`}>{service.desc}</p>
                 
                 {/* Features List */}
                 <div className="space-y-3 mb-8 flex-grow">
                     {service.features.map((feature, i) => (
-                        <div key={i} className="flex items-center gap-3 text-sm text-stone-600">
-                            <div className="w-5 h-5 rounded-full bg-stone-100 flex items-center justify-center flex-shrink-0">
+                        <div key={i} className={`flex items-center gap-3 text-sm ${isDarkMode ? 'text-stone-300' : 'text-stone-600'}`}>
+                            <div className={`w-5 h-5 rounded-full bg-stone-100 flex items-center justify-center flex-shrink-0 ${isDarkMode ? 'bg-stone-700' : ''}`}>
                                 <Check className="w-3 h-3 text-gold-600" />
                             </div>
                             <span>{feature}</span>
@@ -156,21 +159,21 @@ const Services: React.FC = () => {
                 </div>
 
                 <div className="pt-6 border-t border-stone-100 mt-auto">
-                    <p className="text-xs text-stone-400 font-bold uppercase tracking-wider mb-2">Starting from</p>
+                    <p className={`text-xs font-bold uppercase tracking-wider mb-2 ${isDarkMode ? 'text-stone-400' : 'text-stone-400'}`}>Starting from</p>
                     <div className="flex items-baseline gap-1 mb-6">
-                        <span className="text-xl font-bold text-stone-900">{service.price}</span>
+                        <span className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>{service.price}</span>
                     </div>
                     
                     <div className="grid grid-cols-2 gap-3">
                         <Link 
                             to={`/booking?service=${encodeURIComponent(service.title)}`}
-                            className="flex items-center justify-center gap-2 bg-stone-900 text-white font-bold py-3 rounded-xl hover:bg-stone-800 transition-all shadow-lg shadow-stone-900/20 text-sm"
+                            className={`flex items-center justify-center gap-2 font-bold py-3 rounded-xl transition-all duration-300 shadow-lg ${isDarkMode ? 'bg-stone-800 text-white hover:bg-stone-700' : 'bg-stone-900 text-white hover:bg-stone-800'}`}
                         >
                             Book Now
                         </Link>
                         <Link 
                             to="/quote"
-                            className="flex items-center justify-center gap-2 bg-white border-2 border-gold-500 text-gold-600 font-bold py-3 rounded-xl hover:bg-gold-50 transition-all text-sm hover:shadow-md"
+                            className={`flex items-center justify-center gap-2 border-2 font-bold py-3 rounded-xl transition-all duration-300 ${isDarkMode ? 'bg-white text-stone-900 border-stone-700 hover:bg-stone-700 hover:text-white' : 'bg-white text-stone-900 border-gold-500 hover:bg-gold-50 hover:shadow-md'}`}
                         >
                             Get Quote
                         </Link>
@@ -184,18 +187,18 @@ const Services: React.FC = () => {
         {/* Videography Section */}
         <div>
           <div className="flex items-center gap-6 mb-12">
-             <div className="w-16 h-16 bg-stone-900 rounded-2xl flex items-center justify-center shadow-lg border border-stone-800">
+             <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg border ${isDarkMode ? 'bg-stone-800 border-stone-700' : 'bg-stone-900 border-stone-800'}`}>
               <Video className="h-8 w-8 text-white" />
             </div>
             <div>
-              <h2 className="font-serif text-4xl font-bold text-stone-900">Videography</h2>
-              <p className="text-stone-500 text-lg">Motion pictures in 4K resolution.</p>
+              <h2 className={`font-serif text-4xl font-bold ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>Videography</h2>
+              <p className={`${isDarkMode ? 'text-stone-400' : 'text-stone-500'} text-lg`}>Motion pictures in 4K resolution.</p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {videographyServices.map((service, idx) => (
-              <div key={idx} className="bg-white rounded-3xl p-8 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 border border-stone-100 hover:border-stone-900/30 flex flex-col group relative overflow-hidden">
+              <div key={idx} className={`rounded-3xl p-8 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 border ${isDarkMode ? 'bg-stone-800 border-stone-700 hover:border-stone-900/30' : 'bg-white border-stone-100 hover:border-stone-900/30'} flex flex-col group relative overflow-hidden`}>
                 {service.title.includes('Wedding') && (
                   <div className="absolute top-0 right-0 bg-stone-900 text-gold-500 text-xs font-bold px-4 py-1.5 rounded-bl-xl z-10 flex items-center gap-1 shadow-md">
                     <Zap className="w-3 h-3" fill="currentColor" /> POPULAR
@@ -204,14 +207,14 @@ const Services: React.FC = () => {
                 
                  <div className="absolute top-0 left-0 w-full h-1 bg-stone-900 scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
 
-                <h3 className="font-serif font-bold text-2xl text-stone-900 mb-2 group-hover:text-gold-600 transition-colors">{service.title}</h3>
-                <p className="text-stone-500 mb-6 text-sm leading-relaxed">{service.desc}</p>
+                <h3 className={`font-serif font-bold text-2xl mb-2 group-hover:text-gold-600 transition-colors ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>{service.title}</h3>
+                <p className={`mb-6 text-sm leading-relaxed ${isDarkMode ? 'text-stone-300' : 'text-stone-500'}`}>{service.desc}</p>
                 
                  {/* Features List */}
                  <div className="space-y-3 mb-8 flex-grow">
                     {service.features.map((feature, i) => (
-                        <div key={i} className="flex items-center gap-3 text-sm text-stone-600">
-                            <div className="w-5 h-5 rounded-full bg-stone-100 flex items-center justify-center flex-shrink-0">
+                        <div key={i} className={`flex items-center gap-3 text-sm ${isDarkMode ? 'text-stone-300' : 'text-stone-600'}`}>
+                            <div className={`w-5 h-5 rounded-full bg-stone-100 flex items-center justify-center flex-shrink-0 ${isDarkMode ? 'bg-stone-700' : ''}`}>
                                 <Check className="w-3 h-3 text-stone-900" />
                             </div>
                             <span>{feature}</span>
@@ -220,21 +223,21 @@ const Services: React.FC = () => {
                 </div>
 
                 <div className="pt-6 border-t border-stone-100 mt-auto">
-                     <p className="text-xs text-stone-400 font-bold uppercase tracking-wider mb-2">Starting from</p>
+                     <p className={`text-xs font-bold uppercase tracking-wider mb-2 ${isDarkMode ? 'text-stone-400' : 'text-stone-400'}`}>Starting from</p>
                      <div className="flex items-baseline gap-1 mb-6">
-                        <span className="text-xl font-bold text-stone-900">{service.price}</span>
+                        <span className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>{service.price}</span>
                     </div>
                     
                     <div className="grid grid-cols-2 gap-3">
                         <Link 
                             to={`/booking?service=${encodeURIComponent(service.title)}`}
-                            className="flex items-center justify-center gap-2 bg-stone-900 hover:bg-stone-800 text-white font-bold py-3 rounded-xl transition-all duration-300 shadow-md hover:shadow-xl text-sm"
+                            className={`flex items-center justify-center gap-2 font-bold py-3 rounded-xl transition-all duration-300 shadow-md ${isDarkMode ? 'bg-stone-800 text-white hover:bg-stone-700' : 'bg-stone-900 text-white hover:bg-stone-800'}`}
                         >
                             Book Now
                         </Link>
                         <Link 
                             to="/quote"
-                            className="flex items-center justify-center gap-2 bg-white border-2 border-stone-900 text-stone-900 font-bold py-3 rounded-xl hover:bg-stone-50 transition-all text-sm hover:shadow-md"
+                            className={`flex items-center justify-center gap-2 border-2 font-bold py-3 rounded-xl transition-all text-sm ${isDarkMode ? 'bg-white text-stone-900 border-stone-700 hover:bg-stone-700 hover:text-white' : 'bg-white text-stone-900 border-stone-900 hover:bg-stone-50 hover:shadow-md'}`}
                         >
                             Get Quote
                         </Link>
@@ -248,11 +251,11 @@ const Services: React.FC = () => {
       </div>
 
       {/* CTA Bottom */}
-      <div className="bg-stone-900 text-white py-24 px-4 text-center relative overflow-hidden">
+      <div className={`${isDarkMode ? 'bg-stone-900' : 'bg-stone-900'} text-white py-24 px-4 text-center relative overflow-hidden`}>
         <div className="absolute top-0 left-0 w-full h-full opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
         <div className="relative z-10">
-            <h2 className="font-serif text-3xl md:text-4xl font-bold mb-6">Have a unique project?</h2>
-            <p className="text-stone-400 mb-10 max-w-lg mx-auto text-lg">We create custom packages tailored to your specific creative requirements. Let's discuss your vision.</p>
+            <h2 className={`font-serif text-3xl md:text-4xl font-bold mb-6 ${isDarkMode ? 'text-white' : 'text-white'}`}>Have a unique project?</h2>
+            <p className={`mb-10 max-w-lg mx-auto text-lg ${isDarkMode ? 'text-stone-400' : 'text-stone-400'}`}>We create custom packages tailored to your specific creative requirements. Let's discuss your vision.</p>
             <Link to="/contact" className="inline-flex items-center gap-3 px-10 py-4 bg-transparent border-2 border-gold-500 text-gold-500 hover:bg-gold-500 hover:text-stone-900 rounded-full transition-all duration-300 font-bold uppercase tracking-wider text-sm shadow-[0_0_15px_rgba(212,175,55,0.2)] hover:shadow-[0_0_25px_rgba(212,175,55,0.4)]">
             Get a Custom Quote <ArrowRight className="h-5 w-5" />
             </Link>

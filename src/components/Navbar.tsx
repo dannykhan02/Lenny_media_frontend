@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Camera } from 'lucide-react';
+import { Menu, X, Camera, Moon, Sun } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { useTheme } from '../hooks/useTheme';
 
 const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
   const { user, isLoading, adminExists } = useAuth();
+  const { toggleTheme, isDarkMode } = useTheme();
 
   const navLinks = [
     { name: 'Home', path: '/' },
@@ -30,14 +32,14 @@ const Navbar: React.FC = () => {
   const showAdminLogin = !isLoading && adminExists !== false;
 
   return (
-    <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-stone-100 shadow-sm transition-all duration-300">
+    <nav className={`sticky top-0 z-50 ${isDarkMode ? 'bg-stone-950 border-stone-800' : 'bg-white/95 backdrop-blur-md border-stone-100'} backdrop-blur-md border-b shadow-sm transition-all duration-300`}>
       <div className="w-full px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-24 items-center">
           <Link to="/" className="flex-shrink-0 flex items-center gap-3 group">
-            <div className="bg-stone-900 text-gold-500 p-2 rounded-lg group-hover:bg-gold-500 group-hover:text-stone-900 transition-colors duration-300">
+            <div className={`p-2 rounded-lg group-hover:${isDarkMode ? 'bg-gold-500' : 'bg-gold-500'} group-hover:text-stone-900 transition-colors duration-300 ${isDarkMode ? 'bg-stone-800 text-gold-500' : 'bg-stone-900 text-gold-500'}`}>
               <Camera className="h-6 w-6" />
             </div>
-            <span className="font-serif text-2xl font-bold tracking-tight text-stone-900">
+            <span className={`font-serif text-2xl font-bold tracking-tight ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>
               Lenny<span className="text-gold-500">Media</span>
             </span>
           </Link>
@@ -50,10 +52,10 @@ const Navbar: React.FC = () => {
                   to={link.path}
                   className={`${
                     isActive(link.path) 
-                      ? 'text-stone-900 font-bold bg-stone-50' 
+                      ? `${isDarkMode ? 'text-white bg-stone-800' : 'text-stone-900'} font-bold bg-stone-50` 
                       : link.path === '/school' 
                         ? 'text-gold-600 font-bold hover:text-gold-700 hover:bg-gold-50'
-                        : 'text-stone-500 hover:text-stone-900 hover:bg-stone-50'
+                        : `${isDarkMode ? 'text-stone-300 hover:text-white hover:bg-stone-800' : 'text-stone-500 hover:text-stone-900 hover:bg-stone-50'}`
                   } px-2 xl:px-3 py-2.5 rounded-full font-medium transition-all duration-200 text-xs xl:text-sm tracking-wide whitespace-nowrap`}
                 >
                   {link.name}
@@ -62,16 +64,25 @@ const Navbar: React.FC = () => {
             </div>
             
             <div className="flex items-center ml-3 gap-2">
+              {/* Desktop Theme Toggle */}
+              <button
+                onClick={toggleTheme}
+                className={`p-2 rounded-lg ${isDarkMode ? 'text-gold-500 hover:bg-stone-800' : 'text-stone-600 hover:text-stone-900 hover:bg-stone-100'}`}
+                aria-label="Toggle theme"
+              >
+                {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+              </button>
+              
               <Link
                 to="/quote"
-                className="bg-stone-100 text-stone-900 border border-stone-200 px-4 xl:px-6 py-2.5 rounded-full font-bold text-xs xl:text-sm tracking-wide hover:bg-stone-900 hover:text-white hover:border-stone-900 transition-all duration-300 shadow-sm whitespace-nowrap"
+                className={`border border-stone-200 px-4 xl:px-6 py-2.5 rounded-full font-bold text-xs xl:text-sm tracking-wide hover:scale-105 transition-all duration-300 whitespace-nowrap ${isDarkMode ? 'bg-stone-800 text-white border-stone-700 hover:bg-stone-700 hover:text-white' : 'bg-stone-100 text-stone-900 hover:bg-stone-900 hover:text-white'}`}
               >
                 Get Quote
               </Link>
               
               <Link
                 to="/booking"
-                className="bg-gold-500 text-stone-900 px-5 xl:px-7 py-2.5 rounded-full font-bold text-xs xl:text-sm tracking-wide shadow-lg shadow-gold-500/20 hover:shadow-gold-500/40 hover:scale-105 hover:bg-gold-400 transition-all duration-300 whitespace-nowrap"
+                className={`px-5 xl:px-7 py-2.5 rounded-full font-bold text-xs xl:text-sm tracking-wide shadow-lg shadow-gold-500/20 hover:shadow-gold-500/40 hover:scale-105 hover:bg-gold-400 transition-all duration-300 whitespace-nowrap ${isDarkMode ? 'bg-gold-600 text-stone-900' : 'bg-gold-500 text-stone-900'}`}
               >
                 Book Now
               </Link>
@@ -108,10 +119,18 @@ const Navbar: React.FC = () => {
             </div>
           </div>
 
-          <div className="lg:hidden flex items-center">
+          <div className="lg:hidden flex items-center gap-4">
+            <button
+              onClick={toggleTheme}
+              className={`p-2 rounded-lg ${isDarkMode ? 'text-gold-500 hover:bg-stone-800' : 'text-stone-600 hover:text-stone-900 hover:bg-stone-100'}`}
+              aria-label="Toggle theme"
+            >
+              {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            </button>
+            
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="text-stone-600 hover:text-stone-900 focus:outline-none p-2"
+              className={`p-2 rounded-lg ${isDarkMode ? 'text-stone-300 hover:text-white hover:bg-stone-800' : 'text-stone-600 hover:text-stone-900 hover:bg-stone-100'}`}
             >
               {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
@@ -120,7 +139,7 @@ const Navbar: React.FC = () => {
       </div>
 
       {isOpen && (
-        <div className="lg:hidden bg-white border-t border-stone-100 absolute w-full shadow-2xl h-screen z-50">
+        <div className={`lg:hidden ${isDarkMode ? 'bg-stone-950 border-stone-800' : 'bg-white border-stone-100'} absolute w-full shadow-2xl h-screen z-50`}>
           <div className="px-6 pt-8 pb-6 space-y-4">
             {navLinks.map((link) => (
               <Link
@@ -132,7 +151,7 @@ const Navbar: React.FC = () => {
                     ? 'border-gold-500 bg-stone-50 text-stone-900' 
                     : link.path === '/school'
                       ? 'border-transparent text-gold-600 font-bold bg-gold-50/50'
-                      : 'border-transparent text-stone-500 hover:bg-stone-50 hover:text-stone-900'
+                      : `${isDarkMode ? 'border-transparent text-stone-300 hover:bg-stone-800 hover:text-white' : 'border-transparent text-stone-500 hover:bg-stone-50 hover:text-stone-900'}`
                 }`}
               >
                 {link.name}
@@ -142,14 +161,14 @@ const Navbar: React.FC = () => {
               <Link
                 to="/quote"
                 onClick={() => setIsOpen(false)}
-                className="block w-full bg-stone-100 text-stone-900 border border-stone-200 text-center py-4 rounded-2xl font-bold text-lg tracking-wide hover:bg-stone-200"
+                className={`block w-full border border-stone-200 text-center py-4 rounded-2xl font-bold text-lg tracking-wide ${isDarkMode ? 'bg-stone-800 text-white border-stone-700 hover:bg-stone-700' : 'bg-stone-100 text-stone-900 hover:bg-stone-200'}`}
               >
                 Get a Quote
               </Link>
               <Link
                 to="/booking"
                 onClick={() => setIsOpen(false)}
-                className="block w-full bg-gold-500 text-stone-900 text-center py-4 rounded-2xl font-bold text-lg tracking-wide shadow-xl shadow-gold-500/20 hover:bg-gold-400"
+                className={`block w-full text-center py-4 rounded-2xl font-bold text-lg tracking-wide shadow-xl shadow-gold-500/20 hover:bg-gold-400 ${isDarkMode ? 'bg-gold-600 text-stone-900' : 'bg-gold-500 text-stone-900'}`}
               >
                 Book Session
               </Link>

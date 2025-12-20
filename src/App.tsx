@@ -1,8 +1,9 @@
 import React, { Suspense } from 'react';
-import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Camera, MessageCircle, Loader2, Instagram, Facebook, Twitter, MapPin, Phone, Mail } from 'lucide-react';
 import { AuthProvider, ProtectedRoute, ScrollToTop, PageLoader } from './context/AuthProvider';
 import Navbar from './components/Navbar';
+import { ThemeProvider } from './context/ThemeContext'; // Import ThemeProvider
 
 // Lazy Load Pages
 const Home = React.lazy(() => import('./pages/Home'));
@@ -116,50 +117,67 @@ const WhatsAppButton: React.FC = () => {
   );
 };
 
+const AppContent: React.FC = () => {
+  const location = useLocation();
+  
+  // Check if current path is an admin route
+  const isAdminRoute = location.pathname.startsWith('/admin');
+
+  return (
+    <div className="flex flex-col min-h-screen">
+      {/* Only show regular navbar if NOT on admin routes */}
+      {!isAdminRoute && <Navbar />}
+      
+      <main className="flex-grow">
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<Home />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/school" element={<School />} />
+            <Route path="/enrollment" element={<Enrollment />} />
+            <Route path="/services" element={<Services />} />
+            <Route path="/portfolio" element={<Portfolio />} />
+            <Route path="/booking" element={<Booking />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/quote" element={<Quote />} />
+            <Route path="/brands" element={<Brands />} />
+            
+            {/* Auth Routes */}
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/admin/register" element={<RegisterFirstAdmin />} />
+            
+            {/* Protected Admin Routes */}
+            <Route 
+              path="/admin/dashboard" 
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Catch-all route */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Suspense>
+      </main>
+      
+      {/* Only show footer if NOT on admin routes */}
+      {!isAdminRoute && <Footer />}
+      {!isAdminRoute && <WhatsAppButton />}
+    </div>
+  );
+};
+
 const App: React.FC = () => {
   return (
     <HashRouter>
       <AuthProvider>
-        <ScrollToTop />
-        <div className="flex flex-col min-h-screen">
-          <Navbar />
-          <main className="flex-grow">
-            <Suspense fallback={<PageLoader />}>
-              <Routes>
-                {/* Public Routes */}
-                <Route path="/" element={<Home />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/school" element={<School />} />
-                <Route path="/enrollment" element={<Enrollment />} />
-                <Route path="/services" element={<Services />} />
-                <Route path="/portfolio" element={<Portfolio />} />
-                <Route path="/booking" element={<Booking />} />
-                <Route path="/contact" element={<Contact />} />
-                <Route path="/quote" element={<Quote />} />
-                <Route path="/brands" element={<Brands />} />
-                
-                {/* Auth Routes */}
-                <Route path="/admin/login" element={<AdminLogin />} />
-                <Route path="/admin/register" element={<RegisterFirstAdmin />} />
-                
-                {/* Protected Admin Routes */}
-                <Route 
-                  path="/admin/dashboard" 
-                  element={
-                    <ProtectedRoute allowedRoles={['ADMIN']}>
-                      <AdminDashboard />
-                    </ProtectedRoute>
-                  } 
-                />
-                
-                {/* Catch-all route */}
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
-            </Suspense>
-          </main>
-          <Footer />
-          <WhatsAppButton />
-        </div>
+        <ThemeProvider> {/* Add ThemeProvider wrapper */}
+          <ScrollToTop />
+          <AppContent />
+        </ThemeProvider>
       </AuthProvider>
     </HashRouter>
   );
