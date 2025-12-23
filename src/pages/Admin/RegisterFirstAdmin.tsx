@@ -4,12 +4,14 @@ import { Camera, Lock, Mail, User, AlertCircle, CheckCircle, Loader2, Eye, EyeOf
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import AdminAuthLayout from '../../components/AdminAuthLayout';
+import { useTheme } from '../../context/ThemeContext';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const RegisterFirstAdmin: React.FC = () => {
-  const { registerFirstAdmin, checkAuth } = useAuth();
+  const { registerFirstAdmin } = useAuth();
   const navigate = useNavigate();
+  const { isDarkMode } = useTheme();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -23,21 +25,6 @@ const RegisterFirstAdmin: React.FC = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [checkingAdmin, setCheckingAdmin] = useState(true);
   const [adminExists, setAdminExists] = useState<boolean>(false);
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    const savedTheme = localStorage.getItem('admin-theme');
-    if (savedTheme) {
-      return savedTheme === 'dark';
-    }
-    return window.matchMedia('(prefers-color-scheme: dark)').matches;
-  });
-
-  useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [isDarkMode]);
 
   useEffect(() => {
     const checkAdminStatus = async () => {

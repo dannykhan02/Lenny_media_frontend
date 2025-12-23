@@ -8,22 +8,60 @@ interface ThemeContextType {
   isDarkMode: boolean;
 }
 
-// Export the context so it can be imported elsewhere
+// Export the context
 export const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [theme, setTheme] = useState<Theme>(() => {
-    if (typeof window !== 'undefined') {
-      const savedTheme = localStorage.getItem('theme') as Theme | null;
-      return savedTheme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-    }
+// Helper function to get initial theme (called inside component)
+const getInitialTheme = (): Theme => {
+  if (typeof window === 'undefined') return 'light';
+  
+  try {
+    const savedTheme = localStorage.getItem('admin-theme') as Theme | null;
+    if (savedTheme) return savedTheme;
+    
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  } catch {
     return 'light';
-  });
+  }
+};
 
+// ThemeProvider component
+export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // Initialize state with a function to avoid running on every render
+  const [theme, setTheme] = useState<Theme>(getInitialTheme);
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Handle theme persistence and DOM updates
   useEffect(() => {
-    localStorage.setItem('theme', theme);
+    if (!isInitialized) {
+      setIsInitialized(true);
+      return;
+    }
+
+    try {
+      localStorage.setItem('admin-theme', theme);
+    } catch (error) {
+      console.warn('Failed to save theme preference:', error);
+    }
+
     document.documentElement.setAttribute('data-theme', theme);
-  }, [theme]);
+    
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [theme, isInitialized]);
+
+  // Apply initial theme on mount
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, []);
 
   const toggleTheme = () => {
     setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
@@ -31,14 +69,19 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const isDarkMode = theme === 'dark';
 
+  const value = React.useMemo(
+    () => ({ theme, toggleTheme, isDarkMode }),
+    [theme, isDarkMode]
+  );
+
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, isDarkMode }}>
+    <ThemeContext.Provider value={value}>
       {children}
     </ThemeContext.Provider>
   );
 };
 
-// Export the useTheme hook
+// Export the useTheme hook (ONLY from this file)
 export const useTheme = () => {
   const context = useContext(ThemeContext);
   if (context === undefined) {

@@ -307,14 +307,14 @@ const GallerySection = () => {
     ];
 
     return (
-        <section className={`py-24 ${isDarkMode ? 'bg-stone-950' : 'bg-stone-900'} text-white px-4`}>
+        <section className={`py-24 ${isDarkMode ? 'bg-stone-950' : 'bg-white'} text-white px-4`}>
              <div className="max-w-7xl mx-auto mb-16 flex flex-col md:flex-row justify-between items-end gap-6">
                  <FadeIn>
-                    <h2 className="font-serif text-4xl md:text-5xl font-bold mb-2">Selected Works</h2>
-                    <p className={isDarkMode ? 'text-stone-400' : 'text-stone-400'}>A curated showcase of our recent projects.</p>
+                    <h2 className={`font-serif text-4xl md:text-5xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>Selected Works</h2>
+                    <p className={isDarkMode ? 'text-stone-400' : 'text-stone-600'}>A curated showcase of our recent projects.</p>
                  </FadeIn>
                  <FadeIn delay="200ms">
-                     <Link to="/portfolio" className={`inline-flex items-center gap-2 px-6 py-3 border border-white/20 rounded-full hover:bg-white hover:text-stone-900 transition-all ${isDarkMode ? 'border-white/30' : 'border-white/20'}`}>
+                     <Link to="/portfolio" className={`inline-flex items-center gap-2 px-6 py-3 border rounded-full transition-all ${isDarkMode ? 'border-white/30 hover:bg-white hover:text-stone-900' : 'border-stone-900 hover:bg-stone-900 hover:text-white'}`}>
                         View Full Portfolio <ArrowRight className="w-4 h-4" />
                      </Link>
                  </FadeIn>

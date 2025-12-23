@@ -28,9 +28,6 @@ const Navbar: React.FC = () => {
   // 3. We know for sure that no admin exists
   const showAdminRegistration = !isLoading && !user && adminExists === false;
 
-  // Always show admin login button when admin exists (or we're still checking)
-  const showAdminLogin = !isLoading && adminExists !== false;
-
   return (
     <nav className={`sticky top-0 z-50 ${isDarkMode ? 'bg-stone-950 border-stone-800' : 'bg-white/95 backdrop-blur-md border-stone-100'} backdrop-blur-md border-b shadow-sm transition-all duration-300`}>
       <div className="w-full px-4 sm:px-6 lg:px-8">
@@ -94,16 +91,6 @@ const Navbar: React.FC = () => {
                   className="bg-purple-500 text-white px-4 xl:px-5 py-2.5 rounded-full font-bold text-xs xl:text-sm tracking-wide shadow-lg hover:bg-purple-600 transition-all duration-300 whitespace-nowrap"
                 >
                   Register First Admin
-                </Link>
-              )}
-              
-              {/* Admin Login Button - ALWAYS show when admin exists */}
-              {showAdminLogin && (
-                <Link
-                  to="/admin/login"
-                  className="bg-blue-500 text-white px-4 xl:px-5 py-2.5 rounded-full font-bold text-xs xl:text-sm tracking-wide shadow-lg hover:bg-blue-600 transition-all duration-300 whitespace-nowrap"
-                >
-                  Admin Login
                 </Link>
               )}
               
@@ -181,17 +168,6 @@ const Navbar: React.FC = () => {
                   className="block w-full bg-purple-500 text-white text-center py-4 rounded-2xl font-bold text-lg tracking-wide hover:bg-purple-600"
                 >
                   Register First Admin
-                </Link>
-              )}
-              
-              {/* Admin Login Button - ALWAYS show when admin exists */}
-              {showAdminLogin && (
-                <Link
-                  to="/admin/login"
-                  onClick={() => setIsOpen(false)}
-                  className="block w-full bg-blue-500 text-white text-center py-4 rounded-2xl font-bold text-lg tracking-wide hover:bg-blue-600"
-                >
-                  Admin Login
                 </Link>
               )}
               
