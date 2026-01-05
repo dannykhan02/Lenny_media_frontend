@@ -220,7 +220,7 @@ const AdminServices: React.FC = () => {
       setCurrentService(null);
       // Reset form data for create mode
       setFormData({
-        category: '',
+        category: categories.length > 0 ? categories[0].name.toUpperCase() : '', // Set default category
         title: '',
         slug: '',
         description: '',
@@ -286,8 +286,16 @@ const AdminServices: React.FC = () => {
     setError('');
 
     try {
+      // Validate required fields before sending
+      if (!formData.category || !formData.title) {
+        setError('Category and title are required');
+        setIsSubmitting(false);
+        return;
+      }
+
       const payload = {
         ...formData,
+        category: formData.category.toUpperCase(), // Ensure category is uppercase
         features: formData.features.filter((f: string) => f.trim() !== ''),
         price_min: formData.price_min ? parseFloat(formData.price_min) : null,
         price_max: formData.price_max ? parseFloat(formData.price_max) : null,
@@ -307,7 +315,9 @@ const AdminServices: React.FC = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || errorData.error || 'Operation failed');
+        console.error('Server error details:', errorData);
+        const errorMessage = errorData.message || errorData.error || JSON.stringify(errorData) || 'Operation failed';
+        throw new Error(errorMessage);
       }
 
       setSuccessMessage(`Service ${modalMode === 'create' ? 'created' : 'updated'} successfully!`);
