@@ -66,20 +66,20 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
       <div className={`w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl ${isDarkMode ? 'bg-stone-900' : 'bg-white'}`}>
         
         {/* Modal Header */}
-        <div className={`sticky top-0 z-10 flex items-center justify-between p-6 border-b ${isDarkMode ? 'bg-stone-900 border-stone-800' : 'bg-white border-gray-200'}`}>
-          <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>
+        <div className={`sticky top-0 z-10 flex items-center justify-between p-4 md:p-6 border-b ${isDarkMode ? 'bg-stone-900 border-stone-800' : 'bg-white border-gray-200'}`}>
+          <h2 className={`text-xl md:text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>
             {modalMode === 'create' ? 'Create New Service' : 'Edit Service'}
           </h2>
           <button
             onClick={onClose}
             className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-stone-800' : 'hover:bg-gray-100'}`}
           >
-            <X className={`h-6 w-6 ${isDarkMode ? 'text-stone-400' : 'text-stone-600'}`} />
+            <X className={`h-5 w-5 md:h-6 md:w-6 ${isDarkMode ? 'text-stone-400' : 'text-stone-600'}`} />
           </button>
         </div>
 
         {/* Modal Body */}
-        <form onSubmit={onSubmit} className="p-6 space-y-6">
+        <form onSubmit={onSubmit} className="p-4 md:p-6 space-y-4 md:space-y-6">
           
           {/* Category & Status Row */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -91,7 +91,7 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
                 name="category"
                 value={formData.category}
                 onChange={onInputChange}
-                className={`w-full px-4 py-2.5 rounded-lg border ${isDarkMode ? 'bg-stone-800 border-stone-700 text-white' : 'bg-white border-gray-300 text-stone-900'} focus:ring-2 focus:ring-gold-500`}
+                className={`w-full px-3 md:px-4 py-2 md:py-2.5 text-sm md:text-base rounded-lg border ${isDarkMode ? 'bg-stone-800 border-stone-700 text-white' : 'bg-white border-gray-300 text-stone-900'} focus:ring-2 focus:ring-gold-500`}
                 required
               >
                 {categories.map(cat => (
@@ -107,7 +107,7 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
                   name="is_active"
                   checked={formData.is_active}
                   onChange={onInputChange}
-                  className="w-5 h-5 text-gold-500 rounded focus:ring-2 focus:ring-gold-500"
+                  className="w-4 h-4 md:w-5 md:h-5 text-gold-500 rounded focus:ring-2 focus:ring-gold-500"
                 />
                 <span className={`text-sm font-medium ${isDarkMode ? 'text-stone-300' : 'text-stone-700'}`}>
                   Active
@@ -122,7 +122,7 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
                   name="is_featured"
                   checked={formData.is_featured}
                   onChange={onInputChange}
-                  className="w-5 h-5 text-gold-500 rounded focus:ring-2 focus:ring-gold-500"
+                  className="w-4 h-4 md:w-5 md:h-5 text-gold-500 rounded focus:ring-2 focus:ring-gold-500"
                 />
                 <span className={`text-sm font-medium ${isDarkMode ? 'text-stone-300' : 'text-stone-700'}`}>
                   Featured
@@ -141,7 +141,7 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
               name="title"
               value={formData.title}
               onChange={onInputChange}
-              className={`w-full px-4 py-2.5 rounded-lg border ${isDarkMode ? 'bg-stone-800 border-stone-700 text-white' : 'bg-white border-gray-300 text-stone-900'} focus:ring-2 focus:ring-gold-500`}
+              className={`w-full px-3 md:px-4 py-2 md:py-2.5 text-sm md:text-base rounded-lg border ${isDarkMode ? 'bg-stone-800 border-stone-700 text-white' : 'bg-white border-gray-300 text-stone-900'} focus:ring-2 focus:ring-gold-500`}
               placeholder="e.g., Wedding Photography"
               required
             />
@@ -157,7 +157,7 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
               name="slug"
               value={formData.slug}
               onChange={onInputChange}
-              className={`w-full px-4 py-2.5 rounded-lg border ${isDarkMode ? 'bg-stone-800 border-stone-700 text-white' : 'bg-white border-gray-300 text-stone-900'} focus:ring-2 focus:ring-gold-500`}
+              className={`w-full px-3 md:px-4 py-2 md:py-2.5 text-sm md:text-base rounded-lg border ${isDarkMode ? 'bg-stone-800 border-stone-700 text-white' : 'bg-white border-gray-300 text-stone-900'} focus:ring-2 focus:ring-gold-500`}
               placeholder="wedding-photography"
               required
             />
@@ -173,7 +173,7 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
               value={formData.description}
               onChange={onInputChange}
               rows={3}
-              className={`w-full px-4 py-2.5 rounded-lg border ${isDarkMode ? 'bg-stone-800 border-stone-700 text-white' : 'bg-white border-gray-300 text-stone-900'} focus:ring-2 focus:ring-gold-500`}
+              className={`w-full px-3 md:px-4 py-2 md:py-2.5 text-sm md:text-base rounded-lg border ${isDarkMode ? 'bg-stone-800 border-stone-700 text-white' : 'bg-white border-gray-300 text-stone-900'} focus:ring-2 focus:ring-gold-500`}
               placeholder="Describe the service..."
             />
           </div>
@@ -189,7 +189,7 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
                 name="price_min"
                 value={formData.price_min}
                 onChange={onInputChange}
-                className={`w-full px-4 py-2.5 rounded-lg border ${isDarkMode ? 'bg-stone-800 border-stone-700 text-white' : 'bg-white border-gray-300 text-stone-900'} focus:ring-2 focus:ring-gold-500`}
+                className={`w-full px-3 md:px-4 py-2 md:py-2.5 text-sm md:text-base rounded-lg border ${isDarkMode ? 'bg-stone-800 border-stone-700 text-white' : 'bg-white border-gray-300 text-stone-900'} focus:ring-2 focus:ring-gold-500`}
                 placeholder="5000"
               />
             </div>
@@ -203,7 +203,7 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
                 name="price_max"
                 value={formData.price_max}
                 onChange={onInputChange}
-                className={`w-full px-4 py-2.5 rounded-lg border ${isDarkMode ? 'bg-stone-800 border-stone-700 text-white' : 'bg-white border-gray-300 text-stone-900'} focus:ring-2 focus:ring-gold-500`}
+                className={`w-full px-3 md:px-4 py-2 md:py-2.5 text-sm md:text-base rounded-lg border ${isDarkMode ? 'bg-stone-800 border-stone-700 text-white' : 'bg-white border-gray-300 text-stone-900'} focus:ring-2 focus:ring-gold-500`}
                 placeholder="15000"
               />
             </div>
@@ -217,7 +217,7 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
                 name="display_order"
                 value={formData.display_order}
                 onChange={onInputChange}
-                className={`w-full px-4 py-2.5 rounded-lg border ${isDarkMode ? 'bg-stone-800 border-stone-700 text-white' : 'bg-white border-gray-300 text-stone-900'} focus:ring-2 focus:ring-gold-500`}
+                className={`w-full px-3 md:px-4 py-2 md:py-2.5 text-sm md:text-base rounded-lg border ${isDarkMode ? 'bg-stone-800 border-stone-700 text-white' : 'bg-white border-gray-300 text-stone-900'} focus:ring-2 focus:ring-gold-500`}
                 placeholder="0"
               />
             </div>
@@ -233,7 +233,7 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
               name="price_display"
               value={formData.price_display}
               onChange={onInputChange}
-              className={`w-full px-4 py-2.5 rounded-lg border ${isDarkMode ? 'bg-stone-800 border-stone-700 text-white' : 'bg-white border-gray-300 text-stone-900'} focus:ring-2 focus:ring-gold-500`}
+              className={`w-full px-3 md:px-4 py-2 md:py-2.5 text-sm md:text-base rounded-lg border ${isDarkMode ? 'bg-stone-800 border-stone-700 text-white' : 'bg-white border-gray-300 text-stone-900'} focus:ring-2 focus:ring-gold-500`}
               placeholder="Ksh 5,000 - 15,000"
             />
           </div>
@@ -248,61 +248,61 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
               name="icon_name"
               value={formData.icon_name}
               onChange={onInputChange}
-              className={`w-full px-4 py-2.5 rounded-lg border ${isDarkMode ? 'bg-stone-800 border-stone-700 text-white' : 'bg-white border-gray-300 text-stone-900'} focus:ring-2 focus:ring-gold-500`}
+              className={`w-full px-3 md:px-4 py-2 md:py-2.5 text-sm md:text-base rounded-lg border ${isDarkMode ? 'bg-stone-800 border-stone-700 text-white' : 'bg-white border-gray-300 text-stone-900'} focus:ring-2 focus:ring-gold-500`}
               placeholder="camera, video, etc."
             />
           </div>
 
-          {/* Features - Enhanced Section */}
-          <div className={`rounded-xl border-2 p-5 ${isDarkMode ? 'bg-stone-800/50 border-gold-500/30' : 'bg-gold-50/50 border-gold-500/30'}`}>
-            <div className="flex items-center justify-between mb-4">
+          {/* Features - Enhanced Section with Mobile Optimization */}
+          <div className={`rounded-xl border-2 p-3 md:p-5 ${isDarkMode ? 'bg-stone-800/50 border-gold-500/30' : 'bg-gold-50/50 border-gold-500/30'}`}>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
               <div className="flex items-center gap-2">
-                <Sparkles className={`h-5 w-5 ${isDarkMode ? 'text-gold-400' : 'text-gold-600'}`} />
-                <label className={`text-base font-bold ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>
+                <Sparkles className={`h-4 w-4 md:h-5 md:w-5 ${isDarkMode ? 'text-gold-400' : 'text-gold-600'}`} />
+                <label className={`text-sm md:text-base font-bold ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>
                   Service Features
                 </label>
               </div>
               <button
                 type="button"
                 onClick={onAddFeature}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold text-sm transition-all ${isDarkMode ? 'bg-gold-500/20 text-gold-400 hover:bg-gold-500/30 border border-gold-500/40' : 'bg-gold-500 text-stone-900 hover:bg-gold-400 shadow-sm'}`}
+                className={`w-full sm:w-auto flex items-center justify-center gap-1.5 px-3 py-2 md:px-2.5 md:py-1.5 rounded-lg font-semibold text-xs md:text-sm transition-all ${isDarkMode ? 'bg-gold-500/20 text-gold-400 hover:bg-gold-500/30 border border-gold-500/40' : 'bg-gold-500 text-stone-900 hover:bg-gold-400 shadow-sm'}`}
               >
-                <Plus className="h-4 w-4" />
+                <Plus className="h-3.5 w-3.5 md:h-4 md:w-4" />
                 Add Feature
               </button>
             </div>
             
             {formData.features.length === 0 ? (
-              <div className={`text-center py-8 rounded-lg border-2 border-dashed ${isDarkMode ? 'border-stone-700 text-stone-500' : 'border-gray-300 text-gray-500'}`}>
-                <Sparkles className={`h-8 w-8 mx-auto mb-2 opacity-50 ${isDarkMode ? 'text-stone-600' : 'text-gray-400'}`} />
-                <p className="text-sm font-medium">No features added yet</p>
+              <div className={`text-center py-6 md:py-8 rounded-lg border-2 border-dashed ${isDarkMode ? 'border-stone-700 text-stone-500' : 'border-gray-300 text-gray-500'}`}>
+                <Sparkles className={`h-6 w-6 md:h-8 md:w-8 mx-auto mb-2 opacity-50 ${isDarkMode ? 'text-stone-600' : 'text-gray-400'}`} />
+                <p className="text-xs md:text-sm font-medium">No features added yet</p>
                 <p className="text-xs mt-1">Click "Add Feature" to get started</p>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2 md:space-y-3">
                 {formData.features.map((feature, index) => (
                   <div 
                     key={index} 
-                    className={`flex gap-3 items-start p-3 rounded-lg transition-all ${isDarkMode ? 'bg-stone-900/50 hover:bg-stone-900' : 'bg-white hover:shadow-md'}`}
+                    className={`flex gap-2 md:gap-3 items-start p-2 md:p-3 rounded-lg transition-all ${isDarkMode ? 'bg-stone-900/50 hover:bg-stone-900' : 'bg-white hover:shadow-md'}`}
                   >
-                    <div className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs mt-0.5 ${isDarkMode ? 'bg-gold-500/20 text-gold-400' : 'bg-gold-500 text-stone-900'}`}>
+                    <div className={`flex-shrink-0 w-5 h-5 md:w-7 md:h-7 rounded-full flex items-center justify-center font-bold text-xs mt-0.5 md:mt-0.5 ${isDarkMode ? 'bg-gold-500/20 text-gold-400' : 'bg-gold-500 text-stone-900'}`}>
                       {index + 1}
                     </div>
                     <input
                       type="text"
                       value={feature}
                       onChange={(e) => onFeatureChange(index, e.target.value)}
-                      className={`flex-1 px-4 py-2.5 rounded-lg border ${isDarkMode ? 'bg-stone-800 border-stone-700 text-white placeholder-stone-500' : 'bg-white border-gray-300 text-stone-900 placeholder-gray-400'} focus:ring-2 focus:ring-gold-500 focus:border-transparent`}
-                      placeholder={`Feature ${index + 1}: e.g., High-resolution photos, Professional editing...`}
+                      className={`flex-1 px-3 py-2 md:px-4 md:py-2.5 text-sm md:text-base rounded-lg border ${isDarkMode ? 'bg-stone-800 border-stone-700 text-white placeholder-stone-500' : 'bg-white border-gray-300 text-stone-900 placeholder-gray-400'} focus:ring-2 focus:ring-gold-500 focus:border-transparent`}
+                      placeholder={`Feature ${index + 1}`}
                     />
                     {formData.features.length > 1 && (
                       <button
                         type="button"
                         onClick={() => onRemoveFeature(index)}
-                        className={`flex-shrink-0 p-2.5 rounded-lg transition-all ${isDarkMode ? 'bg-red-900/30 text-red-400 hover:bg-red-900/50 border border-red-500/30' : 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-200'}`}
+                        className={`flex-shrink-0 p-1.5 md:p-2.5 rounded-lg transition-all ${isDarkMode ? 'bg-red-900/30 text-red-400 hover:bg-red-900/50 border border-red-500/30' : 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-200'}`}
                         title="Remove feature"
                       >
-                        <X className="h-5 w-5" />
+                        <X className="h-4 w-4 md:h-5 md:w-5" />
                       </button>
                     )}
                   </div>
@@ -311,30 +311,30 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
             )}
             
             {formData.features.length > 0 && (
-              <div className={`mt-3 text-xs ${isDarkMode ? 'text-stone-500' : 'text-gray-600'}`}>
+              <div className={`mt-2 md:mt-3 text-xs ${isDarkMode ? 'text-stone-500' : 'text-gray-600'}`}>
                 <span className="font-medium">{formData.features.length}</span> feature{formData.features.length !== 1 ? 's' : ''} added
               </div>
             )}
           </div>
 
-          {/* Form Actions */}
-          <div className={`flex gap-3 pt-6 border-t ${isDarkMode ? 'border-stone-800' : 'border-gray-200'}`}>
+          {/* Form Actions - Mobile Optimized */}
+          <div className={`flex flex-col sm:flex-row gap-3 pt-4 md:pt-6 border-t ${isDarkMode ? 'border-stone-800' : 'border-gray-200'}`}>
             <button
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className={`flex-1 px-6 py-3 rounded-lg font-bold transition-colors ${isDarkMode ? 'bg-stone-800 text-white hover:bg-stone-700' : 'bg-gray-100 text-stone-900 hover:bg-gray-200'} disabled:opacity-50`}
+              className={`w-full sm:flex-1 px-4 py-2.5 text-sm md:text-base rounded-lg font-bold transition-colors ${isDarkMode ? 'bg-stone-800 text-white hover:bg-stone-700' : 'bg-gray-100 text-stone-900 hover:bg-gray-200'} disabled:opacity-50`}
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 px-6 py-3 bg-gold-500 text-stone-900 rounded-lg font-bold hover:bg-gold-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full sm:flex-1 px-4 py-2.5 text-sm md:text-base bg-gold-500 text-stone-900 rounded-lg font-bold hover:bg-gold-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <Loader2 className="h-4 w-4 md:h-5 md:w-5 animate-spin" />
                   Saving...
                 </>
               ) : (

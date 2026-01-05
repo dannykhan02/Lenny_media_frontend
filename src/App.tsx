@@ -1,7 +1,5 @@
-// App.tsx or App.jsx
 import React, { Suspense } from 'react';
 import { HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { MessageCircle } from 'lucide-react';
 import { AuthProvider, ProtectedRoute, ScrollToTop, PageLoader } from './context/AuthProvider';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
@@ -25,22 +23,13 @@ const RegisterFirstAdmin = React.lazy(() => import('./pages/Admin/RegisterFirstA
 const AdminDashboard = React.lazy(() => import('./pages/Admin/AdminDashboard'));
 const AdminServices = React.lazy(() => import('./pages/Admin/AdminServices'));
 const AdminBookings = React.lazy(() => import('./pages/Admin/AdminBookings'));
+const AdminUsers = React.lazy(() => import('./pages/Admin/AdminUsers'));
+const AdminProfile = React.lazy(() => import('./pages/Admin/AdminProfile'));
+const AdminQuotes = React.lazy(() => import('./pages/Admin/AdminQuotes'));
+const AdminQuoteDetail = React.lazy(() => import('./pages/Admin/AdminQuoteDetail'));
+const AdminPortfolio = React.lazy(() => import('./pages/Admin/AdminPortfolio'));
 
-const WhatsAppButton: React.FC = () => {
-  return (
-    <a 
-      href="https://wa.me/254700123456" 
-      target="_blank" 
-      rel="noopener noreferrer"
-      className="fixed bottom-8 right-8 bg-[#25D366] text-white p-4 rounded-full shadow-2xl hover:bg-[#20bd5a] transition-all duration-300 z-50 hover:scale-110 flex items-center justify-center border-4 border-white/20 backdrop-blur-sm"
-      aria-label="Chat on WhatsApp"
-    >
-      <MessageCircle className="h-7 w-7" />
-    </a>
-  );
-};
-
-const AppContent: React.FC = () => {
+const AppContent = () => {
   const location = useLocation();
   
   // Check if current path is an admin route
@@ -89,7 +78,61 @@ const AppContent: React.FC = () => {
               } 
             />
             
-            {/* COMPLETE BOOKING ROUTES */}
+            {/* Portfolio Routes */}
+            <Route 
+              path="/admin/portfolio" 
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <AdminPortfolio />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/portfolio/items" 
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <AdminPortfolio />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/portfolio/add" 
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <AdminPortfolio />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/portfolio/categories" 
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <AdminPortfolio />
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* User Management Route */}
+            <Route 
+              path="/admin/users" 
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <AdminUsers />
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Profile Management Route */}
+            <Route 
+              path="/admin/profile" 
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <AdminProfile />
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Booking Routes */}
             <Route 
               path="/admin/bookings" 
               element={
@@ -123,16 +166,7 @@ const AppContent: React.FC = () => {
               } 
             />
             
-            {/* You can add more admin routes as needed */}
-            {/* 
-            <Route 
-              path="/admin/portfolio" 
-              element={
-                <ProtectedRoute allowedRoles={['ADMIN']}>
-                  <AdminPortfolio />
-                </ProtectedRoute>
-              } 
-            />
+            {/* Quote Routes */}
             <Route 
               path="/admin/quotes" 
               element={
@@ -142,22 +176,29 @@ const AppContent: React.FC = () => {
               } 
             />
             <Route 
-              path="/admin/users" 
+              path="/admin/quotes/calendar" 
               element={
                 <ProtectedRoute allowedRoles={['ADMIN']}>
-                  <AdminUsers />
+                  <AdminQuotes />
                 </ProtectedRoute>
               } 
             />
             <Route 
-              path="/admin/messages" 
+              path="/admin/quotes/kanban" 
               element={
                 <ProtectedRoute allowedRoles={['ADMIN']}>
-                  <AdminMessages />
+                  <AdminQuotes />
                 </ProtectedRoute>
               } 
             />
-            */}
+            <Route 
+              path="/admin/quotes/:id" 
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <AdminQuoteDetail />
+                </ProtectedRoute>
+              } 
+            />
             
             {/* Catch-all route */}
             <Route path="*" element={<Navigate to="/" replace />} />
@@ -167,12 +208,11 @@ const AppContent: React.FC = () => {
       
       {/* Only show footer if NOT on admin routes */}
       {!isAdminRoute && <Footer />}
-      {!isAdminRoute && <WhatsAppButton />}
     </div>
   );
 };
 
-const App: React.FC = () => {
+const App = () => {
   return (
     <HashRouter>
       <AuthProvider>

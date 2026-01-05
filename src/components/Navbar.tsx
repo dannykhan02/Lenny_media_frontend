@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Camera, Moon, Sun } from 'lucide-react';
+import { Menu, X, Moon, Sun } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../hooks/useTheme';
 
@@ -33,8 +33,13 @@ const Navbar: React.FC = () => {
       <div className="w-full px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-24 items-center">
           <Link to="/" className="flex-shrink-0 flex items-center gap-3 group">
-            <div className={`p-2 rounded-lg group-hover:${isDarkMode ? 'bg-gold-500' : 'bg-gold-500'} group-hover:text-stone-900 transition-colors duration-300 ${isDarkMode ? 'bg-stone-800 text-gold-500' : 'bg-stone-900 text-gold-500'}`}>
-              <Camera className="h-6 w-6" />
+            {/* Logo Image */}
+            <div className="p-2 rounded-lg group-hover:bg-gold-500/10 transition-colors duration-300">
+              <img 
+                src="/public/images/lenny-logo.png" 
+                alt="Lenny Media Kenya" 
+                className="h-8 w-8 object-contain"
+              />
             </div>
             <span className={`font-serif text-2xl font-bold tracking-tight ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>
               Lenny<span className="text-gold-500">Media</span>

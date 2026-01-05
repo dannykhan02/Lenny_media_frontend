@@ -1,6 +1,21 @@
 import React from 'react';
-import { Camera, Instagram, Facebook, Twitter, MapPin, Phone, Mail } from 'lucide-react';
+import { Camera, Instagram, Facebook, MapPin, Phone, Mail } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
+
+// Custom TikTok SVG Icon as Lucide doesn't have one yet
+const TikTokIcon = ({ className }) => (
+  <svg 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="2" 
+    strokeLinecap="round" 
+    strokeLinejoin="round" 
+    className={className}
+  >
+    <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
+  </svg>
+);
 
 const Footer = () => {
   const { isDarkMode } = useTheme();
@@ -19,7 +34,7 @@ const Footer = () => {
             </p>
             <div className="flex space-x-4 pt-2">
               <a 
-                href="https://instagram.com" 
+                href="https://www.instagram.com/lenny_media_kenya?igsh=d3NlczlnNDIwc2N2" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className={`p-3 rounded-full hover:bg-gold-500 hover:text-stone-900 transition-all duration-300 ${isDarkMode ? 'bg-stone-900 text-white' : 'bg-stone-200 text-stone-700'}`}
@@ -28,7 +43,7 @@ const Footer = () => {
                 <Instagram className="h-5 w-5" />
               </a>
               <a 
-                href="https://facebook.com" 
+                href="https://www.facebook.com/share/1D5x63tXea/" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className={`p-3 rounded-full hover:bg-gold-500 hover:text-stone-900 transition-all duration-300 ${isDarkMode ? 'bg-stone-900 text-white' : 'bg-stone-200 text-stone-700'}`}
@@ -37,13 +52,13 @@ const Footer = () => {
                 <Facebook className="h-5 w-5" />
               </a>
               <a 
-                href="https://twitter.com" 
+                href="https://www.tiktok.com/@lenny.media.studios?_r=1&_t=ZM-92SPIGMTOxM" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className={`p-3 rounded-full hover:bg-gold-500 hover:text-stone-900 transition-all duration-300 ${isDarkMode ? 'bg-stone-900 text-white' : 'bg-stone-200 text-stone-700'}`}
-                aria-label="Follow on Twitter"
+                aria-label="Follow on TikTok"
               >
-                <Twitter className="h-5 w-5" />
+                <TikTokIcon className="h-5 w-5" />
               </a>
             </div>
           </div>
@@ -55,50 +70,32 @@ const Footer = () => {
             </h3>
             <ul className="space-y-4">
               <li>
-                <a 
-                  href="/#/services" 
-                  className={`hover:text-gold-500 transition-colors flex items-center gap-2 ${isDarkMode ? 'text-stone-400' : 'text-stone-600'}`}
-                >
+                <a href="/#/services" className={`hover:text-gold-500 transition-colors flex items-center gap-2 ${isDarkMode ? 'text-stone-400' : 'text-stone-600'}`}>
                   Services & Pricing
                 </a>
               </li>
               <li>
-                <a 
-                  href="/#/portfolio" 
-                  className={`hover:text-gold-500 transition-colors flex items-center gap-2 ${isDarkMode ? 'text-stone-400' : 'text-stone-600'}`}
-                >
+                <a href="/#/portfolio" className={`hover:text-gold-500 transition-colors flex items-center gap-2 ${isDarkMode ? 'text-stone-400' : 'text-stone-600'}`}>
                   Our Work
                 </a>
               </li>
               <li>
-                <a 
-                  href="/#/school" 
-                  className={`hover:text-gold-500 transition-colors flex items-center gap-2 ${isDarkMode ? 'text-stone-400' : 'text-stone-600'}`}
-                >
+                <a href="/#/school" className={`hover:text-gold-500 transition-colors flex items-center gap-2 ${isDarkMode ? 'text-stone-400' : 'text-stone-600'}`}>
                   School of Photography
                 </a>
               </li>
               <li>
-                <a 
-                  href="/#/brands" 
-                  className={`hover:text-gold-500 transition-colors flex items-center gap-2 ${isDarkMode ? 'text-stone-400' : 'text-stone-600'}`}
-                >
+                <a href="/#/brands" className={`hover:text-gold-500 transition-colors flex items-center gap-2 ${isDarkMode ? 'text-stone-400' : 'text-stone-600'}`}>
                   Our Brands
                 </a>
               </li>
               <li>
-                <a 
-                  href="/#/about" 
-                  className={`hover:text-gold-500 transition-colors flex items-center gap-2 ${isDarkMode ? 'text-stone-400' : 'text-stone-600'}`}
-                >
+                <a href="/#/about" className={`hover:text-gold-500 transition-colors flex items-center gap-2 ${isDarkMode ? 'text-stone-400' : 'text-stone-600'}`}>
                   About Us
                 </a>
               </li>
               <li>
-                <a 
-                  href="/#/quote" 
-                  className={`hover:text-gold-500 transition-colors flex items-center gap-2 ${isDarkMode ? 'text-stone-400' : 'text-stone-600'}`}
-                >
+                <a href="/#/quote" className={`hover:text-gold-500 transition-colors flex items-center gap-2 ${isDarkMode ? 'text-stone-400' : 'text-stone-600'}`}>
                   Request a Quote
                 </a>
               </li>
@@ -116,44 +113,34 @@ const Footer = () => {
                   <MapPin className="h-5 w-5" />
                 </div>
                 <span className={isDarkMode ? 'text-stone-400' : 'text-stone-600'}>
-                  Juja Square, 1st Floor,<br />Juja, Kenya
+                  Juja Square, 1st Floor,<br />Next to the Highway, Juja, Kenya
                 </span>
               </li>
               <li className="flex items-center gap-4">
                 <div className={`p-2 rounded-lg text-gold-500 ${isDarkMode ? 'bg-stone-900' : 'bg-stone-200'}`}>
                   <Phone className="h-5 w-5" />
                 </div>
-                <span className={isDarkMode ? 'text-stone-400' : 'text-stone-600'}>
-                  +254 700 123 456
-                </span>
+                <a href="tel:+254705459768" className={`hover:text-gold-500 transition-colors ${isDarkMode ? 'text-stone-400' : 'text-stone-600'}`}>
+                  +254 705 459 768
+                </a>
               </li>
               <li className="flex items-center gap-4">
                 <div className={`p-2 rounded-lg text-gold-500 ${isDarkMode ? 'bg-stone-900' : 'bg-stone-200'}`}>
                   <Mail className="h-5 w-5" />
                 </div>
-                <span className={isDarkMode ? 'text-stone-400' : 'text-stone-600'}>
-                  info@lennymedia.co.ke
-                </span>
+                <a href="mailto:dannykhan614@gmail.com" className={`hover:text-gold-500 transition-colors ${isDarkMode ? 'text-stone-400' : 'text-stone-600'}`}>
+                  dannykhan614@gmail.com
+                </a>
               </li>
             </ul>
           </div>
         </div>
         
         <div className={`pt-8 text-center text-sm flex flex-col md:flex-row justify-between items-center border-t ${isDarkMode ? 'border-stone-900 text-stone-600' : 'border-stone-200 text-stone-500'}`}>
-          <p>&copy; {new Date().getFullYear()} Lenny Media Kenya. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Lenny Media Photography Studio. All rights reserved.</p>
           <div className="flex gap-6 mt-4 md:mt-0">
-            <a 
-              href="#" 
-              className={`hover:text-gold-500 transition-colors ${isDarkMode ? 'text-stone-600' : 'text-stone-500'}`}
-            >
-              Privacy Policy
-            </a>
-            <a 
-              href="#" 
-              className={`hover:text-gold-500 transition-colors ${isDarkMode ? 'text-stone-600' : 'text-stone-500'}`}
-            >
-              Terms of Service
-            </a>
+            <a href="#" className="hover:text-gold-500 transition-colors">Privacy Policy</a>
+            <a href="#" className="hover:text-gold-500 transition-colors">Terms of Service</a>
           </div>
         </div>
       </div>

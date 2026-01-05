@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Camera, Video, Star, ChevronDown, MapPin, Instagram, Play, Aperture, MonitorPlay, Compass, Zap } from 'lucide-react';
+import { ArrowRight, Camera, Video, Star, ChevronDown, MapPin, Instagram, Play, Aperture, MonitorPlay, Compass, Zap, MessageCircle } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 
 // --- Utility Components ---
@@ -57,18 +57,36 @@ const ParallaxImage: React.FC<{ src: string; alt: string; className?: string }> 
 
 const Hero = () => {
   const { isDarkMode } = useTheme();
+  const [currentSlide, setCurrentSlide] = useState(0);
+  
+  const heroImages = [
+    "https://images.unsplash.com/photo-1537633552985-df8429e8048b?q=80&w=2000&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?q=80&w=2000&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=2000&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=2000&auto=format&fit=crop"
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % heroImages.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [heroImages.length]);
 
   return (
     <div className="relative h-screen w-full overflow-hidden">
-      {/* Fixed Background for Parallax Feel - Eager loaded for LCP */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center bg-fixed"
-        style={{ 
-          backgroundImage: "url('https://images.unsplash.com/photo-1537633552985-df8429e8048b?q=80&w=2000&auto=format&fit=crop')" 
-        }}
-      >
-        <div className="absolute inset-0 bg-stone-950/60"></div>
-      </div>
+      {/* Slideshow Background */}
+      {heroImages.map((img, idx) => (
+        <div 
+          key={idx}
+          className={`absolute inset-0 bg-cover bg-center bg-fixed transition-opacity duration-1000 ${
+            currentSlide === idx ? 'opacity-100' : 'opacity-0'
+          }`}
+          style={{ backgroundImage: `url('${img}')` }}
+        >
+          <div className="absolute inset-0 bg-stone-950/60"></div>
+        </div>
+      ))}
 
       <div className="relative z-10 h-full flex flex-col justify-center items-center text-center px-4 max-w-5xl mx-auto">
         <FadeIn delay="100ms">
@@ -84,7 +102,7 @@ const Hero = () => {
         </FadeIn>
 
         <FadeIn delay="500ms">
-            <p className={`text-xl md:text-2xl font-light max-w-2xl mx-auto mb-12 leading-relaxed ${isDarkMode ? 'text-stone-300' : 'text-stone-300'}`}>
+            <p className="text-xl md:text-2xl font-light max-w-2xl mx-auto mb-12 leading-relaxed text-stone-300">
                 We craft timeless visuals for brands, weddings, and individuals. 
                 <br className="hidden md:block"/> Authentic storytelling through the lens.
             </p>
@@ -94,18 +112,32 @@ const Hero = () => {
             <div className="flex flex-col md:flex-row gap-6">
                 <Link 
                     to="/portfolio" 
-                    className={`group relative px-8 py-4 font-bold rounded-full overflow-hidden hover:scale-105 transition-transform duration-300 ${isDarkMode ? 'bg-white text-stone-900' : 'bg-white text-stone-900'}`}
+                    className="group relative px-8 py-4 font-bold rounded-full overflow-hidden hover:scale-105 transition-transform duration-300 bg-white text-stone-900"
                 >
                     <span className="relative z-10 group-hover:text-gold-600 transition-colors">View Portfolio</span>
                 </Link>
                 <Link 
                     to="/booking" 
-                    className={`group px-8 py-4 border border-white/30 text-white font-bold rounded-full hover:bg-white/10 hover:border-white transition-all duration-300 backdrop-blur-sm ${isDarkMode ? 'border-white/20' : 'border-white/30'}`}
+                    className="group px-8 py-4 border border-white/30 text-white font-bold rounded-full hover:bg-white/10 hover:border-white transition-all duration-300 backdrop-blur-sm"
                 >
                     Book a Session
                 </Link>
             </div>
         </FadeIn>
+      </div>
+
+      {/* Slideshow Indicators */}
+      <div className="absolute bottom-24 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+        {heroImages.map((_, idx) => (
+          <button
+            key={idx}
+            onClick={() => setCurrentSlide(idx)}
+            className={`w-2 h-2 rounded-full transition-all duration-300 ${
+              currentSlide === idx ? 'bg-gold-500 w-8' : 'bg-white/30'
+            }`}
+            aria-label={`Go to slide ${idx + 1}`}
+          />
+        ))}
       </div>
 
       <div className="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce text-white/50">
@@ -122,7 +154,7 @@ const Marquee = () => {
     <div className={`py-6 overflow-hidden whitespace-nowrap border-y ${isDarkMode ? 'bg-stone-950 border-stone-800' : 'bg-stone-900 border-stone-800'}`}>
       <div className="inline-block animate-[marquee_20s_linear_infinite]">
         {[1, 2, 3, 4, 5, 6].map((i) => (
-            <span key={i} className={`font-serif text-2xl mx-12 italic opacity-50 hover:opacity-100 hover:text-gold-500 transition-colors cursor-default ${isDarkMode ? 'text-stone-500' : 'text-stone-500'}`}>
+            <span key={i} className="font-serif text-2xl mx-12 italic text-gold-500 opacity-70 hover:opacity-100 transition-opacity cursor-default">
                 Photography • Videography • Branding • Live Streaming • Direction •
             </span>
         ))}
@@ -231,7 +263,7 @@ const ServicesSection = () => {
             icon: <Camera className="w-8 h-8" />,
             title: "Photography",
             description: "From studio portraits to large-scale events, we deliver high-resolution imagery that speaks.",
-            image: "https://images.unsplash.com/photo-1542038784424-fa00ed4998ca?q=80&w=800&auto=format&fit=crop"
+            image: "https://images.unsplash.com/photo-1554048612-b6a482bc67e5?q=80&w=800&auto=format&fit=crop"
         },
         {
             icon: <Video className="w-8 h-8" />,
@@ -300,7 +332,7 @@ const GallerySection = () => {
     const images = [
         { src: "https://images.unsplash.com/photo-1606800052052-a08af7148866?q=80&w=600&auto=format&fit=crop", span: "md:col-span-1", title: "Weddings" },
         { src: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?q=80&w=600&auto=format&fit=crop", span: "md:col-span-1", title: "Portraits" },
-        { src: "https://images.unsplash.com/photo-1514525253440-b393452e8d26?q=80&w=1200&auto=format&fit=crop", span: "md:col-span-2", title: "Celebrations" },
+        { src: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=1200&auto=format&fit=crop", span: "md:col-span-2", title: "Celebrations" },
         { src: "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?q=80&w=1200&auto=format&fit=crop", span: "md:col-span-2", title: "Corporate" },
         { src: "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?q=80&w=600&auto=format&fit=crop", span: "md:col-span-1", title: "Events" },
         { src: "https://images.unsplash.com/photo-1511988617509-a57c8a288659?q=80&w=600&auto=format&fit=crop", span: "md:col-span-1", title: "Lifestyle" },
@@ -385,6 +417,20 @@ const Home = () => {
       <ServicesSection />
       <GallerySection />
       <FinalCTA />
+      
+      {/* WhatsApp Floating Button */}
+      <a
+        href="https://wa.me/254705459768?text=Hello%20Lenny%20Media!%20I%27d%20like%20to%20inquire%20about%20your%20services."
+        target="_blank"
+        rel="noopener noreferrer"
+        className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-[#25D366] hover:bg-[#20BA5A] text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition-all duration-300 group"
+        aria-label="Contact us on WhatsApp"
+      >
+        <MessageCircle className="w-7 h-7 fill-current" />
+        <span className="absolute right-full mr-3 bg-stone-900 text-white px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+          Chat with us
+        </span>
+      </a>
     </div>
   );
 };

@@ -133,7 +133,8 @@ const Services: React.FC = () => {
     setError(null);
     
     try {
-      const url = `${API_URL}/services`;
+      // Use a large per_page value to get all services at once
+      const url = `${API_URL}/services?per_page=100`;
       const response = await fetch(url);
       
       if (!response.ok) {
@@ -297,95 +298,167 @@ const Services: React.FC = () => {
     const isExpanded = expandedFeatures[service.id];
 
     return (
-      <div key={service.id} className={`rounded-3xl p-8 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 border ${isDarkMode ? 'bg-stone-800 border-stone-700 hover:border-gold-500/30' : 'bg-white border-stone-100 hover:border-gold-500/30'} flex flex-col group relative overflow-hidden`}>
+      <div key={service.id} className={`rounded-3xl p-8 shadow-lg hover:shadow-2xl hover:-translate-y-3 transition-all duration-500 border-2 ${
+        isDarkMode 
+          ? 'bg-gradient-to-br from-stone-800 to-stone-900 border-stone-700 hover:border-gold-500/50' 
+          : 'bg-white border-stone-200 hover:border-gold-400/50'
+      } flex flex-col group relative overflow-hidden`}>
+        
+        {/* Animated gradient overlay on hover */}
+        <div className="absolute inset-0 bg-gradient-to-br from-gold-500/0 to-gold-500/0 group-hover:from-gold-500/5 group-hover:to-transparent transition-all duration-500 pointer-events-none"></div>
+        
+        {/* Featured Badge */}
         {service.is_featured && (
-          <div className="absolute top-0 right-0 bg-gradient-to-r from-gold-500 to-gold-600 text-stone-900 text-xs font-bold px-4 py-1.5 rounded-bl-xl z-10 flex items-center gap-1 shadow-md">
-            <Star className="w-3 h-3" fill="currentColor" /> FEATURED
+          <div className="absolute top-0 right-0 bg-gradient-to-r from-gold-500 to-gold-600 text-white text-xs font-bold px-4 py-2 rounded-bl-2xl z-10 flex items-center gap-1.5 shadow-lg">
+            <Star className="w-3.5 h-3.5" fill="currentColor" /> FEATURED
           </div>
         )}
         
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-gold-300 to-gold-600 scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
+        {/* Top accent line */}
+        <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-gold-400 via-gold-500 to-gold-600 scale-x-0 group-hover:scale-x-100 transition-transform duration-700 origin-left"></div>
         
-        <h3 className={`font-serif font-bold text-2xl mb-2 group-hover:text-gold-600 transition-colors ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>
-          {service.title}
-        </h3>
-        
-        {service.description && (
-          <p className={`mb-6 text-sm leading-relaxed ${isDarkMode ? 'text-stone-300' : 'text-stone-500'}`}>
-            {service.description}
-          </p>
-        )}
-        
-        {/* Features List */}
-        <div className="mb-6 flex-grow">
-          {hasFeatures ? (
-            <>
-              <div className={`flex items-center gap-2 mb-4 pb-2 border-b ${isDarkMode ? 'border-stone-700' : 'border-stone-200'}`}>
-                <Check className="w-4 h-4 text-gold-600" />
-                <span className={`text-xs font-bold uppercase tracking-wider ${isDarkMode ? 'text-stone-400' : 'text-stone-500'}`}>
-                  What's Included
-                </span>
-              </div>
-              <div className="space-y-2.5">
-                {displayedFeatures.map((feature, i) => (
-                  <div key={i} className={`flex items-start gap-3 text-sm ${isDarkMode ? 'text-stone-300' : 'text-stone-600'}`}>
-                    <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${isDarkMode ? 'bg-stone-700' : 'bg-stone-100'}`}>
-                      <Check className="w-3 h-3 text-gold-600" strokeWidth={3} />
-                    </div>
-                    <span className="leading-relaxed">{feature}</span>
-                  </div>
-                ))}
-              </div>
-              
-              {hasMoreFeatures && (
-                <button
-                  onClick={() => toggleFeatures(service.id)}
-                  className={`flex items-center gap-2 mt-4 text-sm font-semibold transition-colors ${isDarkMode ? 'text-gold-400 hover:text-gold-300' : 'text-gold-600 hover:text-gold-700'}`}
-                >
-                  {isExpanded ? (
-                    <>
-                      <ChevronUp className="w-4 h-4" />
-                      Show Less
-                    </>
-                  ) : (
-                    <>
-                      <ChevronDown className="w-4 h-4" />
-                      Show {service.features.length - 4} More Features
-                    </>
-                  )}
-                </button>
+        <div className="relative z-10">
+          {/* Title with icon */}
+          <div className="flex items-start gap-4 mb-4">
+            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-md ${
+              isDarkMode ? 'bg-stone-700' : 'bg-stone-100'
+            } group-hover:scale-110 transition-transform duration-300`}>
+              {service.category.toUpperCase() === 'PHOTOGRAPHY' ? (
+                <Camera className="w-7 h-7 text-gold-500" />
+              ) : (
+                <Video className="w-7 h-7 text-gold-500" />
               )}
-            </>
-          ) : (
-            <div className={`rounded-xl p-4 text-center ${isDarkMode ? 'bg-stone-700/50' : 'bg-stone-50'}`}>
-              <p className={`text-sm italic ${isDarkMode ? 'text-stone-400' : 'text-stone-500'}`}>
-                Contact us for detailed package information
-              </p>
             </div>
-          )}
-        </div>
-
-        <div className={`pt-6 border-t ${isDarkMode ? 'border-stone-700' : 'border-stone-100'} mt-auto`}>
-          <p className={`text-xs font-bold uppercase tracking-wider mb-2 ${isDarkMode ? 'text-stone-400' : 'text-stone-400'}`}>Starting from</p>
-          <div className="flex items-baseline gap-1 mb-6">
-            <span className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>
-              {formatPriceDisplay(service)}
-            </span>
+            <div className="flex-1">
+              <h3 className={`font-serif font-bold text-2xl mb-1 group-hover:text-gold-500 transition-colors duration-300 ${
+                isDarkMode ? 'text-white' : 'text-stone-900'
+              }`}>
+                {service.title}
+              </h3>
+              <span className={`text-xs font-bold uppercase tracking-wider ${
+                isDarkMode ? 'text-stone-500' : 'text-stone-400'
+              }`}>
+                {service.category}
+              </span>
+            </div>
           </div>
           
-          <div className="grid grid-cols-2 gap-3">
-            <Link 
-              to={`/booking?service=${encodeURIComponent(service.title)}&category=${encodeURIComponent(service.category)}&id=${service.id}&slug=${service.slug}`}
-              className={`flex items-center justify-center gap-2 font-bold py-3 rounded-xl transition-all duration-300 shadow-lg ${isDarkMode ? 'bg-stone-700 text-white hover:bg-stone-600' : 'bg-stone-900 text-white hover:bg-stone-800'}`}
-            >
-              Book Now
-            </Link>
-            <Link 
-              to={`/quote?service=${encodeURIComponent(service.title)}&category=${encodeURIComponent(service.category)}&id=${service.id}&slug=${service.slug}`}
-              className={`flex items-center justify-center gap-2 border-2 font-bold py-3 rounded-xl transition-all duration-300 ${isDarkMode ? 'border-stone-600 bg-stone-800 text-stone-300 hover:bg-stone-700 hover:text-white' : 'border-gold-500 bg-white text-stone-900 hover:bg-gold-50 hover:shadow-md'}`}
-            >
-              Get Quote
-            </Link>
+          {service.description && (
+            <p className={`mb-6 text-sm leading-relaxed ${isDarkMode ? 'text-stone-300' : 'text-stone-600'}`}>
+              {service.description}
+            </p>
+          )}
+          
+          {/* Features List - Improved */}
+          <div className="mb-6 flex-grow">
+            {hasFeatures ? (
+              <>
+                <div className={`flex items-center gap-2 mb-4 pb-3 border-b-2 ${
+                  isDarkMode ? 'border-stone-700' : 'border-stone-200'
+                }`}>
+                  <Check className="w-5 h-5 text-gold-500" strokeWidth={3} />
+                  <span className={`text-sm font-bold uppercase tracking-wider ${
+                    isDarkMode ? 'text-stone-300' : 'text-stone-600'
+                  }`}>
+                    What's Included
+                  </span>
+                </div>
+                <div className="space-y-3">
+                  {displayedFeatures.map((feature, i) => (
+                    <div key={i} className={`flex items-start gap-3 text-sm ${
+                      isDarkMode ? 'text-stone-300' : 'text-stone-700'
+                    } group/item`}>
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 transition-all duration-300 ${
+                        isDarkMode 
+                          ? 'bg-stone-700 group-hover/item:bg-gold-500/20' 
+                          : 'bg-stone-100 group-hover/item:bg-gold-100'
+                      }`}>
+                        <Check className="w-3.5 h-3.5 text-gold-500" strokeWidth={3} />
+                      </div>
+                      <span className="leading-relaxed">{feature}</span>
+                    </div>
+                  ))}
+                </div>
+                
+                {hasMoreFeatures && (
+                  <button
+                    onClick={() => toggleFeatures(service.id)}
+                    className={`flex items-center gap-2 mt-5 text-sm font-semibold transition-all duration-300 ${
+                      isDarkMode 
+                        ? 'text-gold-400 hover:text-gold-300' 
+                        : 'text-gold-600 hover:text-gold-700'
+                    } hover:gap-3`}
+                  >
+                    {isExpanded ? (
+                      <>
+                        <ChevronUp className="w-4 h-4" />
+                        Show Less
+                      </>
+                    ) : (
+                      <>
+                        <ChevronDown className="w-4 h-4" />
+                        +{service.features.length - 4} More Features
+                      </>
+                    )}
+                  </button>
+                )}
+              </>
+            ) : (
+              <div className={`rounded-2xl p-6 text-center border-2 border-dashed ${
+                isDarkMode ? 'bg-stone-800/30 border-stone-700' : 'bg-stone-50 border-stone-200'
+              }`}>
+                <AlertCircle className={`w-6 h-6 mx-auto mb-2 ${
+                  isDarkMode ? 'text-stone-600' : 'text-stone-400'
+                }`} />
+                <p className={`text-sm ${isDarkMode ? 'text-stone-400' : 'text-stone-500'}`}>
+                  Contact us for detailed package information
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Price and CTA Section - Enhanced */}
+          <div className={`pt-6 border-t-2 ${
+            isDarkMode ? 'border-stone-700' : 'border-stone-200'
+          } mt-auto space-y-5`}>
+            <div>
+              <p className={`text-xs font-bold uppercase tracking-wider mb-2 ${
+                isDarkMode ? 'text-stone-500' : 'text-stone-500'
+              }`}>
+                Starting from
+              </p>
+              <div className="flex items-baseline gap-2">
+                <span className={`text-2xl font-bold ${
+                  isDarkMode ? 'text-white' : 'text-stone-900'
+                }`}>
+                  {formatPriceDisplay(service)}
+                </span>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3">
+              <Link 
+                to={`/booking?service=${encodeURIComponent(service.title)}&category=${encodeURIComponent(service.category)}&id=${service.id}&slug=${service.slug}`}
+                className={`flex items-center justify-center gap-2 font-bold py-3.5 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-1 ${
+                  isDarkMode 
+                    ? 'bg-gold-500 text-stone-900 hover:bg-gold-400' 
+                    : 'bg-stone-900 text-white hover:bg-stone-800'
+                }`}
+              >
+                Book Now
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+              <Link 
+                to={`/quote?service=${encodeURIComponent(service.title)}&category=${encodeURIComponent(service.category)}&id=${service.id}&slug=${service.slug}`}
+                className={`flex items-center justify-center gap-2 border-2 font-bold py-3.5 rounded-xl transition-all duration-300 ${
+                  isDarkMode 
+                    ? 'border-gold-500 bg-transparent text-white hover:bg-gold-500/10' 
+                    : 'border-gold-500 bg-white text-gold-700 hover:bg-gold-50 hover:shadow-md'
+                }`}
+              >
+                Get Quote
+              </Link>
+            </div>
           </div>
         </div>
       </div>
@@ -393,149 +466,196 @@ const Services: React.FC = () => {
   };
 
   const renderFilters = () => (
-    <div className={`mb-8 rounded-2xl p-6 shadow-sm border ${isDarkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'}`}>
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <Filter className="h-5 w-5 text-gold-500" />
-          <h3 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>
-            Filter Services
-          </h3>
-          {filteredServices.length !== services.length && (
-            <span className={`px-3 py-1 rounded-full text-xs font-bold ${isDarkMode ? 'bg-gold-500/20 text-gold-300' : 'bg-gold-100 text-gold-700'}`}>
-              {filteredServices.length} of {services.length}
-            </span>
-          )}
+    <div className={`mb-12 rounded-3xl overflow-hidden shadow-xl border ${isDarkMode ? 'bg-gradient-to-br from-stone-900 to-stone-800 border-stone-700' : 'bg-gradient-to-br from-white to-stone-50 border-stone-200'}`}>
+      {/* Header Section with Better Visual Hierarchy */}
+      <div className={`px-8 py-6 border-b ${isDarkMode ? 'border-stone-700 bg-stone-900/50' : 'border-stone-200 bg-white/50'}`}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${isDarkMode ? 'bg-gold-500/20' : 'bg-gold-100'}`}>
+              <Filter className="h-6 w-6 text-gold-500" />
+            </div>
+            <div>
+              <h3 className={`text-xl font-bold font-serif ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>
+                Refine Your Search
+              </h3>
+              <p className={`text-sm ${isDarkMode ? 'text-stone-400' : 'text-stone-600'}`}>
+                Find exactly what you're looking for
+              </p>
+            </div>
+            {filteredServices.length !== services.length && (
+              <div className={`ml-4 px-4 py-2 rounded-full text-sm font-bold ${isDarkMode ? 'bg-gold-500/20 text-gold-300' : 'bg-gold-100 text-gold-700'}`}>
+                {filteredServices.length} of {services.length} services
+              </div>
+            )}
+          </div>
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className={`p-3 rounded-xl transition-all duration-300 ${isDarkMode ? 'hover:bg-stone-700 text-stone-300' : 'hover:bg-stone-100 text-stone-600'}`}
+          >
+            {showFilters ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+          </button>
         </div>
-        <button
-          onClick={() => setShowFilters(!showFilters)}
-          className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-stone-700' : 'hover:bg-stone-100'}`}
-        >
-          {showFilters ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
-        </button>
       </div>
       
-      {/* Search Bar - Always visible */}
-      <div className="mb-6">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-stone-400" />
+      {/* Search Bar - Always Visible with Better Styling */}
+      <div className="px-8 py-6">
+        <div className="relative group">
+          <Search className={`absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 transition-colors ${filters.search ? 'text-gold-500' : 'text-stone-400'}`} />
           <input
             type="text"
-            placeholder="Search services by name, description, or features..."
+            placeholder="Search by name, description, features, or category..."
             value={filters.search}
             onChange={(e) => handleFilterChange('search', e.target.value)}
-            className={`w-full pl-10 pr-10 py-3 rounded-xl border ${isDarkMode ? 'bg-stone-700 border-stone-600 text-white placeholder-stone-500' : 'bg-white border-stone-200 text-stone-900'} focus:ring-2 focus:ring-gold-500 focus:border-transparent transition-all`}
+            className={`w-full pl-12 pr-12 py-4 rounded-2xl border-2 transition-all duration-300 ${
+              isDarkMode 
+                ? 'bg-stone-800 border-stone-700 text-white placeholder-stone-500 focus:bg-stone-750 focus:border-gold-500' 
+                : 'bg-white border-stone-200 text-stone-900 placeholder-stone-400 focus:border-gold-500 focus:bg-stone-50'
+            } focus:ring-4 focus:ring-gold-500/20 focus:outline-none`}
           />
           {filters.search && (
             <button
               onClick={() => handleFilterChange('search', '')}
-              className={`absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded transition-colors ${isDarkMode ? 'hover:bg-stone-600' : 'hover:bg-stone-100'}`}
+              className={`absolute right-4 top-1/2 -translate-y-1/2 p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-stone-700 text-stone-400' : 'hover:bg-stone-100 text-stone-500'}`}
             >
-              <X className="h-4 w-4 text-stone-400" />
+              <X className="h-4 w-4" />
             </button>
           )}
         </div>
       </div>
       
-      {/* Collapsible filters */}
+      {/* Collapsible Advanced Filters */}
       {showFilters && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Category Filter */}
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-stone-300' : 'text-stone-700'}`}>
-                Category
-              </label>
-              <select
-                value={filters.category}
-                onChange={(e) => handleFilterChange('category', e.target.value)}
-                className={`w-full px-3 py-2.5 rounded-lg border ${isDarkMode ? 'bg-stone-700 border-stone-600 text-white' : 'bg-white border-stone-300 text-stone-900'} focus:ring-2 focus:ring-gold-500`}
-              >
-                <option value="all">All Categories</option>
-                {categories.map(cat => (
-                  <option key={cat.name} value={cat.name.toLowerCase()}>
-                    {cat.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            
-            {/* Price Range */}
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-stone-300' : 'text-stone-700'}`}>
-                Min Price (Ksh)
-              </label>
-              <input
-                type="number"
-                placeholder="Minimum"
-                value={filters.minPrice}
-                onChange={(e) => handleFilterChange('minPrice', e.target.value)}
-                className={`w-full px-3 py-2.5 rounded-lg border ${isDarkMode ? 'bg-stone-700 border-stone-600 text-white' : 'bg-white border-stone-300 text-stone-900'} focus:ring-2 focus:ring-gold-500`}
-              />
-            </div>
-            
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-stone-300' : 'text-stone-700'}`}>
-                Max Price (Ksh)
-              </label>
-              <input
-                type="number"
-                placeholder="Maximum"
-                value={filters.maxPrice}
-                onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
-                className={`w-full px-3 py-2.5 rounded-lg border ${isDarkMode ? 'bg-stone-700 border-stone-600 text-white' : 'bg-white border-stone-300 text-stone-900'} focus:ring-2 focus:ring-gold-500`}
-              />
-            </div>
-            
-            {/* Sort By */}
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-stone-300' : 'text-stone-700'}`}>
-                Sort By
-              </label>
-              <div className="flex gap-2">
+        <div className={`px-8 pb-8 pt-2 border-t ${isDarkMode ? 'border-stone-700' : 'border-stone-200'}`}>
+          <div className="space-y-6">
+            {/* Filter Grid with Better Spacing */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {/* Category Filter */}
+              <div className="space-y-2">
+                <label className={`block text-sm font-semibold ${isDarkMode ? 'text-stone-300' : 'text-stone-700'}`}>
+                  Category
+                </label>
                 <select
-                  value={filters.sortBy}
-                  onChange={(e) => handleFilterChange('sortBy', e.target.value as FilterState['sortBy'])}
-                  className={`flex-1 px-3 py-2.5 rounded-lg border ${isDarkMode ? 'bg-stone-700 border-stone-600 text-white' : 'bg-white border-stone-300 text-stone-900'} focus:ring-2 focus:ring-gold-500`}
+                  value={filters.category}
+                  onChange={(e) => handleFilterChange('category', e.target.value)}
+                  className={`w-full px-4 py-3 rounded-xl border-2 transition-all ${
+                    isDarkMode 
+                      ? 'bg-stone-800 border-stone-700 text-white hover:border-stone-600' 
+                      : 'bg-white border-stone-200 text-stone-900 hover:border-stone-300'
+                  } focus:ring-4 focus:ring-gold-500/20 focus:border-gold-500 focus:outline-none cursor-pointer`}
                 >
-                  <option value="display_order">Default Order</option>
-                  <option value="title">Name</option>
-                  <option value="price_min">Price</option>
-                  <option value="created_at">Date Added</option>
+                  <option value="all">All Categories</option>
+                  {categories.map(cat => (
+                    <option key={cat.name} value={cat.name.toLowerCase()}>
+                      {cat.name}
+                    </option>
+                  ))}
                 </select>
-                <button
-                  onClick={toggleSortOrder}
-                  className={`px-3 py-2.5 rounded-lg border ${isDarkMode ? 'bg-stone-700 border-stone-600 text-white hover:bg-stone-600' : 'bg-white border-stone-300 text-stone-900 hover:bg-stone-50'}`}
-                  title={`Sort ${filters.sortOrder === 'asc' ? 'Ascending' : 'Descending'}`}
-                >
-                  {filters.sortOrder === 'asc' ? '↑' : '↓'}
-                </button>
+              </div>
+              
+              {/* Min Price */}
+              <div className="space-y-2">
+                <label className={`block text-sm font-semibold ${isDarkMode ? 'text-stone-300' : 'text-stone-700'}`}>
+                  Min Price (Ksh)
+                </label>
+                <input
+                  type="number"
+                  placeholder="No minimum"
+                  value={filters.minPrice}
+                  onChange={(e) => handleFilterChange('minPrice', e.target.value)}
+                  className={`w-full px-4 py-3 rounded-xl border-2 transition-all ${
+                    isDarkMode 
+                      ? 'bg-stone-800 border-stone-700 text-white placeholder-stone-500' 
+                      : 'bg-white border-stone-200 text-stone-900 placeholder-stone-400'
+                  } focus:ring-4 focus:ring-gold-500/20 focus:border-gold-500 focus:outline-none`}
+                />
+              </div>
+              
+              {/* Max Price */}
+              <div className="space-y-2">
+                <label className={`block text-sm font-semibold ${isDarkMode ? 'text-stone-300' : 'text-stone-700'}`}>
+                  Max Price (Ksh)
+                </label>
+                <input
+                  type="number"
+                  placeholder="No maximum"
+                  value={filters.maxPrice}
+                  onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
+                  className={`w-full px-4 py-3 rounded-xl border-2 transition-all ${
+                    isDarkMode 
+                      ? 'bg-stone-800 border-stone-700 text-white placeholder-stone-500' 
+                      : 'bg-white border-stone-200 text-stone-900 placeholder-stone-400'
+                  } focus:ring-4 focus:ring-gold-500/20 focus:border-gold-500 focus:outline-none`}
+                />
+              </div>
+              
+              {/* Sort By */}
+              <div className="space-y-2">
+                <label className={`block text-sm font-semibold ${isDarkMode ? 'text-stone-300' : 'text-stone-700'}`}>
+                  Sort By
+                </label>
+                <div className="flex gap-2">
+                  <select
+                    value={filters.sortBy}
+                    onChange={(e) => handleFilterChange('sortBy', e.target.value as FilterState['sortBy'])}
+                    className={`flex-1 px-4 py-3 rounded-xl border-2 transition-all ${
+                      isDarkMode 
+                        ? 'bg-stone-800 border-stone-700 text-white' 
+                        : 'bg-white border-stone-200 text-stone-900'
+                    } focus:ring-4 focus:ring-gold-500/20 focus:border-gold-500 focus:outline-none cursor-pointer`}
+                  >
+                    <option value="display_order">Default Order</option>
+                    <option value="title">Name</option>
+                    <option value="price_min">Price</option>
+                    <option value="created_at">Date Added</option>
+                  </select>
+                  <button
+                    onClick={toggleSortOrder}
+                    className={`px-4 py-3 rounded-xl border-2 font-bold transition-all ${
+                      isDarkMode 
+                        ? 'bg-stone-800 border-stone-700 text-white hover:bg-stone-700' 
+                        : 'bg-white border-stone-200 text-stone-900 hover:bg-stone-50'
+                    }`}
+                    title={`Sort ${filters.sortOrder === 'asc' ? 'Ascending' : 'Descending'}`}
+                  >
+                    {filters.sortOrder === 'asc' ? '↑' : '↓'}
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-          
-          {/* Checkbox filters */}
-          <div className="flex items-center gap-4">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={filters.isFeatured}
-                onChange={(e) => handleFilterChange('isFeatured', e.target.checked)}
-                className="w-4 h-4 text-gold-500 rounded focus:ring-gold-500 focus:ring-offset-0"
-              />
-              <span className={`text-sm ${isDarkMode ? 'text-stone-300' : 'text-stone-700'}`}>
-                Show Featured Only
-              </span>
-            </label>
-          </div>
-          
-          {/* Clear Filters Button */}
-          <div className="flex justify-end">
-            <button
-              onClick={clearFilters}
-              className={`px-4 py-2 rounded-lg font-medium ${isDarkMode ? 'text-stone-300 hover:text-white hover:bg-stone-700' : 'text-stone-600 hover:text-stone-900 hover:bg-stone-100'}`}
-            >
-              Clear All Filters
-            </button>
+            
+            {/* Featured Checkbox with Better Styling */}
+            <div className={`flex items-center justify-between p-4 rounded-xl ${isDarkMode ? 'bg-stone-800/50' : 'bg-stone-50'}`}>
+              <label className="flex items-center gap-3 cursor-pointer group">
+                <div className="relative">
+                  <input
+                    type="checkbox"
+                    checked={filters.isFeatured}
+                    onChange={(e) => handleFilterChange('isFeatured', e.target.checked)}
+                    className="w-5 h-5 text-gold-500 rounded border-2 focus:ring-4 focus:ring-gold-500/20 focus:ring-offset-0 cursor-pointer transition-all"
+                  />
+                </div>
+                <div>
+                  <span className={`text-sm font-semibold ${isDarkMode ? 'text-stone-200' : 'text-stone-800'}`}>
+                    Show Featured Only
+                  </span>
+                  <p className={`text-xs ${isDarkMode ? 'text-stone-500' : 'text-stone-500'}`}>
+                    Display only our most popular services
+                  </p>
+                </div>
+              </label>
+              
+              {/* Clear Filters Button */}
+              <button
+                onClick={clearFilters}
+                className={`px-6 py-2.5 rounded-xl font-semibold transition-all ${
+                  isDarkMode 
+                    ? 'text-stone-300 hover:text-white hover:bg-stone-700' 
+                    : 'text-stone-600 hover:text-stone-900 hover:bg-stone-200'
+                }`}
+              >
+                Clear All
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -590,7 +710,7 @@ const Services: React.FC = () => {
         </div>
         
         <div className="relative max-w-7xl mx-auto text-center z-10">
-          <div className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-gradient-to-r from-gold-400 to-gold-600 text-stone-900 mb-8 shadow-lg shadow-gold-500/30 animate-[fadeIn_1s] border border-gold-300 transform hover:scale-105 transition-transform duration-300">
+          <div className={`inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-gradient-to-r from-gold-400 to-gold-600 mb-8 shadow-lg shadow-gold-500/30 animate-[fadeIn_1s] border border-gold-300 transform hover:scale-105 transition-transform duration-300 ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>
             <Star className="w-5 h-5 fill-stone-900" strokeWidth={2.5} />
             <span className="font-bold tracking-widest uppercase text-xs">Premium Quality Services</span>
           </div>
@@ -614,22 +734,37 @@ const Services: React.FC = () => {
             <Loader2 className="h-8 w-8 text-gold-500 animate-spin" />
           </div>
         ) : filteredServices.length === 0 ? (
-          <div className={`rounded-3xl p-12 text-center ${isDarkMode ? 'bg-stone-900' : 'bg-white'} shadow-lg border ${isDarkMode ? 'border-stone-700' : 'border-stone-200'}`}>
-            <Search className={`h-16 w-16 mx-auto mb-6 ${isDarkMode ? 'text-stone-700' : 'text-stone-300'}`} />
-            <h3 className={`text-2xl font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>
+          <div className={`rounded-3xl p-16 text-center ${
+            isDarkMode ? 'bg-stone-900 border-2 border-stone-800' : 'bg-white border-2 border-stone-100'
+          } shadow-2xl`}>
+            <div className={`w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 ${
+              isDarkMode ? 'bg-stone-800' : 'bg-stone-100'
+            }`}>
+              <Search className={`h-12 w-12 ${isDarkMode ? 'text-stone-600' : 'text-stone-400'}`} />
+            </div>
+            <h3 className={`text-3xl font-bold mb-4 font-serif ${
+              isDarkMode ? 'text-white' : 'text-stone-900'
+            }`}>
               No Services Found
             </h3>
-            <p className={`mb-6 ${isDarkMode ? 'text-stone-300' : 'text-stone-600'}`}>
+            <p className={`mb-8 text-lg max-w-md mx-auto ${
+              isDarkMode ? 'text-stone-400' : 'text-stone-600'
+            }`}>
               {filters.search || filters.category !== 'all' || filters.isFeatured 
-                ? 'Try adjusting your filters or search term'
-                : 'No services are currently available'}
+                ? 'Try adjusting your filters or search term to find what you\'re looking for'
+                : 'No services are currently available. Please check back soon!'}
             </p>
             {(filters.search || filters.category !== 'all' || filters.isFeatured || filters.minPrice || filters.maxPrice) && (
               <button
                 onClick={clearFilters}
-                className="inline-flex items-center gap-3 px-8 py-3 bg-gold-500 text-stone-900 font-bold rounded-lg hover:bg-gold-400 transition-colors"
+                className={`inline-flex items-center gap-3 px-8 py-4 rounded-xl font-bold transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-1 ${
+                  isDarkMode 
+                    ? 'bg-gold-500 text-stone-900 hover:bg-gold-400' 
+                    : 'bg-stone-900 text-white hover:bg-stone-800'
+                }`}
               >
-                Clear Filters
+                <X className="w-5 h-5" />
+                Clear All Filters
               </button>
             )}
           </div>
@@ -639,13 +774,21 @@ const Services: React.FC = () => {
             {filteredServices.filter(s => s.category.toUpperCase() === 'PHOTOGRAPHY').length > 0 && (
               <div>
                 <div className="flex items-center gap-6 mb-12">
-                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg border ${isDarkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'}`}>
-                    <Camera className="h-8 w-8 text-gold-500" />
+                  <div className={`w-20 h-20 rounded-3xl flex items-center justify-center shadow-xl border-2 ${
+                    isDarkMode 
+                      ? 'bg-gradient-to-br from-stone-800 to-stone-900 border-stone-700' 
+                      : 'bg-gradient-to-br from-white to-stone-50 border-stone-200'
+                  } group-hover:scale-110 transition-transform duration-300`}>
+                    <Camera className="h-10 w-10 text-gold-500" />
                   </div>
                   <div>
-                    <h2 className={`font-serif text-4xl font-bold ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>Photography</h2>
-                    <p className={`${isDarkMode ? 'text-stone-400' : 'text-stone-500'} text-lg`}>
-                      {filteredServices.filter(s => s.category.toUpperCase() === 'PHOTOGRAPHY').length} services available
+                    <h2 className={`font-serif text-4xl font-bold mb-1 ${
+                      isDarkMode ? 'text-white' : 'text-stone-900'
+                    }`}>
+                      Photography
+                    </h2>
+                    <p className={`${isDarkMode ? 'text-stone-400' : 'text-stone-600'} text-lg font-medium`}>
+                      {filteredServices.filter(s => s.category.toUpperCase() === 'PHOTOGRAPHY').length} premium packages available
                     </p>
                   </div>
                 </div>
@@ -661,13 +804,21 @@ const Services: React.FC = () => {
             {filteredServices.filter(s => s.category.toUpperCase() === 'VIDEOGRAPHY').length > 0 && (
               <div>
                 <div className="flex items-center gap-6 mb-12">
-                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg border ${isDarkMode ? 'bg-stone-800 border-stone-700' : 'bg-stone-900 border-stone-800'}`}>
-                    <Video className="h-8 w-8 text-gold-500" />
+                  <div className={`w-20 h-20 rounded-3xl flex items-center justify-center shadow-xl border-2 ${
+                    isDarkMode 
+                      ? 'bg-gradient-to-br from-stone-800 to-stone-900 border-stone-700' 
+                      : 'bg-gradient-to-br from-white to-stone-50 border-stone-200'
+                  } group-hover:scale-110 transition-transform duration-300`}>
+                    <Video className="h-10 w-10 text-gold-500" />
                   </div>
                   <div>
-                    <h2 className={`font-serif text-4xl font-bold ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>Videography</h2>
-                    <p className={`${isDarkMode ? 'text-stone-400' : 'text-stone-500'} text-lg`}>
-                      {filteredServices.filter(s => s.category.toUpperCase() === 'VIDEOGRAPHY').length} services available
+                    <h2 className={`font-serif text-4xl font-bold mb-1 ${
+                      isDarkMode ? 'text-white' : 'text-stone-900'
+                    }`}>
+                      Videography
+                    </h2>
+                    <p className={`${isDarkMode ? 'text-stone-400' : 'text-stone-600'} text-lg font-medium`}>
+                      {filteredServices.filter(s => s.category.toUpperCase() === 'VIDEOGRAPHY').length} premium packages available
                     </p>
                   </div>
                 </div>
@@ -685,8 +836,8 @@ const Services: React.FC = () => {
         {!filters.isFeatured && filteredServices.filter(s => s.is_featured).length > 0 && (
           <div className="mt-24">
             <div className="text-center mb-12">
-              <div className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-gradient-to-r from-gold-400 to-gold-600 text-white mb-6 shadow-lg shadow-gold-500/30">
-                <Star className="w-5 h-5 fill-white" strokeWidth={2.5} />
+              <div className={`inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-gradient-to-r from-gold-400 to-gold-600 mb-6 shadow-lg shadow-gold-500/30 border ${isDarkMode ? 'text-white border-gold-500' : 'text-stone-900 border-gold-600'}`}>
+                <Star className={`w-5 h-5 ${isDarkMode ? 'fill-white' : 'fill-stone-900'}`} strokeWidth={2.5} />
                 <span className="font-bold tracking-widest uppercase text-xs">Featured Services</span>
               </div>
               <h2 className={`font-serif text-3xl md:text-4xl font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>

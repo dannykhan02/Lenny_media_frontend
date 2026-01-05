@@ -1,6 +1,6 @@
 // pages/Admin/AdminLogin.tsx
 import React, { useState } from 'react';
-import { Camera, Lock, Mail, AlertCircle, Loader2 } from 'lucide-react';
+import { Camera, Lock, Mail, AlertCircle, Loader2, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import AdminAuthLayout from '../../components/AdminAuthLayout';
@@ -12,6 +12,7 @@ const AdminLogin: React.FC = () => {
   const { isDarkMode } = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false); // State for visibility toggle
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -116,10 +117,10 @@ const AdminLogin: React.FC = () => {
                   </div>
                   <input
                     id="password"
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className={`block w-full pl-12 pr-4 py-3 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent transition-all ${
+                    className={`block w-full pl-12 pr-12 py-3 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent transition-all ${
                       isDarkMode 
                         ? 'bg-stone-800 border-stone-700 text-white placeholder-stone-500' 
                         : 'border border-stone-300 text-stone-900'
@@ -128,6 +129,19 @@ const AdminLogin: React.FC = () => {
                     disabled={isLoading || authLoading}
                     required
                   />
+                  {/* Password Toggle Button */}
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-stone-400 hover:text-gold-500 transition-colors"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
+                  </button>
                 </div>
               </div>
 
