@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import AdminAuthLayout from '../../components/AdminAuthLayout';
 import { useTheme } from '../../context/ThemeContext';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_URL = import.meta.env.VITE_API_URL || 'integral-katherine-dannykhan-f5ee6939.koyeb.app/';
 
 const RegisterFirstAdmin: React.FC = () => {
   const { registerFirstAdmin } = useAuth();
