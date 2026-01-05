@@ -1,6 +1,5 @@
-// pages/Admin/AdminLogin.tsx
 import React, { useState } from 'react';
-import { Camera, Lock, Mail, AlertCircle, Loader2, Eye, EyeOff } from 'lucide-react';
+import { Lock, Mail, AlertCircle, Loader2, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import AdminAuthLayout from '../../components/AdminAuthLayout';
@@ -12,7 +11,7 @@ const AdminLogin: React.FC = () => {
   const { isDarkMode } = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false); // State for visibility toggle
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -42,10 +41,16 @@ const AdminLogin: React.FC = () => {
         <div className={`rounded-2xl shadow-xl overflow-hidden ${
           isDarkMode ? 'bg-stone-900' : 'bg-white'
         }`}>
-          {/* Header */}
+          {/* Header with Logo */}
           <div className="bg-gradient-to-r from-stone-900 to-stone-800 px-8 py-10 text-center">
-            <div className="inline-flex items-center justify-center bg-gold-500 text-stone-900 p-4 rounded-2xl mb-4 shadow-lg">
-              <Camera className="h-8 w-8" />
+            <div className="inline-flex items-center justify-center p-4 rounded-2xl mb-4 shadow-lg">
+              <div className="bg-white p-3 rounded-xl">
+                <img 
+                  src="/images/lenny-logo.png" 
+                  alt="Lenny Media Kenya" 
+                  className="h-12 w-12 object-contain"
+                />
+              </div>
             </div>
             <h1 className="text-3xl font-bold text-white font-serif mb-2">
               Admin Login

@@ -14,7 +14,7 @@ const Navbar: React.FC = () => {
     { name: 'Home', path: '/' },
     { name: 'Services', path: '/services' },
     { name: 'Our Work', path: '/portfolio' },
-    { name: 'School', path: '/school' },
+    { name: 'Our Team', path: '/team' },
     { name: 'Brands', path: '/brands' },
     { name: 'About Us', path: '/about' },
     { name: 'Contact', path: '/contact' },
@@ -55,7 +55,7 @@ const Navbar: React.FC = () => {
                   className={`${
                     isActive(link.path) 
                       ? `${isDarkMode ? 'text-white bg-stone-800' : 'text-stone-900'} font-bold bg-stone-50` 
-                      : link.path === '/school' 
+                      : link.path === '/team' 
                         ? 'text-gold-600 font-bold hover:text-gold-700 hover:bg-gold-50'
                         : `${isDarkMode ? 'text-stone-300 hover:text-white hover:bg-stone-800' : 'text-stone-500 hover:text-stone-900 hover:bg-stone-50'}`
                   } px-2 xl:px-3 py-2.5 rounded-full font-medium transition-all duration-200 text-xs xl:text-sm tracking-wide whitespace-nowrap`}
@@ -141,7 +141,7 @@ const Navbar: React.FC = () => {
                 className={`block px-4 py-4 rounded-xl text-lg font-medium border-l-4 ${
                   isActive(link.path) 
                     ? 'border-gold-500 bg-stone-50 text-stone-900' 
-                    : link.path === '/school'
+                    : link.path === '/team'
                       ? 'border-transparent text-gold-600 font-bold bg-gold-50/50'
                       : `${isDarkMode ? 'border-transparent text-stone-300 hover:bg-stone-800 hover:text-white' : 'border-transparent text-stone-500 hover:bg-stone-50 hover:text-stone-900'}`
                 }`}

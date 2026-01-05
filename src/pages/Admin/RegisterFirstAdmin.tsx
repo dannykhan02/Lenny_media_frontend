@@ -1,6 +1,5 @@
-// pages/Admin/RegisterFirstAdmin.tsx
 import React, { useState, useEffect } from 'react';
-import { Camera, Lock, Mail, User, AlertCircle, CheckCircle, Loader2, Eye, EyeOff } from 'lucide-react';
+import { Lock, Mail, User, AlertCircle, CheckCircle, Loader2, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import AdminAuthLayout from '../../components/AdminAuthLayout';
@@ -185,8 +184,12 @@ const RegisterFirstAdmin: React.FC = () => {
           isDarkMode ? 'bg-stone-900' : 'bg-white'
         }`}>
           <div className="bg-gradient-to-r from-gold-600 to-gold-500 px-8 py-10 text-center">
-            <div className="inline-flex items-center justify-center bg-white text-gold-600 p-4 rounded-2xl mb-4 shadow-lg">
-              <Camera className="h-8 w-8" />
+            <div className="inline-flex items-center justify-center bg-white p-4 rounded-2xl mb-4 shadow-lg">
+              <img 
+                src="/images/lenny-logo.png" 
+                alt="Lenny Media Kenya" 
+                className="h-12 w-12 object-contain"
+              />
             </div>
             <h1 className="text-3xl font-bold text-white font-serif mb-2">
               Create First Admin

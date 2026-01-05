@@ -1,7 +1,6 @@
-// components/AdminAuthLayout.tsx
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Camera, Sun, Moon } from 'lucide-react';
+import { Sun, Moon } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 
 const AdminAuthLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -15,19 +14,20 @@ const AdminAuthLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
     }`}>
       {/* Header for auth pages */}
       <header className={`shadow-sm transition-colors duration-300 ${
-        isDarkMode ? 'bg-stone-900' : 'bg-white'
-      }`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16 items-center">
-            <Link to="/" className="flex-shrink-0 flex items-center gap-3">
-              <div className={`p-2 rounded-lg transition-colors duration-300 ${
-                isDarkMode 
-                  ? 'bg-stone-800 text-gold-500' 
-                  : 'bg-stone-900 text-gold-500'
-              }`}>
-                <Camera className="h-6 w-6" />
+        isDarkMode ? 'bg-stone-900 border-stone-800' : 'bg-white border-stone-100'
+      } border-b`}>
+        <div className="w-full px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-24 items-center">
+            <Link to="/" className="flex-shrink-0 flex items-center gap-3 group">
+              {/* Logo Image - Same as Navbar */}
+              <div className="p-2 rounded-lg group-hover:bg-gold-500/10 transition-colors duration-300">
+                <img 
+                  src="/images/lenny-logo.png" 
+                  alt="Lenny Media Kenya" 
+                  className="h-8 w-8 object-contain"
+                />
               </div>
-              <span className={`font-serif text-xl font-bold tracking-tight ${
+              <span className={`font-serif text-2xl font-bold tracking-tight ${
                 isDarkMode ? 'text-white' : 'text-stone-900'
               }`}>
                 Lenny<span className="text-gold-500">Media</span>

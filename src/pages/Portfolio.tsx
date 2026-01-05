@@ -61,19 +61,22 @@ const Portfolio: React.FC = () => {
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
-  // Data cleaned of hardcoded params
+  // Data cleaned of hardcoded params - Updated with images from Home page
   const categories = ['All', 'Weddings', 'Portraits', 'Events', 'Commercial'];
   
   const allPortfolioItems: PortfolioItem[] = [
-    { id: '1', category: 'Weddings', title: 'Grace & John', image: 'https://images.unsplash.com/photo-1511285560982-1351cdeb9821' },
-    { id: '2', category: 'Portraits', title: 'Studio Session', image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb' },
-    { id: '3', category: 'Events', title: 'Tech Summit Nairobi', image: 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4' },
-    { id: '4', category: 'Commercial', title: 'Fashion Campaign', image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff' },
-    { id: '5', category: 'Weddings', title: 'Traditional Ceremony', image: 'https://images.unsplash.com/photo-1583939003579-730e3918a45a' },
-    { id: '6', category: 'Portraits', title: 'Graduation 2024', image: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1' },
-    { id: '7', category: 'Events', title: 'Music Festival', image: 'https://images.unsplash.com/photo-1459749411177-287ce3276916' },
-    { id: '8', category: 'Commercial', title: 'Urban Streetwear', image: 'https://images.unsplash.com/photo-1483985988355-763728e1935b' },
-    { id: '9', category: 'Weddings', title: 'Reception Party', image: 'https://images.unsplash.com/photo-1496337589254-7e19d01cec44' },
+    { id: '1', category: 'Weddings', title: 'Grace & John', image: 'https://images.unsplash.com/photo-1606800052052-a08af7148866' },
+    { id: '2', category: 'Portraits', title: 'Studio Session', image: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04' },
+    { id: '3', category: 'Events', title: 'Tech Summit Nairobi', image: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30' },
+    { id: '4', category: 'Commercial', title: 'Fashion Campaign', image: 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7' },
+    { id: '5', category: 'Weddings', title: 'Traditional Ceremony', image: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc' },
+    { id: '6', category: 'Portraits', title: 'Graduation 2024', image: 'https://images.unsplash.com/photo-1527011046414-4781f1f94f8c' },
+    { id: '7', category: 'Events', title: 'Music Festival', image: 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4' },
+    { id: '8', category: 'Commercial', title: 'Urban Streetwear', image: 'https://images.unsplash.com/photo-1511988617509-a57c8a288659' },
+    { id: '9', category: 'Weddings', title: 'Reception Party', image: 'https://images.unsplash.com/photo-1519741497674-611481863552' },
+    { id: '10', category: 'Portraits', title: 'Professional Headshots', image: 'https://images.unsplash.com/photo-1537633552985-df8429e8048b' },
+    { id: '11', category: 'Events', title: 'Corporate Conference', image: 'https://images.unsplash.com/photo-1492691527719-9d1e07e534b4' },
+    { id: '12', category: 'Commercial', title: 'Brand Campaign', image: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32' },
   ];
 
   const filteredItems = filter === 'All' 

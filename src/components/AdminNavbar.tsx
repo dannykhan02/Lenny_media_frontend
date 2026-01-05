@@ -528,7 +528,7 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
               <Link to="/admin/dashboard" className="flex items-center gap-3 group flex-1 min-w-0" onClick={closeSidebar}>
                 <div className="p-2 rounded-xl group-hover:bg-gold-500/10 transition-all duration-300 flex-shrink-0">
                   <img 
-                    src="/public/images/lenny-logo.png" 
+                    src="/images/lenny-logo.png" 
                     alt="Lenny Media Kenya" 
                     className="h-8 w-8 object-contain"
                   />

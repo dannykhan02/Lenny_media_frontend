@@ -12,9 +12,8 @@ const Portfolio = React.lazy(() => import('./pages/Portfolio'));
 const Booking = React.lazy(() => import('./pages/Booking'));
 const Contact = React.lazy(() => import('./pages/Contact'));
 const About = React.lazy(() => import('./pages/About'));
-const School = React.lazy(() => import('./pages/School'));
+const Team = React.lazy(() => import('./pages/Team'));
 const Quote = React.lazy(() => import('./pages/Quote'));
-const Enrollment = React.lazy(() => import('./pages/Enrollment'));
 const Brands = React.lazy(() => import('./pages/Brands'));
 
 // Admin Pages
@@ -46,8 +45,7 @@ const AppContent = () => {
             {/* Public Routes */}
             <Route path="/" element={<Home />} />
             <Route path="/about" element={<About />} />
-            <Route path="/school" element={<School />} />
-            <Route path="/enrollment" element={<Enrollment />} />
+            <Route path="/team" element={<Team />} />
             <Route path="/services" element={<Services />} />
             <Route path="/portfolio" element={<Portfolio />} />
             <Route path="/booking" element={<Booking />} />

@@ -11,7 +11,10 @@ import {
   X,
   Filter,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Package,
+  Clock,
+  HelpCircle
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
@@ -64,6 +67,7 @@ const Services: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [expandedFeatures, setExpandedFeatures] = useState<{ [key: number]: boolean }>({});
+  const [isServicesEmpty, setIsServicesEmpty] = useState(false);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   
   // Filter state
@@ -131,6 +135,7 @@ const Services: React.FC = () => {
   const fetchServices = async () => {
     setIsLoading(true);
     setError(null);
+    setIsServicesEmpty(false);
     
     try {
       // Use a large per_page value to get all services at once
@@ -145,6 +150,7 @@ const Services: React.FC = () => {
       const servicesData = data.services || [];
       
       setServices(servicesData);
+      setIsServicesEmpty(servicesData.length === 0);
       
     } catch (err: any) {
       setError(err.message || 'An error occurred while fetching services');
@@ -153,6 +159,7 @@ const Services: React.FC = () => {
       // Fallback to empty arrays
       setServices([]);
       setFilteredServices([]);
+      setIsServicesEmpty(true);
     } finally {
       setIsLoading(false);
     }
@@ -482,7 +489,7 @@ const Services: React.FC = () => {
                 Find exactly what you're looking for
               </p>
             </div>
-            {filteredServices.length !== services.length && (
+            {filteredServices.length !== services.length && services.length > 0 && (
               <div className={`ml-4 px-4 py-2 rounded-full text-sm font-bold ${isDarkMode ? 'bg-gold-500/20 text-gold-300' : 'bg-gold-100 text-gold-700'}`}>
                 {filteredServices.length} of {services.length} services
               </div>
@@ -673,6 +680,101 @@ const Services: React.FC = () => {
     );
   }
 
+  // Show a user-friendly message when database has no services
+  if (!isLoading && !error && isServicesEmpty) {
+    return (
+      <div className={`min-h-screen ${isDarkMode ? 'bg-stone-950' : 'bg-stone-50'}`}>
+        {/* Hero Header */}
+        <div className={`pt-36 pb-24 px-4 overflow-hidden relative ${isDarkMode ? 'bg-stone-900' : 'bg-white'}`}>
+          <div className="absolute inset-0">
+            <div className={`absolute top-0 right-0 w-[900px] h-[900px] rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2 ${isDarkMode ? 'bg-gradient-to-r from-gold-600/10 to-transparent' : 'bg-gradient-to-r from-gold-400/20 to-transparent'}`}></div>
+            <div className={`absolute bottom-0 left-0 w-[700px] h-[700px] rounded-full blur-[100px] translate-y-1/3 -translate-x-1/3 ${isDarkMode ? 'bg-stone-800/50' : 'bg-stone-100/50'}`}></div>
+            <div className={`absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] ${isDarkMode ? 'opacity-20' : 'opacity-10'}`}></div>
+          </div>
+          
+          <div className="relative max-w-7xl mx-auto text-center z-10">
+            <div className={`inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-gradient-to-r from-gold-400 to-gold-600 mb-8 shadow-lg shadow-gold-500/30 animate-[fadeIn_1s] border border-gold-300 transform hover:scale-105 transition-transform duration-300 ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>
+              <Star className="w-5 h-5 fill-stone-900" strokeWidth={2.5} />
+              <span className="font-bold tracking-widest uppercase text-xs">Coming Soon</span>
+            </div>
+
+            <h1 className={`font-serif text-5xl md:text-7xl font-bold mb-6 tracking-tight ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>
+              Services & Investment
+            </h1>
+            <p className={`max-w-2xl mx-auto text-xl leading-relaxed font-light ${isDarkMode ? 'text-stone-300' : 'text-stone-600'}`}>
+              Transparent pricing for world-class artistry. Choose the package that fits your vision.
+            </p>
+          </div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+          {/* Empty State Message */}
+          <div className={`rounded-3xl p-16 text-center ${
+            isDarkMode ? 'bg-stone-900 border-2 border-stone-800' : 'bg-white border-2 border-stone-100'
+          } shadow-2xl mb-16`}>
+            <div className={`w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 ${
+              isDarkMode ? 'bg-stone-800' : 'bg-stone-100'
+            }`}>
+              <Package className={`h-12 w-12 ${isDarkMode ? 'text-stone-600' : 'text-stone-400'}`} />
+            </div>
+            <h3 className={`text-3xl font-bold mb-4 font-serif ${
+              isDarkMode ? 'text-white' : 'text-stone-900'
+            }`}>
+              Services Coming Soon
+            </h3>
+            <p className={`mb-8 text-lg max-w-md mx-auto ${
+              isDarkMode ? 'text-stone-400' : 'text-stone-600'
+            }`}>
+              We're currently updating our service offerings. Our premium photography and videography packages will be available shortly.
+            </p>
+            <div className={`inline-flex items-center gap-3 px-8 py-4 rounded-xl font-bold transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-1 ${
+              isDarkMode 
+                ? 'bg-gold-500 text-stone-900 hover:bg-gold-400' 
+                : 'bg-stone-900 text-white hover:bg-stone-800'
+            }`}>
+              <Clock className="w-5 h-5" />
+              Check Back Soon
+            </div>
+          </div>
+
+          {/* Contact CTA */}
+          <div className={`${isDarkMode ? 'bg-stone-900' : 'bg-white'} py-12 px-8 rounded-3xl border ${isDarkMode ? 'border-stone-700' : 'border-stone-200'}`}>
+            <div className="text-center">
+              <h3 className={`text-2xl font-bold mb-6 ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>
+                Need a custom quote now?
+              </h3>
+              <p className={`mb-8 ${isDarkMode ? 'text-stone-400' : 'text-stone-600'}`}>
+                While we're preparing our packages, you can still contact us for custom projects and pricing.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link 
+                  to="/contact"
+                  className={`px-8 py-4 rounded-xl font-bold transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-1 ${
+                    isDarkMode 
+                      ? 'bg-gold-500 text-stone-900 hover:bg-gold-400' 
+                      : 'bg-stone-900 text-white hover:bg-stone-800'
+                  }`}
+                >
+                  Contact Us
+                </Link>
+                <Link 
+                  to="/quote"
+                  className={`px-8 py-4 rounded-xl font-bold transition-all duration-300 border-2 ${
+                    isDarkMode 
+                      ? 'border-gold-500 text-gold-500 hover:bg-gold-500/10' 
+                      : 'border-gold-500 text-gold-700 hover:bg-gold-50'
+                  }`}
+                >
+                  Get a Custom Quote
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (error && services.length === 0) {
     return (
       <div className={`min-h-screen ${isDarkMode ? 'bg-stone-950' : 'bg-stone-50'} pt-36 px-4`}>
@@ -726,14 +828,14 @@ const Services: React.FC = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         {/* Filters */}
-        {renderFilters()}
+        {services.length > 0 && renderFilters()}
         
         {/* Services Grid */}
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 text-gold-500 animate-spin" />
           </div>
-        ) : filteredServices.length === 0 ? (
+        ) : filteredServices.length === 0 && services.length > 0 ? (
           <div className={`rounded-3xl p-16 text-center ${
             isDarkMode ? 'bg-stone-900 border-2 border-stone-800' : 'bg-white border-2 border-stone-100'
           } shadow-2xl`}>
@@ -752,7 +854,7 @@ const Services: React.FC = () => {
             }`}>
               {filters.search || filters.category !== 'all' || filters.isFeatured 
                 ? 'Try adjusting your filters or search term to find what you\'re looking for'
-                : 'No services are currently available. Please check back soon!'}
+                : 'No services match your criteria'}
             </p>
             {(filters.search || filters.category !== 'all' || filters.isFeatured || filters.minPrice || filters.maxPrice) && (
               <button
@@ -768,7 +870,7 @@ const Services: React.FC = () => {
               </button>
             )}
           </div>
-        ) : (
+        ) : services.length > 0 ? (
           <div className="space-y-24">
             {/* Photography Section */}
             {filteredServices.filter(s => s.category.toUpperCase() === 'PHOTOGRAPHY').length > 0 && (
@@ -830,7 +932,7 @@ const Services: React.FC = () => {
               </div>
             )}
           </div>
-        )}
+        ) : null}
         
         {/* Featured Services Section */}
         {!filters.isFeatured && filteredServices.filter(s => s.is_featured).length > 0 && (
