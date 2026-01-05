@@ -36,7 +36,7 @@ const Navbar: React.FC = () => {
             {/* Logo Image */}
             <div className="p-2 rounded-lg group-hover:bg-gold-500/10 transition-colors duration-300">
               <img 
-                src="/public/images/lenny-logo.png" 
+                src="/images/lenny-logo.png" 
                 alt="Lenny Media Kenya" 
                 className="h-8 w-8 object-contain"
               />
