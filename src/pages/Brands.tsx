@@ -68,23 +68,91 @@ const Brands = () => {
                 
                 <div className="w-full md:w-1/2 relative group">
                     <div className="absolute inset-0 bg-gold-500 rounded-3xl transform rotate-3 opacity-20 transition-transform duration-500 group-hover:rotate-6"></div>
-                    <div className={`relative ${isDarkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'} rounded-3xl shadow-xl overflow-hidden border p-8 md:p-12 transition-transform duration-500 group-hover:-translate-y-2`}>
-                         <div className="grid grid-cols-2 gap-4">
-                            <div className={`bg-stone-50 p-6 rounded-2xl text-center hover:bg-stone-100 transition-colors ${isDarkMode ? 'bg-stone-700 hover:bg-stone-600' : ''}`}>
-                                <Globe className="w-8 h-8 text-stone-900 mx-auto mb-3" />
-                                <h4 className={`font-bold ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>Digital</h4>
-                            </div>
-                            <div className={`bg-stone-900 p-6 rounded-2xl text-center text-white hover:bg-stone-800 transition-colors ${isDarkMode ? 'bg-stone-700 hover:bg-stone-600' : ''}`}>
-                                <Lightbulb className="w-8 h-8 text-gold-500 mx-auto mb-3" />
-                                <h4 className="font-bold">Strategy</h4>
-                            </div>
-                             <div className="bg-gold-500 p-6 rounded-2xl text-center text-stone-900 col-span-2 relative overflow-hidden">
-                                <div className="absolute inset-0 bg-white/10 opacity-0 hover:opacity-100 transition-opacity"></div>
-                                <Layers className="w-8 h-8 mx-auto mb-3" />
-                                <h4 className="font-bold text-xl">Full-Service Agency</h4>
-                                <p className="text-sm opacity-90 mt-1 font-medium">From Concept to Execution</p>
+                    <div className={`relative ${isDarkMode ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100'} rounded-3xl shadow-xl overflow-hidden border transition-transform duration-500 group-hover:-translate-y-2`}>
+                         {/* Marketing Strategy Image */}
+                         <div className="relative h-64 overflow-hidden">
+                            <img 
+                              src="https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=1200&auto=format&fit=crop" 
+                              alt="Marketing Team Strategy Meeting" 
+                              loading="lazy"
+                              className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700" 
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-stone-900/60 to-transparent"></div>
+                         </div>
+                         
+                         <div className="p-8 md:p-12">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className={`bg-stone-50 p-6 rounded-2xl text-center hover:bg-stone-100 transition-colors ${isDarkMode ? 'bg-stone-700 hover:bg-stone-600' : ''}`}>
+                                    <Globe className={`w-8 h-8 mx-auto mb-3 ${isDarkMode ? 'text-gold-500' : 'text-stone-900'}`} />
+                                    <h4 className={`font-bold ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>Digital</h4>
+                                </div>
+                                <div className={`bg-stone-900 p-6 rounded-2xl text-center text-white hover:bg-stone-800 transition-colors ${isDarkMode ? 'bg-stone-700 hover:bg-stone-600' : ''}`}>
+                                    <Lightbulb className="w-8 h-8 text-gold-500 mx-auto mb-3" />
+                                    <h4 className="font-bold">Strategy</h4>
+                                </div>
+                                <div className="bg-gold-500 p-6 rounded-2xl text-center text-stone-900 col-span-2 relative overflow-hidden">
+                                    <div className="absolute inset-0 bg-white/10 opacity-0 hover:opacity-100 transition-opacity"></div>
+                                    <Layers className="w-8 h-8 mx-auto mb-3" />
+                                    <h4 className="font-bold text-xl">Full-Service Agency</h4>
+                                    <p className="text-sm opacity-90 mt-1 font-medium">From Concept to Execution</p>
+                                </div>
                             </div>
                          </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+      </div>
+
+      {/* Visual Showcase Section - Social Media & Content Creation */}
+      <div className={`py-16 px-4 ${isDarkMode ? 'bg-stone-900' : 'bg-white'}`}>
+        <div className="max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Social Media Management */}
+                <div className="relative rounded-2xl overflow-hidden shadow-lg group h-80">
+                    <img 
+                      src="https://images.unsplash.com/photo-1611162617474-5b21e879e113?q=80&w=800&auto=format&fit=crop" 
+                      alt="Social Media Content Creation" 
+                      loading="lazy"
+                      className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700" 
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-stone-900 via-stone-900/40 to-transparent flex items-end p-6">
+                        <div>
+                            <h3 className="text-white font-bold text-xl mb-2">Social Media Excellence</h3>
+                            <p className="text-stone-300 text-sm">Engaging content that converts</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Brand Strategy */}
+                <div className="relative rounded-2xl overflow-hidden shadow-lg group h-80">
+                    <img 
+                      src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=800&auto=format&fit=crop" 
+                      alt="Brand Strategy Analytics" 
+                      loading="lazy"
+                      className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700" 
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-stone-900 via-stone-900/40 to-transparent flex items-end p-6">
+                        <div>
+                            <h3 className="text-white font-bold text-xl mb-2">Data-Driven Results</h3>
+                            <p className="text-stone-300 text-sm">Analytics that inform strategy</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Creative Agency Workspace */}
+                <div className="relative rounded-2xl overflow-hidden shadow-lg group h-80">
+                    <img 
+                      src="https://images.unsplash.com/photo-1542744094-3a31f272c490?q=80&w=800&auto=format&fit=crop" 
+                      alt="Creative Agency Team Collaboration" 
+                      loading="lazy"
+                      className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700" 
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-stone-900 via-stone-900/40 to-transparent flex items-end p-6">
+                        <div>
+                            <h3 className="text-white font-bold text-xl mb-2">Creative Collaboration</h3>
+                            <p className="text-stone-300 text-sm">Ideas brought to life</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -115,10 +183,54 @@ const Brands = () => {
                 <div className="w-full md:w-1/2">
                     <div className="relative rounded-3xl overflow-hidden shadow-2xl h-[400px] group">
                          <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors z-10"></div>
-                         <img src="https://images.unsplash.com/photo-1588483977959-badc9893d432?q=80&w=1200&auto=format&fit=crop" alt="Production Team" className="w-full h-full object-cover transform transition-transform duration-700 group-hover:scale-110" />
+                         <img 
+                           src="https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?q=80&w=1200&auto=format&fit=crop" 
+                           alt="Professional Photography Production Team" 
+                           loading="lazy"
+                           className="w-full h-full object-cover transform transition-transform duration-700 group-hover:scale-110" 
+                         />
                          <div className="absolute bottom-6 left-6 z-20">
                             <span className="bg-gold-500 text-stone-900 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Production House</span>
                          </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+      </div>
+
+      {/* Additional Services Showcase */}
+      <div className={`py-16 px-4 ${isDarkMode ? 'bg-stone-950' : 'bg-stone-50'}`}>
+        <div className="max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Photography Excellence */}
+                <div className="relative rounded-2xl overflow-hidden shadow-lg group h-96">
+                    <img 
+                      src="https://images.unsplash.com/photo-1554048612-b6a482bc67e5?q=80&w=1200&auto=format&fit=crop" 
+                      alt="Professional Photography Equipment Studio" 
+                      loading="lazy"
+                      className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700" 
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-stone-900 via-stone-900/60 to-transparent flex items-end p-8">
+                        <div>
+                            <h3 className="text-white font-bold text-2xl mb-3">Photography Excellence</h3>
+                            <p className="text-stone-300">State-of-the-art equipment and expert photographers capturing your most precious moments.</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Videography Mastery */}
+                <div className="relative rounded-2xl overflow-hidden shadow-lg group h-96">
+                    <img 
+                      src="https://images.unsplash.com/photo-1579632652768-6cb9dcf85912?q=80&w=1200&auto=format&fit=crop" 
+                      alt="Professional Videography Production Setup" 
+                      loading="lazy"
+                      className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700" 
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-stone-900 via-stone-900/60 to-transparent flex items-end p-8">
+                        <div>
+                            <h3 className="text-white font-bold text-2xl mb-3">Cinematic Videography</h3>
+                            <p className="text-stone-300">4K video production with cinematic quality that tells compelling stories.</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -143,4 +255,5 @@ const Brands = () => {
     </div>
   );
 }
+
 export default Brands;
