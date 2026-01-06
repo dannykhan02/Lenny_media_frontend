@@ -80,8 +80,8 @@ const Footer = () => {
                 </a>
               </li>
               <li>
-                <a href="/#/school" className={`hover:text-gold-500 transition-colors flex items-center gap-2 ${isDarkMode ? 'text-stone-400' : 'text-stone-600'}`}>
-                  School of Photography
+                <a href="/#/Team" className={`hover:text-gold-500 transition-colors flex items-center gap-2 ${isDarkMode ? 'text-stone-400' : 'text-stone-600'}`}>
+                  Our Team
                 </a>
               </li>
               <li>
@@ -113,7 +113,7 @@ const Footer = () => {
                   <MapPin className="h-5 w-5" />
                 </div>
                 <span className={isDarkMode ? 'text-stone-400' : 'text-stone-600'}>
-                  Juja Square, 1st Floor,<br />Next to the Highway, Juja, Kenya
+                  Juja Square, 1st Floor,<br />Gatundu-Juja Road, Juja Kiambu
                 </span>
               </li>
               <li className="flex items-center gap-4">

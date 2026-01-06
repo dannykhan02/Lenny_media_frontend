@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
-import { Calendar, Clock, MapPin, CheckCircle, Info, Loader2, AlertCircle, X, Check, Mail, Phone, User } from 'lucide-react';
+import { Calendar, Clock, MapPin, CheckCircle, Info, Loader2, AlertCircle, X, Check, Mail, Phone, User, ChevronRight, ChevronLeft } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 
 // API configuration
@@ -8,10 +8,10 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 // ========== CONSTANTS & TYPES ==========
 const KENYA_PLACEHOLDERS = {
-  name: 'John Mwangi',
-  email: 'john.mwangi@company.co.ke',
+  name: 'Full Name ',
+  email: 'Enter your email',
   phone: '+254 712 345 678',
-  location: 'KICC, Nairobi'
+  location: 'Enter location'
 } as const;
 
 const STUDIO_HOURS: Record<string, { open: string; close: string }> = {
@@ -107,6 +107,8 @@ interface ErrorContext {
   };
 }
 
+// ========== COMPONENTS ==========
+
 // Tooltip Component
 const Tooltip: React.FC<{ text: string }> = ({ text }) => (
   <div className="group relative inline-block ml-2 align-middle">
@@ -117,6 +119,72 @@ const Tooltip: React.FC<{ text: string }> = ({ text }) => (
     </div>
   </div>
 );
+
+// Time Adjustment Indicator Component
+const TimeAdjustmentIndicator: React.FC<{
+  originalTime: string;
+  newTime: string;
+  onReview: () => void;
+  isDarkMode: boolean;
+}> = ({ originalTime, newTime, onReview, isDarkMode }) => {
+  return (
+    <div className={`mt-2 p-3 sm:p-4 rounded-lg border bg-gradient-to-r ${
+      isDarkMode 
+        ? 'from-amber-950/80 to-amber-900/60 border-amber-700' 
+        : 'from-amber-50 to-amber-100 border-amber-300'
+    }`}>
+      <div className="flex flex-col xs:flex-row xs:items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <Clock className="w-4 h-4 text-amber-600" />
+          <div>
+            <p className={`text-xs sm:text-sm font-semibold ${
+              isDarkMode ? 'text-amber-300' : 'text-amber-900'
+            }`}>
+              Time Adjusted to Fit Studio Hours
+            </p>
+            <p className={`text-xs ${
+              isDarkMode ? 'text-amber-400/80' : 'text-amber-700'
+            }`}>
+              Your selected time was outside our operating hours and has been adjusted.
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={onReview}
+          className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+            isDarkMode
+              ? 'bg-amber-700 hover:bg-amber-600 text-white'
+              : 'bg-amber-600 hover:bg-amber-700 text-white'
+          }`}
+        >
+          Review Change
+        </button>
+      </div>
+      <div className="grid grid-cols-2 gap-3 mt-3">
+        <div className={`p-2 rounded text-center ${
+          isDarkMode ? 'bg-stone-900/50' : 'bg-white/50'
+        }`}>
+          <p className={`text-xs uppercase mb-1 ${
+            isDarkMode ? 'text-stone-400' : 'text-stone-600'
+          }`}>Original</p>
+          <p className={`font-bold line-through ${
+            isDarkMode ? 'text-red-400' : 'text-red-600'
+          }`}>{originalTime}</p>
+        </div>
+        <div className={`p-2 rounded text-center ${
+          isDarkMode ? 'bg-stone-900/50' : 'bg-white/50'
+        }`}>
+          <p className={`text-xs uppercase mb-1 ${
+            isDarkMode ? 'text-stone-400' : 'text-stone-600'
+          }`}>Adjusted</p>
+          <p className={`font-bold ${
+            isDarkMode ? 'text-green-400' : 'text-green-600'
+          }`}>{newTime}</p>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // Adaptive Modal Component
 const AdaptiveModal: React.FC<{
@@ -283,7 +351,7 @@ const AdaptiveModal: React.FC<{
   );
 };
 
-// Studio Hours Guide Component
+// Studio Hours Guide Component with Gold/Amber Theme
 const StudioHoursGuide: React.FC<{
   day: string;
   isVisible: boolean;
@@ -296,45 +364,63 @@ const StudioHoursGuide: React.FC<{
   const hours = STUDIO_HOURS[day] || STUDIO_HOURS['Monday'];
   const suggestedTimes = ['11:00', '14:00', '17:00', '19:00'];
 
+  // Calculate time position for visual timeline
+  const calculateTimePosition = (time: string): number => {
+    const [hoursStr] = time.split(':');
+    const hour = parseInt(hoursStr);
+    // Assuming studio hours 8:00-22:00
+    const startHour = 8;
+    const endHour = 22;
+    const totalHours = endHour - startHour;
+    const position = ((hour - startHour) / totalHours) * 100;
+    return Math.max(0, Math.min(100, position));
+  };
+
   return (
     <div className={`mt-2 p-3 sm:p-4 rounded-lg border bg-gradient-to-br ${
       isDarkMode 
-        ? 'from-blue-950/40 to-stone-800/40 border-blue-700/40' 
-        : 'from-blue-50 to-stone-50 border-blue-300'
+        ? 'from-amber-950/40 to-stone-800/40 border-amber-700/40' 
+        : 'from-amber-50 to-stone-50 border-amber-300'
     }`}>
       <div className="flex flex-col xs:flex-row xs:items-center gap-2 mb-3">
         <div className="flex items-center gap-2 flex-1">
-          <Info className="w-3 h-3 sm:w-4 sm:h-4 text-gold-500" />
+          <Info className={`w-3 h-3 sm:w-4 sm:h-4 ${
+            isDarkMode ? 'text-amber-400' : 'text-amber-600'
+          }`} />
           <h4 className={`font-semibold text-xs sm:text-sm ${
-            isDarkMode ? 'text-blue-300' : 'text-blue-700'
+            isDarkMode ? 'text-amber-300' : 'text-amber-700'
           }`}>Studio Hours for {day}:</h4>
         </div>
         <span className="text-gold-600 font-medium text-xs sm:text-sm">{hours.open} - {hours.close}</span>
       </div>
       
-      {/* Visual Timeline */}
+      {/* Enhanced Visual Timeline */}
       <div className="mb-3 sm:mb-4">
-        <div className="relative h-6 bg-stone-700/30 rounded-full overflow-hidden">
-          <div className="absolute left-0 right-0 h-full bg-gradient-to-r from-gold-200 via-gold-400 to-gold-600 opacity-20"></div>
-          {/* Operating hours highlight */}
+        <div className="relative h-8 bg-stone-700/30 rounded-full overflow-hidden">
+          {/* Gradient background */}
+          <div className="absolute left-0 right-0 h-full bg-gradient-to-r from-amber-200 via-amber-400 to-amber-600 opacity-20"></div>
+          
+          {/* Operating hours highlight - animated */}
           <div 
-            className="absolute top-0 bottom-0 bg-green-500/30"
+            className="absolute top-0 bottom-0 bg-green-500/40 animate-pulse"
             style={{ 
               left: '30%',
               right: '25%'
             }}
           ></div>
-          {/* Current time indicator if provided */}
+          
+          {/* Current time indicator with pulse animation */}
           {currentTime && (
             <div 
-              className="absolute top-0 bottom-0 w-1 bg-red-500"
+              className="absolute top-0 bottom-0 w-1.5 bg-red-500 animate-pulse"
               style={{ 
-                left: `${((parseInt(currentTime.split(':')[0]) - 8) / 14) * 100}%`
+                left: `${calculateTimePosition(currentTime)}%`
               }}
             >
-              <div className="absolute -top-2 -left-1.5 w-4 h-4 rounded-full bg-red-500"></div>
+              <div className="absolute -top-2 -left-2 w-5 h-5 rounded-full bg-red-500 shadow-lg"></div>
             </div>
           )}
+          
           <div className="absolute left-0 right-0 top-1/2 transform -translate-y-1/2 flex justify-between px-2">
             <span className="text-xs">08:00</span>
             <span className="text-xs font-semibold text-green-500 hidden xs:inline">Operating Hours</span>
@@ -357,12 +443,12 @@ const StudioHoursGuide: React.FC<{
               key={time}
               type="button"
               onClick={() => onSelectTime && onSelectTime(time)}
-              className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+              className={`px-4 py-3 rounded-xl text-sm font-bold transition-all ${
                 currentTime === time
-                  ? 'bg-gold-600 text-white border border-gold-600'
+                  ? 'bg-gold-600 text-white border-2 border-gold-600 scale-105 shadow-lg'
                   : isDarkMode
-                    ? 'bg-stone-700 hover:bg-stone-600 text-stone-300 border border-stone-600'
-                    : 'bg-white hover:bg-stone-100 text-stone-700 border border-stone-300'
+                    ? 'bg-stone-700 hover:bg-stone-600 text-stone-300 border-2 border-stone-600 hover:scale-105'
+                    : 'bg-white hover:bg-stone-100 text-stone-700 border-2 border-stone-300 hover:scale-105'
               }`}
             >
               {time}
@@ -476,6 +562,7 @@ const ContactInformation: React.FC<{
   );
 };
 
+// ========== MAIN COMPONENT ==========
 const Booking: React.FC = () => {
   const location = useLocation();
   const { isDarkMode } = useTheme();
@@ -873,11 +960,11 @@ const Booking: React.FC = () => {
             {timeWasAutoAdjusted && (
               <div className={`mb-6 p-4 rounded-lg border-2 ${
                 isDarkMode 
-                  ? 'bg-blue-900/40 border-blue-800' 
-                  : 'bg-blue-50 border-blue-100'
+                  ? 'bg-amber-900/40 border-amber-800' 
+                  : 'bg-amber-50 border-amber-100'
               }`}>
                 <div className="flex items-start gap-2 sm:gap-3">
-                  <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 mt-0.5" />
+                  <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500 mt-0.5" />
                   <div>
                     <h4 className="font-semibold mb-1 text-sm sm:text-base">Time Adjustment Applied</h4>
                     <p className="text-xs sm:text-sm">
@@ -1153,17 +1240,19 @@ const Booking: React.FC = () => {
           {/* Form Area */}
           <div className={`p-8 lg:p-12 lg:w-3/5 ${isDarkMode ? 'bg-stone-800' : 'bg-white'}`}>
             {flowState === SubmissionFlowState.VALIDATION_FAILED && Object.keys(fieldErrors).length > 0 && (
-              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                <div className="flex items-start gap-3">
-                  <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-sm font-medium text-red-800">Please fix the following errors:</p>
-                    <ul className="mt-1 text-sm text-red-700 list-disc list-inside">
-                      {Object.values(fieldErrors).map((error, idx) => (
-                        <li key={idx}>{error}</li>
-                      ))}
-                    </ul>
-                  </div>
+              <div className={`mb-6 p-4 rounded-lg border flex items-start gap-3 ${
+                isDarkMode 
+                  ? 'bg-red-950/50 text-red-300 border-red-800' 
+                  : 'bg-red-50 text-red-700 border-red-200'
+              }`}>
+                <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium">Please fix the following errors:</p>
+                  <ul className="mt-1 text-sm list-disc list-inside">
+                    {Object.values(fieldErrors).map((error, idx) => (
+                      <li key={idx}>{error}</li>
+                    ))}
+                  </ul>
                 </div>
               </div>
             )}
@@ -1188,12 +1277,12 @@ const Booking: React.FC = () => {
                     placeholder={KENYA_PLACEHOLDERS.name}
                   />
                   {fieldErrors.name && (
-                    <div className={`flex items-center gap-1.5 mt-1 p-1.5 rounded text-xs ${
+                    <div className={`flex items-center gap-2 mt-2 p-3 rounded-lg text-sm ${
                       isDarkMode 
                         ? 'bg-red-950/50 text-red-300 border border-red-800' 
                         : 'bg-red-50 text-red-700 border border-red-200'
                     }`}>
-                      <AlertCircle className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-red-500 flex-shrink-0" />
+                      <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
                       <span>{fieldErrors.name}</span>
                     </div>
                   )}
@@ -1216,12 +1305,12 @@ const Booking: React.FC = () => {
                     placeholder={KENYA_PLACEHOLDERS.phone}
                   />
                   {fieldErrors.phone && (
-                    <div className={`flex items-center gap-1.5 mt-1 p-1.5 rounded text-xs ${
+                    <div className={`flex items-center gap-2 mt-2 p-3 rounded-lg text-sm ${
                       isDarkMode 
                         ? 'bg-red-950/50 text-red-300 border border-red-800' 
                         : 'bg-red-50 text-red-700 border border-red-200'
                     }`}>
-                      <AlertCircle className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-red-500 flex-shrink-0" />
+                      <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
                       <span>{fieldErrors.phone}</span>
                     </div>
                   )}
@@ -1246,12 +1335,12 @@ const Booking: React.FC = () => {
                   placeholder={KENYA_PLACEHOLDERS.email}
                 />
                 {fieldErrors.email && (
-                  <div className={`flex items-center gap-1.5 mt-1 p-1.5 rounded text-xs ${
+                  <div className={`flex items-center gap-2 mt-2 p-3 rounded-lg text-sm ${
                     isDarkMode 
                       ? 'bg-red-950/50 text-red-300 border border-red-800' 
                       : 'bg-red-50 text-red-700 border border-red-200'
                   }`}>
-                    <AlertCircle className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-red-500 flex-shrink-0" />
+                    <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
                     <span>{fieldErrors.email}</span>
                   </div>
                 )}
@@ -1277,12 +1366,12 @@ const Booking: React.FC = () => {
                     {isLoadingService && <Loader2 className="w-5 h-5 text-gold-500 animate-spin" />}
                   </div>
                   {fieldErrors.serviceType && (
-                    <div className={`flex items-center gap-1.5 mt-1 p-1.5 rounded text-xs ${
+                    <div className={`flex items-center gap-2 mt-2 p-3 rounded-lg text-sm ${
                       isDarkMode 
                         ? 'bg-red-950/50 text-red-300 border border-red-800' 
                         : 'bg-red-50 text-red-700 border border-red-200'
                     }`}>
-                      <AlertCircle className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-red-500 flex-shrink-0" />
+                      <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
                       <span>{fieldErrors.serviceType}</span>
                     </div>
                   )}
@@ -1335,12 +1424,12 @@ const Booking: React.FC = () => {
                     }`} 
                   />
                   {fieldErrors.date && (
-                    <div className={`flex items-center gap-1.5 mt-1 p-1.5 rounded text-xs ${
+                    <div className={`flex items-center gap-2 mt-2 p-3 rounded-lg text-sm ${
                       isDarkMode 
                         ? 'bg-red-950/50 text-red-300 border border-red-800' 
                         : 'bg-red-50 text-red-700 border border-red-200'
                     }`}>
-                      <AlertCircle className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-red-500 flex-shrink-0" />
+                      <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
                       <span>{fieldErrors.date}</span>
                     </div>
                   )}
@@ -1349,27 +1438,44 @@ const Booking: React.FC = () => {
                   <label htmlFor="time" className={`block text-sm font-bold ${isDarkMode ? 'text-stone-200' : 'text-stone-700'} mb-2`}>
                     Preferred Time <Tooltip text="The approximate start time for the shoot." />
                   </label>
-                  <input 
-                    type="time" 
-                    id="time" 
-                    name="time" 
-                    value={formData.time} 
-                    onChange={handleChange}
-                    disabled={isSubmitting}
-                    className={`w-full px-4 py-3 border ${isDarkMode ? 'bg-stone-700 border-stone-600 text-white' : 'bg-stone-50 border-stone-200 text-stone-900'} rounded-xl focus:ring-2 focus:ring-gold-500 focus:border-transparent outline-none transition-all disabled:opacity-50 ${
-                      fieldErrors.time ? 'border-2 border-red-500 ring-2 ring-red-500/20' : ''
-                    }`} 
-                  />
-                  {fieldErrors.time && (
-                    <div className={`flex items-center gap-1.5 mt-1 p-1.5 rounded text-xs ${
-                      isDarkMode 
-                        ? 'bg-red-950/50 text-red-300 border border-red-800' 
-                        : 'bg-red-50 text-red-700 border border-red-200'
-                    }`}>
-                      <AlertCircle className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-red-500 flex-shrink-0" />
-                      <span>⚠️ {fieldErrors.time}</span>
-                    </div>
-                  )}
+                  <div className="relative">
+                    <input 
+                      type="time" 
+                      id="time" 
+                      name="time" 
+                      value={formData.time} 
+                      onChange={handleChange}
+                      disabled={isSubmitting}
+                      className={`w-full px-4 py-3 border ${isDarkMode ? 'bg-stone-700 border-stone-600 text-white' : 'bg-stone-50 border-stone-200 text-stone-900'} rounded-xl focus:ring-2 focus:ring-gold-500 focus:border-transparent outline-none transition-all disabled:opacity-50 ${
+                        fieldErrors.time ? 'border-2 border-red-500 ring-2 ring-red-500/20' : ''
+                      }`} 
+                    />
+                    
+                    {/* Time Adjustment Indicator */}
+                    {timeWasAutoAdjusted && originalTimeBeforeAdjustment && (
+                      <TimeAdjustmentIndicator
+                        originalTime={originalTimeBeforeAdjustment}
+                        newTime={formData.time}
+                        onReview={() => {
+                          setShowStudioHoursGuide(true);
+                          setFlowState(SubmissionFlowState.IDLE);
+                        }}
+                        isDarkMode={isDarkMode}
+                      />
+                    )}
+                    
+                    {/* Enhanced error display */}
+                    {fieldErrors.time && (
+                      <div className={`mt-1 p-1.5 rounded text-xs flex items-start gap-1.5 ${
+                        isDarkMode 
+                          ? 'bg-red-950/50 text-red-300 border border-red-800' 
+                          : 'bg-red-50 text-red-700 border border-red-200'
+                      }`}>
+                        <AlertCircle className="w-3 h-3 text-red-500 flex-shrink-0 mt-0.5" />
+                        <span>⚠️ {fieldErrors.time}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
