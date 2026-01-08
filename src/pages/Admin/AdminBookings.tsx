@@ -11,10 +11,10 @@ import { useTheme } from '../../context/ThemeContext';
 import AdminNavbar from '../../components/AdminNavbar';
 import { useNavigate, useLocation } from 'react-router-dom';
 import MobileBottomSheet from '../../components/MobileBottomSheet';
-import DeleteConfirmationModal from '../../components/DeleteConfirmationModal';
 import ResponsiveTable from '../../components/ResponsiveTable';
 import EditBookingModal from '../../components/EditBookingModal';
 import BulkActionsModal from '../../components/BulkActionsModal';
+import DeleteBookingModal from '../../components/DeleteBookingModal'; // NEW: Import DeleteBookingModal
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -124,6 +124,7 @@ const AdminBookings: React.FC = () => {
   // Modal states
   const [showEditModal, setShowEditModal] = useState(false);
   const [showBulkModal, setShowBulkModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false); // NEW: Delete modal state
   const [currentBooking, setCurrentBooking] = useState<Booking | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -137,13 +138,6 @@ const AdminBookings: React.FC = () => {
   const [mobileSheet, setMobileSheet] = useState({
     isOpen: false,
     booking: null as Booking | null
-  });
-
-  // Delete modal state
-  const [deleteModal, setDeleteModal] = useState({
-    isOpen: false,
-    bookingId: null as number | null,
-    bookingName: ''
   });
 
   // Loading states
@@ -461,7 +455,7 @@ const AdminBookings: React.FC = () => {
     );
   };
 
-  // NEW: Function to get role icon
+  // Function to get role icon
   const getRoleIcon = (role: string) => {
     switch (role?.toLowerCase()) {
       case 'photographer':
@@ -475,7 +469,7 @@ const AdminBookings: React.FC = () => {
     }
   };
 
-  // NEW: Function to get role color
+  // Function to get role color
   const getRoleColor = (role: string) => {
     switch (role?.toLowerCase()) {
       case 'photographer':
@@ -494,36 +488,45 @@ const AdminBookings: React.FC = () => {
     setShowEditModal(true);
   };
 
-  const handleDeleteClick = (bookingId: number, bookingName: string) => {
-    setDeleteModal({
-      isOpen: true,
-      bookingId,
-      bookingName
-    });
+  // NEW: Handle delete click with DeleteBookingModal
+  const handleDeleteClick = (booking: Booking) => {
+    setCurrentBooking(booking);
+    setShowDeleteModal(true);
   };
 
-  const confirmDelete = async () => {
-    if (!deleteModal.bookingId) return;
+  // NEW: Confirm delete with reason
+  const confirmDelete = async (reason: string) => {
+    if (!currentBooking) return;
 
-    setIsLoading(true);
+    setIsSubmitting(true);
     try {
-      const response = await fetch(`${API_URL}/bookings/${deleteModal.bookingId}`, {
+      const response = await fetch(`${API_URL}/bookings/${currentBooking.id}`, {
         method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         credentials: 'include',
+        body: JSON.stringify({ deletion_reason: reason })
       });
 
-      if (!response.ok) throw new Error('Failed to delete booking');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to delete booking');
+      }
 
-      setSuccessMessage('Booking deleted successfully!');
+      const data = await response.json();
+      setSuccessMessage(data.message || 'Booking deleted successfully!');
       setTimeout(() => setSuccessMessage(''), 3000);
       
-      setDeleteModal({ isOpen: false, bookingId: null, bookingName: '' });
+      setShowDeleteModal(false);
+      setCurrentBooking(null);
+      
       fetchBookings();
       fetchStats();
     } catch (err: any) {
       setError(err.message);
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -1086,7 +1089,7 @@ const AdminBookings: React.FC = () => {
                     <Edit2 className="w-4 h-4" />
                   </button>
                   <button
-                    onClick={() => handleDeleteClick(booking.id, booking.client_name)}
+                    onClick={() => handleDeleteClick(booking)}
                     className={`p-2 rounded-lg ${isDarkMode ? 'text-red-400 hover:text-red-300 hover:bg-red-900/20' : 'text-red-600 hover:text-red-800 hover:bg-red-50'}`}
                     title="Delete Booking"
                   >
@@ -1193,7 +1196,7 @@ const AdminBookings: React.FC = () => {
                     <Edit2 className="w-4 h-4" />
                   </button>
                   <button
-                    onClick={() => handleDeleteClick(booking.id, booking.client_name)}
+                    onClick={() => handleDeleteClick(booking)}
                     className={`p-2 rounded-lg ${isDarkMode ? 'text-red-400 hover:text-red-300 hover:bg-red-900/20' : 'text-red-600 hover:text-red-800 hover:bg-red-50'}`}
                     title="Delete Booking"
                   >
@@ -1485,16 +1488,17 @@ const AdminBookings: React.FC = () => {
         onSubmit={handleBulkAction}
       />
       
-      {/* Delete Confirmation Modal */}
-      <DeleteConfirmationModal
-        isOpen={deleteModal.isOpen}
+      {/* NEW: Delete Booking Modal */}
+      <DeleteBookingModal
+        isOpen={showDeleteModal}
         isDarkMode={isDarkMode}
-        isLoading={isLoading}
-        itemName={deleteModal.bookingName}
-        itemType="booking"
+        isLoading={isSubmitting}
+        bookingName={currentBooking?.client_name || ''}
         onConfirm={confirmDelete}
-        onCancel={() => setDeleteModal({ isOpen: false, bookingId: null, bookingName: '' })}
-        warningMessage="Deleting this booking will also remove any associated notes, assignment information, and status history."
+        onCancel={() => {
+          setShowDeleteModal(false);
+          setCurrentBooking(null);
+        }}
       />
       
       {/* Mobile Bottom Sheet */}
@@ -1519,7 +1523,7 @@ const AdminBookings: React.FC = () => {
             <button
               onClick={() => {
                 closeMobileSheet();
-                if (mobileSheet.booking) handleDeleteClick(mobileSheet.booking.id, mobileSheet.booking.client_name);
+                if (mobileSheet.booking) handleDeleteClick(mobileSheet.booking);
               }}
               className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-xl hover:bg-red-100 dark:hover:bg-red-900/30 active:scale-[0.98] transition-all"
             >

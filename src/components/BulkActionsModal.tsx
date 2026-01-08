@@ -1,4 +1,4 @@
-// CompleteBulkActionsModal.tsx - Full bulk operations with enhanced assignment
+// src/components/BulkActionsModal.tsx - UPDATED WITH BULK DELETION REASON
 import React, { useState, useEffect } from 'react';
 import { 
   X, Loader2, AlertCircle, CheckCircle, Trash2, Users, 
@@ -16,7 +16,6 @@ interface BulkActionsModalProps {
   onSubmit: (action: string, data: any) => void;
 }
 
-// User interface matching API response
 interface StaffUser {
   id: number;
   full_name: string;
@@ -52,8 +51,11 @@ const BulkActionsModal: React.FC<BulkActionsModalProps> = ({
   const [filteredUsers, setFilteredUsers] = useState<StaffUser[]>([]);
   const [userSearch, setUserSearch] = useState('');
 
+  // NEW: Bulk deletion reason state
+  const [bulkDeletionReason, setBulkDeletionReason] = useState('');
+  const [deletionError, setDeletionError] = useState('');
+
   useEffect(() => {
-    // Process staff users from API response
     const processUsers = () => {
       if (!staffUsers || staffUsers.length === 0) return [];
       
@@ -77,7 +79,6 @@ const BulkActionsModal: React.FC<BulkActionsModalProps> = ({
     setAvailableUsers(processedUsers);
     setFilteredUsers(processedUsers);
     
-    // Set selected user based on bulkAssign value
     if (bulkAssign === 'unassign') {
       setSelectedUser(null);
     } else if (bulkAssign) {
@@ -89,7 +90,6 @@ const BulkActionsModal: React.FC<BulkActionsModalProps> = ({
   }, [staffUsers, bulkAssign]);
 
   useEffect(() => {
-    // Filter users based on search
     if (userSearch.trim() === '') {
       setFilteredUsers(availableUsers);
     } else {
@@ -110,7 +110,6 @@ const BulkActionsModal: React.FC<BulkActionsModalProps> = ({
       return;
     }
 
-    // Validate based on action type
     if (bulkAction === 'update_status' && !bulkStatus) {
       alert('Please select a status');
       return;
@@ -121,13 +120,11 @@ const BulkActionsModal: React.FC<BulkActionsModalProps> = ({
       return;
     }
 
-    // Show confirmation for delete action
     if (bulkAction === 'delete') {
       setShowConfirmation(true);
       return;
     }
 
-    // Prepare data and submit
     const data: any = { action: bulkAction };
     
     if (bulkAction === 'update_status') {
@@ -139,9 +136,17 @@ const BulkActionsModal: React.FC<BulkActionsModalProps> = ({
     onSubmit(bulkAction, data);
   };
 
+  // UPDATED: Confirm delete with reason validation
   const confirmDelete = () => {
-    onSubmit('delete', {});
+    if (!bulkDeletionReason.trim()) {
+      setDeletionError('Please provide a reason for deletion');
+      return;
+    }
+    
+    onSubmit('delete', { deletion_reason: bulkDeletionReason });
     setShowConfirmation(false);
+    setBulkDeletionReason('');
+    setDeletionError('');
   };
 
   const getActionDescription = () => {
@@ -216,7 +221,6 @@ const BulkActionsModal: React.FC<BulkActionsModalProps> = ({
 
   const getUserAvatar = (user: StaffUser) => {
     if (user.avatar_url) {
-      // Check if it's a base64 data URL
       if (user.avatar_url.startsWith('data:image')) {
         return (
           <img
@@ -230,7 +234,6 @@ const BulkActionsModal: React.FC<BulkActionsModalProps> = ({
           />
         );
       } else {
-        // It's a Cloudinary URL
         return (
           <img
             src={user.avatar_url}
@@ -245,7 +248,6 @@ const BulkActionsModal: React.FC<BulkActionsModalProps> = ({
       }
     }
     
-    // Fallback to avatar initials
     return (
       <div className={`w-8 h-8 rounded-full flex items-center justify-center border border-gold-500/30 ${
         isDarkMode ? 'bg-gold-900/30 text-gold-400' : 'bg-gold-100 text-gold-600'
@@ -287,7 +289,7 @@ const BulkActionsModal: React.FC<BulkActionsModalProps> = ({
             </button>
           </div>
 
-          {/* Confirmation Dialog for Delete */}
+          {/* UPDATED: Confirmation Dialog for Delete with reason */}
           {showConfirmation && (
             <div className={`p-6 border-b ${isDarkMode ? 'border-stone-800 bg-red-900/20' : 'border-gray-200 bg-red-50'}`}>
               <div className="flex items-start gap-4">
@@ -296,21 +298,47 @@ const BulkActionsModal: React.FC<BulkActionsModalProps> = ({
                 </div>
                 <div className="flex-1">
                   <h3 className={`text-lg font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>
-                    Confirm Deletion
+                    Confirm Bulk Deletion
                   </h3>
                   <p className={`text-sm ${isDarkMode ? 'text-red-300' : 'text-red-700'} mb-4`}>
-                    Are you absolutely sure you want to delete {selectedCount} booking{selectedCount !== 1 ? 's' : ''}? 
-                    This action cannot be undone and will permanently remove:
+                    You are about to delete {selectedCount} booking{selectedCount !== 1 ? 's' : ''}. 
+                    All affected clients will receive cancellation emails with your reason.
                   </p>
-                  <ul className={`text-sm ${isDarkMode ? 'text-red-300' : 'text-red-700'} list-disc list-inside space-y-1 mb-4`}>
-                    <li>All client information</li>
-                    <li>Booking dates and details</li>
-                    <li>Internal notes and assignments</li>
-                    <li>Complete booking history</li>
-                  </ul>
+                  
+                  <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-red-300' : 'text-red-800'}`}>
+                    Reason for Deletion *
+                  </label>
+                  <textarea
+                    value={bulkDeletionReason}
+                    onChange={(e) => {
+                      setBulkDeletionReason(e.target.value);
+                      setDeletionError('');
+                    }}
+                    disabled={isSubmitting}
+                    rows={3}
+                    placeholder="Explain why these bookings are being deleted..."
+                    className={`w-full px-4 py-2.5 rounded-lg border mb-2 ${
+                      deletionError
+                        ? 'border-red-500 ring-2 ring-red-500/20'
+                        : isDarkMode 
+                          ? 'bg-stone-900 border-red-700 text-white' 
+                          : 'bg-white border-red-300 text-stone-900'
+                    } focus:ring-2 focus:ring-red-500 focus:border-transparent disabled:opacity-50`}
+                  />
+                  {deletionError && (
+                    <p className="text-red-500 text-xs mb-3 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" />
+                      {deletionError}
+                    </p>
+                  )}
+                  
                   <div className="flex gap-3">
                     <button
-                      onClick={() => setShowConfirmation(false)}
+                      onClick={() => {
+                        setShowConfirmation(false);
+                        setBulkDeletionReason('');
+                        setDeletionError('');
+                      }}
                       disabled={isSubmitting}
                       className={`px-4 py-2 border rounded-lg font-medium ${
                         isDarkMode 
@@ -333,7 +361,7 @@ const BulkActionsModal: React.FC<BulkActionsModalProps> = ({
                       ) : (
                         <>
                           <Trash2 className="w-4 h-4" />
-                          Yes, Delete Permanently
+                          Delete {selectedCount} Booking{selectedCount !== 1 ? 's' : ''}
                         </>
                       )}
                     </button>
@@ -356,7 +384,6 @@ const BulkActionsModal: React.FC<BulkActionsModalProps> = ({
                   value={bulkAction}
                   onChange={(e) => {
                     setBulkAction(e.target.value);
-                    // Reset other selections when action changes
                     setBulkStatus('');
                     setBulkAssign('');
                     setSelectedUser(null);
@@ -371,7 +398,7 @@ const BulkActionsModal: React.FC<BulkActionsModalProps> = ({
                 </select>
               </div>
 
-              {/* Status Selection (shown when update_status is selected) */}
+              {/* Status Selection */}
               {bulkAction === 'update_status' && (
                 <div className={`p-4 rounded-lg border ${isDarkMode ? 'bg-stone-800/50 border-stone-700' : 'bg-blue-50 border-blue-200'}`}>
                   <div className="flex items-start gap-3 mb-4">
@@ -415,7 +442,7 @@ const BulkActionsModal: React.FC<BulkActionsModalProps> = ({
                 </div>
               )}
 
-              {/* Staff Assignment (shown when assign is selected) */}
+              {/* Staff Assignment */}
               {bulkAction === 'assign' && (
                 <div className={`p-4 rounded-lg border ${isDarkMode ? 'bg-stone-800/50 border-stone-700' : 'bg-purple-50 border-purple-200'}`}>
                   <div className="flex items-start gap-3 mb-4">
@@ -451,10 +478,8 @@ const BulkActionsModal: React.FC<BulkActionsModalProps> = ({
                     
                     {selectedUser ? (
                       <div className="flex items-center gap-3">
-                        {/* User Avatar */}
                         {getUserAvatar(selectedUser)}
                         
-                        {/* User Details */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
                             <p className={`font-medium text-sm ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>
@@ -479,7 +504,6 @@ const BulkActionsModal: React.FC<BulkActionsModalProps> = ({
                           </p>
                         </div>
                         
-                        {/* Status Indicator */}
                         <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
                       </div>
                     ) : bulkAssign === 'unassign' ? (
@@ -526,7 +550,7 @@ const BulkActionsModal: React.FC<BulkActionsModalProps> = ({
                 </div>
               )}
 
-              {/* Delete Warning (shown when delete is selected) */}
+              {/* Delete Warning */}
               {bulkAction === 'delete' && (
                 <div className={`p-4 rounded-lg border-2 ${isDarkMode ? 'bg-red-900/20 border-red-800' : 'bg-red-50 border-red-300'}`}>
                   <div className="flex items-start gap-3">
@@ -549,7 +573,7 @@ const BulkActionsModal: React.FC<BulkActionsModalProps> = ({
                       </ul>
                       <div className={`mt-4 p-3 rounded ${isDarkMode ? 'bg-red-950/50' : 'bg-red-100'}`}>
                         <p className={`text-xs font-bold ${isDarkMode ? 'text-red-200' : 'text-red-800'}`}>
-                          ⚠️ NO UNDO: There is no way to recover deleted bookings. Please proceed with extreme caution.
+                          ⚠️ Clients will receive cancellation emails with your deletion reason.
                         </p>
                       </div>
                     </div>
@@ -736,10 +760,8 @@ const BulkActionsModal: React.FC<BulkActionsModalProps> = ({
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        {/* Avatar */}
                         {getUserAvatar(user)}
                         
-                        {/* User Info */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
                             <p className={`font-medium ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>
@@ -753,7 +775,6 @@ const BulkActionsModal: React.FC<BulkActionsModalProps> = ({
                             )}
                           </div>
                           
-                          {/* Role and Phone */}
                           <div className="flex items-center gap-2 mb-1">
                             <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs ${getRoleColor(user.role)}`}>
                               {getRoleIcon(user.role)}
@@ -764,13 +785,11 @@ const BulkActionsModal: React.FC<BulkActionsModalProps> = ({
                             </span>
                           </div>
                           
-                          {/* Email */}
                           <p className={`text-xs ${isDarkMode ? 'text-stone-400' : 'text-stone-500'}`}>
                             {user.email}
                           </p>
                         </div>
                         
-                        {/* Selection Indicator */}
                         {selectedUser?.id === user.id && (
                           <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
                         )}

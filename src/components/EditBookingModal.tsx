@@ -1,4 +1,4 @@
-// Complete EditBookingModal.tsx - With Enhanced Assignment Functionality
+// src/components/EditBookingModal.tsx - UPDATED WITH TIME CHANGE AND CANCELLATION TRACKING
 import React, { useState, useEffect } from 'react';
 import { 
   X, Loader2, AlertCircle, Calendar, User, 
@@ -17,7 +17,6 @@ interface EditBookingModalProps {
   onSubmit: (data: any) => void;
 }
 
-// User interface matching API response
 interface StaffUser {
   id: number;
   full_name: string;
@@ -38,7 +37,7 @@ const EditBookingModal: React.FC<EditBookingModalProps> = ({
   isDarkMode,
   booking,
   statuses,
-  staffUsers = [], // Default to empty array
+  staffUsers = [],
   isSubmitting,
   onClose,
   onSubmit
@@ -65,6 +64,14 @@ const EditBookingModal: React.FC<EditBookingModalProps> = ({
   const [filteredUsers, setFilteredUsers] = useState<StaffUser[]>([]);
   const [userSearch, setUserSearch] = useState('');
 
+  // NEW: Time change and cancellation tracking
+  const [timeChangeReason, setTimeChangeReason] = useState('');
+  const [cancellationReason, setCancellationReason] = useState('');
+  const [showTimeChangeWarning, setShowTimeChangeWarning] = useState(false);
+  const [showCancellationWarning, setShowCancellationWarning] = useState(false);
+  const [originalTime, setOriginalTime] = useState('');
+  const [originalStatus, setOriginalStatus] = useState('');
+
   useEffect(() => {
     if (booking) {
       setFormData({
@@ -82,8 +89,17 @@ const EditBookingModal: React.FC<EditBookingModalProps> = ({
         internal_notes: booking.internal_notes || ''
       });
       
-      // Set selected user ID from booking
       setSelectedUserId(booking.assigned_to?.toString() || '');
+      
+      // Store original time and status for comparison
+      setOriginalTime(booking.preferred_time || '');
+      setOriginalStatus(booking.status || '');
+      
+      // Clear reasons when modal opens
+      setTimeChangeReason('');
+      setCancellationReason('');
+      setShowTimeChangeWarning(false);
+      setShowCancellationWarning(false);
     }
   }, [booking]);
 
@@ -138,6 +154,26 @@ const EditBookingModal: React.FC<EditBookingModalProps> = ({
       setSelectedUserId(value);
     }
     
+    // NEW: Detect time changes
+    if (name === 'preferred_time') {
+      if (originalTime && value !== originalTime) {
+        setShowTimeChangeWarning(true);
+      } else {
+        setShowTimeChangeWarning(false);
+        setTimeChangeReason('');
+      }
+    }
+    
+    // NEW: Detect cancellation
+    if (name === 'status') {
+      if (value === 'CANCELLED' && originalStatus !== 'CANCELLED') {
+        setShowCancellationWarning(true);
+      } else {
+        setShowCancellationWarning(false);
+        setCancellationReason('');
+      }
+    }
+    
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => {
@@ -173,6 +209,16 @@ const EditBookingModal: React.FC<EditBookingModalProps> = ({
       newErrors.preferred_date = 'Date is required';
     }
 
+    // NEW: Validate time change reason if time changed
+    if (showTimeChangeWarning && !timeChangeReason.trim()) {
+      newErrors.time_change_reason = 'Please provide a reason for changing the time';
+    }
+
+    // NEW: Validate cancellation reason if cancelling
+    if (showCancellationWarning && !cancellationReason.trim()) {
+      newErrors.cancellation_reason = 'Please provide a reason for cancellation';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -195,6 +241,16 @@ const EditBookingModal: React.FC<EditBookingModalProps> = ({
         assigned_to: formData.assigned_to ? parseInt(formData.assigned_to) : null,
         internal_notes: formData.internal_notes || null
       };
+
+      // NEW: Add time change reason if time changed
+      if (showTimeChangeWarning && timeChangeReason.trim()) {
+        submitData.time_change_reason = timeChangeReason;
+      }
+
+      // NEW: Add cancellation reason if cancelling
+      if (showCancellationWarning && cancellationReason.trim()) {
+        submitData.cancellation_reason = cancellationReason;
+      }
 
       onSubmit(submitData);
     }
@@ -483,6 +539,64 @@ const EditBookingModal: React.FC<EditBookingModalProps> = ({
                   />
                 </div>
 
+                {/* NEW: Time Change Warning */}
+                {showTimeChangeWarning && (
+                  <div className="md:col-span-2">
+                    <div className={`mt-4 p-4 rounded-lg border-2 ${
+                      isDarkMode ? 'bg-amber-900/20 border-amber-800' : 'bg-amber-50 border-amber-300'
+                    }`}>
+                      <div className="flex items-start gap-3 mb-3">
+                        <AlertCircle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <h4 className={`font-bold mb-1 ${isDarkMode ? 'text-amber-300' : 'text-amber-800'}`}>
+                            ⚠️ Time Change Detected
+                          </h4>
+                          <p className={`text-sm ${isDarkMode ? 'text-amber-300' : 'text-amber-700'}`}>
+                            You're changing the booking time from <strong>{originalTime}</strong> to{' '}
+                            <strong>{formData.preferred_time}</strong>. The client will receive an email 
+                            notification with your reason for this change.
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <label className={`block text-sm font-medium mb-2 ${
+                        isDarkMode ? 'text-amber-300' : 'text-amber-800'
+                      }`}>
+                        Reason for Time Change *
+                      </label>
+                      <textarea
+                        value={timeChangeReason}
+                        onChange={(e) => {
+                          setTimeChangeReason(e.target.value);
+                          if (errors.time_change_reason) {
+                            setErrors(prev => {
+                              const newErrors = { ...prev };
+                              delete newErrors.time_change_reason;
+                              return newErrors;
+                            });
+                          }
+                        }}
+                        disabled={isSubmitting}
+                        rows={3}
+                        placeholder="Explain why the time needs to be changed (e.g., equipment maintenance, scheduling conflict, weather concerns)..."
+                        className={`w-full px-4 py-2.5 rounded-lg border ${
+                          errors.time_change_reason 
+                            ? 'border-red-500 ring-2 ring-red-500/20' 
+                            : isDarkMode 
+                              ? 'bg-stone-900 border-amber-700 text-white' 
+                              : 'bg-white border-amber-300 text-stone-900'
+                        } focus:ring-2 focus:ring-amber-500 focus:border-transparent disabled:opacity-50`}
+                      />
+                      {errors.time_change_reason && (
+                        <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" />
+                          {errors.time_change_reason}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 <div>
                   <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-stone-300' : 'text-stone-700'}`}>
                     Location
@@ -555,12 +669,64 @@ const EditBookingModal: React.FC<EditBookingModalProps> = ({
                       </option>
                     ))}
                   </select>
-                  <p className={`text-xs mt-1 ${isDarkMode ? 'text-stone-500' : 'text-stone-500'}`}>
-                    ⚠️ Changing status will send an email notification to the client
-                  </p>
+                  
+                  {/* NEW: Cancellation Warning */}
+                  {showCancellationWarning && (
+                    <div className={`mt-4 p-4 rounded-lg border-2 ${
+                      isDarkMode ? 'bg-red-900/20 border-red-800' : 'bg-red-50 border-red-300'
+                    }`}>
+                      <div className="flex items-start gap-3 mb-3">
+                        <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <h4 className={`font-bold mb-1 ${isDarkMode ? 'text-red-300' : 'text-red-800'}`}>
+                            ⚠️ Cancellation Notice
+                          </h4>
+                          <p className={`text-sm ${isDarkMode ? 'text-red-300' : 'text-red-700'}`}>
+                            You're about to cancel this booking. The client will receive an email notification 
+                            with your cancellation reason. This action can be reversed by changing the status.
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <label className={`block text-sm font-medium mb-2 ${
+                        isDarkMode ? 'text-red-300' : 'text-red-800'
+                      }`}>
+                        Reason for Cancellation *
+                      </label>
+                      <textarea
+                        value={cancellationReason}
+                        onChange={(e) => {
+                          setCancellationReason(e.target.value);
+                          if (errors.cancellation_reason) {
+                            setErrors(prev => {
+                              const newErrors = { ...prev };
+                              delete newErrors.cancellation_reason;
+                              return newErrors;
+                            });
+                          }
+                        }}
+                        disabled={isSubmitting}
+                        rows={3}
+                        placeholder="Explain why this booking is being cancelled (e.g., client request, scheduling conflict, unforeseen circumstances)..."
+                        className={`w-full px-4 py-2.5 rounded-lg border ${
+                          errors.cancellation_reason 
+                            ? 'border-red-500 ring-2 ring-red-500/20' 
+                            : isDarkMode 
+                              ? 'bg-stone-900 border-red-700 text-white' 
+                              : 'bg-white border-red-300 text-stone-900'
+                        } focus:ring-2 focus:ring-red-500 focus:border-transparent disabled:opacity-50`}
+                      />
+                      {errors.cancellation_reason && (
+                        <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" />
+                          {errors.cancellation_reason}
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
 
-                {/* Assignment Section - Enhanced with seamless user display */}
+                {/* Assignment Section */}
                 <div className={`rounded-lg p-4 ${isDarkMode ? 'bg-stone-800' : 'bg-gray-100'}`}>
                   <div className="flex items-center justify-between mb-3">
                     <label className={`block text-sm font-medium ${isDarkMode ? 'text-stone-300' : 'text-stone-700'}`}>
@@ -699,7 +865,7 @@ const EditBookingModal: React.FC<EditBookingModalProps> = ({
         </div>
       </div>
 
-      {/* Enhanced Assign User Modal - Updated to match design image */}
+      {/* Assign User Modal */}
       {showAssignModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[60] p-3 sm:p-4">
           <div className={`rounded-xl max-w-md w-full max-h-[90vh] overflow-hidden flex flex-col ${
@@ -821,7 +987,7 @@ const EditBookingModal: React.FC<EditBookingModalProps> = ({
               )}
             </div>
             
-            {/* Footer - Removed the white section, just show cancel/assign buttons */}
+            {/* Footer */}
             <div className="p-4 border-t border-stone-700">
               <div className="flex gap-3">
                 <button

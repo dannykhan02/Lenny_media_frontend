@@ -27,6 +27,7 @@ const AdminProfile = React.lazy(() => import('./pages/Admin/AdminProfile'));
 const AdminQuotes = React.lazy(() => import('./pages/Admin/AdminQuotes'));
 const AdminQuoteDetail = React.lazy(() => import('./pages/Admin/AdminQuoteDetail'));
 const AdminPortfolio = React.lazy(() => import('./pages/Admin/AdminPortfolio'));
+const BookingCleanup = React.lazy(() => import('./pages/Admin/BookingCleanup')); 
 
 const AppContent = () => {
   const location = useLocation();
@@ -160,6 +161,16 @@ const AppContent = () => {
               element={
                 <ProtectedRoute allowedRoles={['ADMIN']}>
                   <AdminBookings />
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* NEW: Booking Cleanup Route */}
+            <Route 
+              path="/admin/bookings/cleanup" 
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <BookingCleanup />
                 </ProtectedRoute>
               } 
             />

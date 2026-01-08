@@ -23,7 +23,8 @@ import {
   User,
   FileText,
   Loader2,
-  AlertTriangle
+  AlertTriangle,
+  Trash2 // NEW: Import Trash2 icon for cleanup
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../context/ThemeContext';
@@ -304,7 +305,7 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
     });
   };
 
-  // UPDATED: Navigation items structure with Portfolio
+  // UPDATED: Navigation items structure with Booking Cleanup subitem
   const navItems: NavItem[] = [
     {
       name: 'Dashboard',
@@ -337,6 +338,11 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
           name: 'Calendar View', 
           path: '/admin/bookings/calendar',
           icon: <CalendarDays className="h-4 w-4" />
+        },
+        { 
+          name: 'Booking Cleanup', 
+          path: '/admin/bookings/cleanup',
+          icon: <Trash2 className="h-4 w-4" />, // NEW: Add Booking Cleanup subitem
         },
       ]
     },
@@ -425,8 +431,8 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
     }
   };
 
-  // Fixed: Added proper type for the image error event
-  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+  // FIXED: Added proper type for the image error event
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     const target = e.currentTarget as HTMLImageElement;
     target.style.display = 'none';
     const fallbackDiv = target.parentElement?.querySelector('.avatar-fallback') as HTMLDivElement | null;

@@ -1247,7 +1247,7 @@ const Booking: React.FC = () => {
               }`}>
                 <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-sm font-medium">Please fix the following errors:</p>
+                  <p className="text-sm font-medium">Please fix the following issue:</p>
                   <ul className="mt-1 text-sm list-disc list-inside">
                     {Object.values(fieldErrors).map((error, idx) => (
                       <li key={idx}>{error}</li>
