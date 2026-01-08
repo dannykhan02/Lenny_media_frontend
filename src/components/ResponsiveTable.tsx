@@ -117,7 +117,7 @@ const ResponsiveTable: React.FC<ResponsiveTableProps> = ({
                 placeholder={searchPlaceholder}
                 value={searchTerm}
                 onChange={(e) => onSearchChange(e.target.value)}
-                className={`w-full pl-10 pr-4 py-2.5 rounded-lg border ${
+                className={`w-full pl-10 pr-4 py-2.5 rounded-lg border text-base ${
                   isDarkMode 
                     ? 'bg-stone-800 border-stone-700 text-white placeholder-stone-500' 
                     : 'bg-white border-gray-300 text-stone-900'
@@ -135,7 +135,7 @@ const ResponsiveTable: React.FC<ResponsiveTableProps> = ({
                     placeholder={searchPlaceholder}
                     value={searchTerm}
                     onChange={(e) => onSearchChange(e.target.value)}
-                    className={`w-full pl-10 pr-4 py-2.5 rounded-lg border ${
+                    className={`w-full pl-10 pr-4 py-2.5 rounded-lg border text-base ${
                       isDarkMode 
                         ? 'bg-stone-800 border-stone-700 text-white placeholder-stone-500' 
                         : 'bg-white border-gray-300 text-stone-900'
@@ -150,9 +150,11 @@ const ResponsiveTable: React.FC<ResponsiveTableProps> = ({
               {filters}
             </div>
 
-            {/* Mobile Filters (when shown) */}
-            {showFilters && (
-              <div className="md:hidden grid grid-cols-2 gap-3">
+            {/* Filters Section - MOBILE OPTIMIZED */}
+            {showFilters && filters && (
+              <div className={`md:hidden mt-4 pt-4 border-t ${
+                isDarkMode ? 'border-stone-800' : 'border-gray-200'
+              }`}>
                 {filters}
               </div>
             )}

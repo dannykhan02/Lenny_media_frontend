@@ -409,46 +409,32 @@ const AdminBookings: React.FC = () => {
     return staffUsers.find(user => user.id === booking.assigned_to) || null;
   };
 
-  // UPDATED: Enhanced function to get user avatar or initial - matching EditBookingModal
+  // UPDATED: Enhanced function to get user avatar or initial with better fallback
   const getUserAvatar = (user: StaffUser | null) => {
     if (!user) return null;
     
     if (user.avatar_url) {
-      // Check if it's a base64 data URL
-      if (user.avatar_url.startsWith('data:image')) {
-        return (
-          <img
-            src={user.avatar_url}
-            alt={user.full_name}
-            className="w-8 h-8 rounded-full object-cover border border-gold-500/30"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.full_name)}&background=1e293b&color=fbbf24&size=128`;
-            }}
-          />
-        );
-      } else {
-        // It's a Cloudinary URL
-        return (
-          <img
-            src={user.avatar_url}
-            alt={user.full_name}
-            className="w-8 h-8 rounded-full object-cover border border-gold-500/30"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.full_name)}&background=1e293b&color=fbbf24&size=128`;
-            }}
-          />
-        );
-      }
+      return (
+        <img
+          src={user.avatar_url}
+          alt={user.full_name}
+          className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover border-2 border-gold-500/30 flex-shrink-0 bg-stone-800"
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            // Fallback to UI Avatars
+            target.onerror = null; // Prevent infinite loop
+            target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.full_name)}&background=d4af37&color=1c1917&size=128&bold=true`;
+          }}
+        />
+      );
     }
     
     // Fallback to avatar initials
     return (
-      <div className={`w-8 h-8 rounded-full flex items-center justify-center border border-gold-500/30 ${
+      <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center border-2 border-gold-500/30 flex-shrink-0 ${
         isDarkMode ? 'bg-gold-900/30 text-gold-400' : 'bg-gold-100 text-gold-600'
       }`}>
-        <span className="font-bold text-xs">
+        <span className="font-bold text-xs sm:text-sm">
           {user.full_name?.charAt(0)?.toUpperCase() || 'U'}
         </span>
       </div>
@@ -618,7 +604,7 @@ const AdminBookings: React.FC = () => {
   };
 
   const selectAllBookings = () => {
-    if (selectedBookings.length === filteredBookings.length) {
+    if (selectedBookings.length === filteredBookings.length && filteredBookings.length > 0) {
       setSelectedBookings([]);
     } else {
       setSelectedBookings(filteredBookings.map(b => b.id));
@@ -851,105 +837,133 @@ const AdminBookings: React.FC = () => {
     );
   };
 
-  // UPDATED: Filters with assignment filter and clear button
+  // UPDATED: Filters with assignment filter and clear button - MOBILE OPTIMIZED
   const renderFilters = () => (
-    <div className="flex flex-wrap gap-3">
+    <div className="space-y-3">
       {!isPendingView && !isConfirmedView && (
         <>
           {/* Status Filter */}
-          <select
-            value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value);
-              setCurrentPage(1);
-            }}
-            className={`px-4 py-2.5 rounded-lg border ${
-              isDarkMode 
-                ? 'bg-stone-800 border-stone-700 text-white' 
-                : 'bg-white border-gray-300 text-stone-900'
-            } focus:ring-2 focus:ring-gold-500 focus:border-transparent`}
-          >
-            <option value="all">All Status</option>
-            {statuses.map(status => (
-              <option key={status.name} value={status.name}>
-                {status.value}
-              </option>
-            ))}
-          </select>
+          <div className="w-full">
+            <label className={`block text-xs sm:text-sm font-medium mb-2 ${
+              isDarkMode ? 'text-stone-300' : 'text-stone-700'
+            }`}>
+              Status
+            </label>
+            <select
+              value={statusFilter}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                setCurrentPage(1);
+              }}
+              className={`w-full px-4 py-3 rounded-lg border text-base ${
+                isDarkMode 
+                  ? 'bg-stone-800 border-stone-700 text-white [color-scheme:dark]' 
+                  : 'bg-white border-gray-300 text-stone-900 [color-scheme:light]'
+              } focus:ring-2 focus:ring-gold-500 focus:border-transparent`}
+            >
+              <option value="all">All Status</option>
+              {statuses.map(status => (
+                <option key={status.name} value={status.name}>
+                  {status.value}
+                </option>
+              ))}
+            </select>
+          </div>
 
           {/* Assignment Filter */}
-          <select
-            value={assignedFilter}
-            onChange={(e) => {
-              setAssignedFilter(e.target.value);
-              setCurrentPage(1);
-            }}
-            disabled={isLoadingUsers}
-            className={`px-4 py-2.5 rounded-lg border ${
-              isDarkMode 
-                ? 'bg-stone-800 border-stone-700 text-white' 
-                : 'bg-white border-gray-300 text-stone-900'
-            } focus:ring-2 focus:ring-gold-500 focus:border-transparent disabled:opacity-50`}
-          >
-            <option value="all">All Assignments</option>
-            <option value="unassigned">Unassigned</option>
-            {isLoadingUsers ? (
-              <option disabled>Loading users...</option>
-            ) : (
-              staffUsers.map(user => (
-                <option key={user.id} value={user.id}>
-                  {user.full_name}
-                </option>
-              ))
-            )}
-          </select>
+          <div className="w-full">
+            <label className={`block text-xs sm:text-sm font-medium mb-2 ${
+              isDarkMode ? 'text-stone-300' : 'text-stone-700'
+            }`}>
+              Assignment
+            </label>
+            <select
+              value={assignedFilter}
+              onChange={(e) => {
+                setAssignedFilter(e.target.value);
+                setCurrentPage(1);
+              }}
+              disabled={isLoadingUsers}
+              className={`w-full px-4 py-3 rounded-lg border text-base ${
+                isDarkMode 
+                  ? 'bg-stone-800 border-stone-700 text-white [color-scheme:dark]' 
+                  : 'bg-white border-gray-300 text-stone-900 [color-scheme:light]'
+              } focus:ring-2 focus:ring-gold-500 focus:border-transparent disabled:opacity-50`}
+            >
+              <option value="all">All Assignments</option>
+              <option value="unassigned">Unassigned</option>
+              {isLoadingUsers ? (
+                <option disabled>Loading users...</option>
+              ) : (
+                staffUsers.map(user => (
+                  <option key={user.id} value={user.id}>
+                    {user.full_name}
+                  </option>
+                ))
+              )}
+            </select>
+          </div>
 
-          {/* Date Range Filters */}
-          <div className="flex gap-2 items-center">
-            <input
-              type="date"
-              value={dateFrom}
-              onChange={(e) => {
-                setDateFrom(e.target.value);
-                setCurrentPage(1);
-              }}
-              placeholder="From date"
-              className={`px-4 py-2.5 rounded-lg border ${
-                isDarkMode 
-                  ? 'bg-stone-800 border-stone-700 text-white' 
-                  : 'bg-white border-gray-300 text-stone-900'
-              } focus:ring-2 focus:ring-gold-500 focus:border-transparent`}
-            />
-            <span className={isDarkMode ? 'text-stone-400' : 'text-stone-600'}>to</span>
-            <input
-              type="date"
-              value={dateTo}
-              onChange={(e) => {
-                setDateTo(e.target.value);
-                setCurrentPage(1);
-              }}
-              placeholder="To date"
-              min={dateFrom}
-              className={`px-4 py-2.5 rounded-lg border ${
-                isDarkMode 
-                  ? 'bg-stone-800 border-stone-700 text-white' 
-                  : 'bg-white border-gray-300 text-stone-900'
-              } focus:ring-2 focus:ring-gold-500 focus:border-transparent`}
-            />
+          {/* Date Range Filters - FIXED FOR MOBILE */}
+          <div className="w-full">
+            <label className={`block text-xs sm:text-sm font-medium mb-2 ${
+              isDarkMode ? 'text-stone-300' : 'text-stone-700'
+            }`}>
+              Date Range
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <label className={`text-xs ${isDarkMode ? 'text-stone-400' : 'text-stone-600'}`}>
+                  From
+                </label>
+                <input
+                  type="date"
+                  value={dateFrom}
+                  onChange={(e) => {
+                    setDateFrom(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className={`w-full px-4 py-3 rounded-lg border text-base ${
+                    isDarkMode 
+                      ? 'bg-stone-800 border-stone-700 text-white [color-scheme:dark]' 
+                      : 'bg-white border-gray-300 text-stone-900 [color-scheme:light]'
+                  } focus:ring-2 focus:ring-gold-500 focus:border-transparent`}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className={`text-xs ${isDarkMode ? 'text-stone-400' : 'text-stone-600'}`}>
+                  To
+                </label>
+                <input
+                  type="date"
+                  value={dateTo}
+                  onChange={(e) => {
+                    setDateTo(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  min={dateFrom}
+                  className={`w-full px-4 py-3 rounded-lg border text-base ${
+                    isDarkMode 
+                      ? 'bg-stone-800 border-stone-700 text-white [color-scheme:dark]' 
+                      : 'bg-white border-gray-300 text-stone-900 [color-scheme:light]'
+                  } focus:ring-2 focus:ring-gold-500 focus:border-transparent`}
+                />
+              </div>
+            </div>
           </div>
 
           {/* Clear Filters Button */}
           {(statusFilter !== 'all' || assignedFilter !== 'all' || dateFrom || dateTo || searchTerm) && (
             <button
               onClick={clearFilters}
-              className={`px-4 py-2.5 rounded-lg flex items-center gap-2 ${
+              className={`w-full px-4 py-3 rounded-lg flex items-center justify-center gap-2 text-base font-medium ${
                 isDarkMode 
-                  ? 'bg-stone-800 text-stone-300 hover:bg-stone-700' 
-                  : 'bg-gray-100 text-stone-700 hover:bg-gray-200'
-              }`}
+                  ? 'bg-stone-800 text-stone-300 hover:bg-stone-700 active:bg-stone-600' 
+                  : 'bg-gray-100 text-stone-700 hover:bg-gray-200 active:bg-gray-300'
+              } transition-colors`}
             >
               <X className="w-4 h-4" />
-              Clear Filters
+              Clear All Filters
             </button>
           )}
         </>
@@ -1363,20 +1377,32 @@ const AdminBookings: React.FC = () => {
                  `Total: ${totalBookings} bookings`}
               </p>
               
-              {/* View Toggle Buttons */}
+              {/* View Toggle Buttons - FIXED FOR MOBILE */}
               {!isCalendarView && (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 bg-opacity-50 rounded-lg p-1 backdrop-blur-sm" style={{
+                  backgroundColor: isDarkMode ? 'rgba(41, 37, 36, 0.8)' : 'rgba(245, 245, 244, 0.8)'
+                }}>
                   <button
                     onClick={() => setViewMode('list')}
-                    className={`p-2 rounded-lg ${viewMode === 'list' ? (isDarkMode ? 'bg-stone-800 text-white' : 'bg-stone-100 text-stone-900') : (isDarkMode ? 'text-stone-400 hover:bg-stone-800' : 'text-stone-600 hover:bg-gray-100')}`}
+                    className={`p-2.5 rounded-md transition-all ${
+                      viewMode === 'list' 
+                        ? (isDarkMode ? 'bg-gold-500/20 text-gold-400 shadow-sm' : 'bg-gold-100 text-gold-700 shadow-sm') 
+                        : (isDarkMode ? 'text-stone-400 hover:bg-stone-800/50 hover:text-stone-300' : 'text-stone-600 hover:bg-gray-200/50 hover:text-stone-900')
+                    }`}
                     title="List View"
+                    aria-label="List View"
                   >
                     <List className="w-5 h-5" />
                   </button>
                   <button
                     onClick={() => setViewMode('grid')}
-                    className={`p-2 rounded-lg ${viewMode === 'grid' ? (isDarkMode ? 'bg-stone-800 text-white' : 'bg-stone-100 text-stone-900') : (isDarkMode ? 'text-stone-400 hover:bg-stone-800' : 'text-stone-600 hover:bg-gray-100')}`}
+                    className={`p-2.5 rounded-md transition-all ${
+                      viewMode === 'grid' 
+                        ? (isDarkMode ? 'bg-gold-500/20 text-gold-400 shadow-sm' : 'bg-gold-100 text-gold-700 shadow-sm') 
+                        : (isDarkMode ? 'text-stone-400 hover:bg-stone-800/50 hover:text-stone-300' : 'text-stone-600 hover:bg-gray-200/50 hover:text-stone-900')
+                    }`}
                     title="Grid View"
+                    aria-label="Grid View"
                   >
                     <Grid className="w-5 h-5" />
                   </button>
