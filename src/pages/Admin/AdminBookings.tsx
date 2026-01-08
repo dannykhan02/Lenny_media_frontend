@@ -1,11 +1,10 @@
-// pages/Admin/AdminBookings.tsx - UPDATED with enhanced desktop filtering
+// pages/Admin/AdminBookings.tsx - UPDATED with accessible bulk actions
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   Filter, Calendar, Clock, User, Mail, Phone, MapPin, 
   DollarSign, FileText, Edit2, Trash2, CheckCircle, XCircle, 
   AlertCircle, Loader2, Check, X, Users, Search, ChevronDown,
-  ChevronLeft, ChevronRight, Grid, List,
-  UserX, Camera, Video
+  ChevronLeft, ChevronRight, Grid, List, Send, Square, CheckSquare
 } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import AdminNavbar from '../../components/AdminNavbar';
@@ -132,6 +131,7 @@ const AdminBookings: React.FC = () => {
   
   // Bulk selection
   const [selectedBookings, setSelectedBookings] = useState<number[]>([]);
+  const [isAllSelected, setIsAllSelected] = useState(false);
   
   // Mobile sheet state
   const [mobileSheet, setMobileSheet] = useState({
@@ -428,9 +428,9 @@ const AdminBookings: React.FC = () => {
   const getRoleIcon = (role: string) => {
     switch (role?.toLowerCase()) {
       case 'photographer':
-        return <Camera className="w-3 h-3" />;
+        return <FileText className="w-3 h-3" />;
       case 'videography':
-        return <Video className="w-3 h-3" />;
+        return <FileText className="w-3 h-3" />;
       case 'editor':
         return <FileText className="w-3 h-3" />;
       default:
@@ -530,6 +530,7 @@ const AdminBookings: React.FC = () => {
       
       setShowBulkModal(false);
       setSelectedBookings([]);
+      setIsAllSelected(false);
       
       fetchBookings();
       fetchStats();
@@ -581,13 +582,19 @@ const AdminBookings: React.FC = () => {
         ? prev.filter(id => id !== bookingId)
         : [...prev, bookingId]
     );
+    // Update all selected state
+    setTimeout(() => {
+      setIsAllSelected(selectedBookings.length + 1 === filteredBookings.length);
+    }, 0);
   };
 
   const selectAllBookings = () => {
     if (selectedBookings.length === filteredBookings.length && filteredBookings.length > 0) {
       setSelectedBookings([]);
+      setIsAllSelected(false);
     } else {
       setSelectedBookings(filteredBookings.map(b => b.id));
+      setIsAllSelected(true);
     }
   };
 
@@ -642,6 +649,8 @@ const AdminBookings: React.FC = () => {
     setSearchTerm('');
     setSearchInput('');
     setCurrentPage(1);
+    setSelectedBookings([]);
+    setIsAllSelected(false);
   };
 
   // Mobile sheet handlers
@@ -817,7 +826,7 @@ const AdminBookings: React.FC = () => {
     );
   };
 
-  // UPDATED: Desktop filtering UI to match quote filtering approach
+  // UPDATED: Desktop filtering UI with bulk action button
   const renderDesktopFilters = () => (
     <div className={`rounded-xl shadow-sm border p-4 md:p-6 mb-6 ${
       isDarkMode ? 'bg-stone-900 border-stone-800' : 'bg-white border-gray-200'
@@ -958,8 +967,10 @@ const AdminBookings: React.FC = () => {
       </div>
 
       {/* Active Filters & Actions */}
-      {(statusFilter !== 'all' || assignedFilter !== 'all' || dateFrom || dateTo || searchTerm) && (
-        <div className="mt-6 pt-6 border-t border-stone-200 dark:border-stone-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className={`mt-6 pt-6 border-t ${
+        isDarkMode ? 'border-stone-800' : 'border-gray-200'
+      } flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4`}>
+        <div className="flex flex-wrap items-center gap-4">
           <div className="flex flex-wrap gap-2">
             {statusFilter !== 'all' && (
               <span className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm ${
@@ -1008,23 +1019,67 @@ const AdminBookings: React.FC = () => {
               </span>
             )}
           </div>
-          
-          <button
-            onClick={clearFilters}
-            className={`px-4 py-2.5 rounded-lg flex items-center gap-2 text-sm font-medium ${
-              isDarkMode 
-                ? 'bg-stone-800 text-stone-300 hover:bg-stone-700' 
-                : 'bg-gray-100 text-stone-700 hover:bg-gray-200'
-            }`}
-          >
-            <X className="w-4 h-4" />
-            Clear All Filters
-          </button>
+
+          {/* Select All Checkbox */}
+          {filteredBookings.length > 0 && (
+            <button
+              onClick={selectAllBookings}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm ${
+                isAllSelected 
+                  ? (isDarkMode ? 'bg-gold-500 border-gold-500 text-stone-900' : 'bg-gold-500 border-gold-500 text-white') 
+                  : (isDarkMode ? 'border-stone-700 text-white hover:bg-stone-800' : 'border-gray-300 text-stone-900 hover:bg-gray-50')
+              }`}
+            >
+              {isAllSelected ? (
+                <CheckSquare className="w-4 h-4" />
+              ) : (
+                <Square className="w-4 h-4" />
+              )}
+              {isAllSelected ? 'Deselect All' : 'Select All'}
+            </button>
+          )}
         </div>
-      )}
+        
+        <div className="flex items-center gap-4">
+          {/* Selected Count */}
+          {selectedBookings.length > 0 && (
+            <span className={`text-sm font-medium ${
+              isDarkMode ? 'text-gold-400' : 'text-gold-600'
+            }`}>
+              {selectedBookings.length} selected
+            </span>
+          )}
+
+          {/* NEW: Bulk Action Button */}
+          {selectedBookings.length > 0 && (
+            <button
+              onClick={() => setShowBulkModal(true)}
+              className="px-4 py-2.5 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 active:bg-purple-800 flex items-center gap-2 text-sm transition-colors"
+            >
+              <Send className="w-4 h-4" />
+              Bulk Actions ({selectedBookings.length})
+            </button>
+          )}
+
+          {/* Clear Filters Button */}
+          {(statusFilter !== 'all' || assignedFilter !== 'all' || dateFrom || dateTo || searchTerm) && (
+            <button
+              onClick={clearFilters}
+              className={`px-4 py-2.5 rounded-lg flex items-center gap-2 text-sm font-medium ${
+                isDarkMode 
+                  ? 'bg-stone-800 text-stone-300 hover:bg-stone-700' 
+                  : 'bg-gray-100 text-stone-700 hover:bg-gray-200'
+              }`}
+            >
+              <X className="w-4 h-4" />
+              Clear Filters
+            </button>
+          )}
+        </div>
+      </div>
 
       {/* Results Count & Pagination */}
-      <div className={`mt-6 pt-6 border-t ${
+      <div className={`mt-4 pt-4 border-t ${
         isDarkMode ? 'border-stone-800' : 'border-gray-200'
       } flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4`}>
         <div>
@@ -1033,13 +1088,6 @@ const AdminBookings: React.FC = () => {
           }`}>
             Showing {filteredBookings.length} of {totalBookings} bookings
           </p>
-          {selectedBookings.length > 0 && (
-            <p className={`text-sm mt-1 ${
-              isDarkMode ? 'text-gold-400' : 'text-gold-600'
-            }`}>
-              {selectedBookings.length} selected
-            </p>
-          )}
         </div>
         
         {/* Pagination */}
@@ -1076,7 +1124,7 @@ const AdminBookings: React.FC = () => {
     </div>
   );
 
-  // Mobile filters (unchanged)
+  // Mobile filters
   const renderMobileFilters = () => (
     <div className="space-y-3">
       {!isPendingView && !isConfirmedView && (
@@ -1217,7 +1265,7 @@ const AdminBookings: React.FC = () => {
           <th className="w-12 px-4 py-3 text-left">
             <input
               type="checkbox"
-              checked={selectedBookings.length === filteredBookings.length && filteredBookings.length > 0}
+              checked={isAllSelected}
               onChange={selectAllBookings}
               className={`rounded ${isDarkMode ? 'bg-stone-700 border-stone-600' : 'bg-white border-gray-300'}`}
             />
@@ -1320,7 +1368,7 @@ const AdminBookings: React.FC = () => {
                   </div>
                 ) : (
                   <span className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs ${isDarkMode ? 'bg-stone-800 text-stone-400' : 'bg-gray-100 text-gray-600'}`}>
-                    <UserX className="w-3 h-3" />
+                    <User className="w-3 h-3" />
                     Unassigned
                   </span>
                 )}
@@ -1676,6 +1724,29 @@ const AdminBookings: React.FC = () => {
               {/* Desktop Filtering UI - NEW: Matches quote filtering approach */}
               <div className="hidden lg:block">
                 {renderDesktopFilters()}
+
+                {isLoading ? (
+                  <div className={`rounded-xl ${isDarkMode ? 'bg-stone-900' : 'bg-white'} p-8 text-center`}>
+                    <Loader2 className="h-8 w-8 text-gold-500 animate-spin mx-auto mb-4" />
+                    <p className={`${isDarkMode ? 'text-stone-300' : 'text-stone-600'}`}>Loading bookings...</p>
+                  </div>
+                ) : filteredBookings.length === 0 ? (
+                  <div className={`rounded-xl shadow-sm border p-8 sm:p-12 text-center ${isDarkMode ? 'bg-stone-900 border-stone-800' : 'bg-white border-gray-200'}`}>
+                    <Calendar className={`h-12 w-12 sm:h-16 sm:w-16 mx-auto mb-4 ${isDarkMode ? 'text-stone-700' : 'text-stone-300'}`} />
+                    <h3 className={`text-lg sm:text-xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>
+                      {getEmptyMessage()}
+                    </h3>
+                    <p className={`text-xs sm:text-sm ${isDarkMode ? 'text-stone-300' : 'text-stone-600'}`}>
+                      {searchTerm || statusFilter !== 'all' || assignedFilter !== 'all' || dateFrom || dateTo
+                        ? 'Try adjusting your filters or search terms'
+                        : 'Create a new booking to get started'}
+                    </p>
+                  </div>
+                ) : viewMode === 'list' ? (
+                  renderDesktopView()
+                ) : (
+                  renderGridView()
+                )}
               </div>
 
               {/* Mobile/Tablet Filtering UI */}
@@ -1718,38 +1789,18 @@ const AdminBookings: React.FC = () => {
                             <span className={`text-sm ${isDarkMode ? 'text-stone-300' : 'text-stone-700'}`}>
                               {selectedBookings.length} selected
                             </span>
+                            <button
+                              onClick={() => setShowBulkModal(true)}
+                              className="px-3 py-1.5 bg-purple-500 text-white rounded-lg text-sm font-medium hover:bg-purple-600"
+                            >
+                              Bulk Actions
+                            </button>
                           </div>
                         )}
                       </div>
                     ) : undefined
                   }
                 />
-              </div>
-
-              {/* Desktop Content Display (when not using ResponsiveTable) */}
-              <div className="hidden lg:block">
-                {isLoading ? (
-                  <div className={`rounded-xl ${isDarkMode ? 'bg-stone-900' : 'bg-white'} p-8 text-center`}>
-                    <Loader2 className="h-8 w-8 text-gold-500 animate-spin mx-auto mb-4" />
-                    <p className={`${isDarkMode ? 'text-stone-300' : 'text-stone-600'}`}>Loading bookings...</p>
-                  </div>
-                ) : filteredBookings.length === 0 ? (
-                  <div className={`rounded-xl shadow-sm border p-8 sm:p-12 text-center ${isDarkMode ? 'bg-stone-900 border-stone-800' : 'bg-white border-gray-200'}`}>
-                    <Calendar className={`h-12 w-12 sm:h-16 sm:w-16 mx-auto mb-4 ${isDarkMode ? 'text-stone-700' : 'text-stone-300'}`} />
-                    <h3 className={`text-lg sm:text-xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>
-                      {getEmptyMessage()}
-                    </h3>
-                    <p className={`text-xs sm:text-sm ${isDarkMode ? 'text-stone-300' : 'text-stone-600'}`}>
-                      {searchTerm || statusFilter !== 'all' || assignedFilter !== 'all' || dateFrom || dateTo
-                        ? 'Try adjusting your filters or search terms'
-                        : 'Create a new booking to get started'}
-                    </p>
-                  </div>
-                ) : viewMode === 'list' ? (
-                  renderDesktopView()
-                ) : (
-                  renderGridView()
-                )}
               </div>
             </>
           )}
@@ -1779,7 +1830,11 @@ const AdminBookings: React.FC = () => {
         statuses={statuses}
         staffUsers={staffUsers}
         isSubmitting={isSubmitting}
-        onClose={() => setShowBulkModal(false)}
+        onClose={() => {
+          setShowBulkModal(false);
+          setSelectedBookings([]);
+          setIsAllSelected(false);
+        }}
         onSubmit={handleBulkAction}
       />
       
