@@ -1,4 +1,4 @@
-// src/components/BulkActionsModal.tsx - UPDATED WITH BULK DELETION REASON
+// src/components/BulkActionsModal.tsx - UPDATED WITH RESPONSIVE BUTTONS
 import React, { useState, useEffect } from 'react';
 import { 
   X, Loader2, AlertCircle, CheckCircle, Trash2, Users, 
@@ -269,7 +269,7 @@ const BulkActionsModal: React.FC<BulkActionsModalProps> = ({
     <>
       {/* Main Bulk Actions Modal */}
       <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-        <div className={`${isDarkMode ? 'bg-stone-900' : 'bg-white'} rounded-2xl shadow-2xl max-w-2xl w-full`}>
+        <div className={`${isDarkMode ? 'bg-stone-900' : 'bg-white'} rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto`}>
           {/* Header */}
           <div className={`flex items-center justify-between p-6 border-b ${isDarkMode ? 'border-stone-800' : 'border-gray-200'}`}>
             <div>
@@ -289,7 +289,7 @@ const BulkActionsModal: React.FC<BulkActionsModalProps> = ({
             </button>
           </div>
 
-          {/* UPDATED: Confirmation Dialog for Delete with reason */}
+          {/* UPDATED: Confirmation Dialog for Delete with reason validation */}
           {showConfirmation && (
             <div className={`p-6 border-b ${isDarkMode ? 'border-stone-800 bg-red-900/20' : 'border-gray-200 bg-red-50'}`}>
               <div className="flex items-start gap-4">
@@ -332,7 +332,8 @@ const BulkActionsModal: React.FC<BulkActionsModalProps> = ({
                     </p>
                   )}
                   
-                  <div className="flex gap-3">
+                  {/* UPDATED: Responsive buttons with better mobile touch targets */}
+                  <div className="flex flex-col sm:flex-row gap-3">
                     <button
                       onClick={() => {
                         setShowConfirmation(false);
@@ -340,18 +341,18 @@ const BulkActionsModal: React.FC<BulkActionsModalProps> = ({
                         setDeletionError('');
                       }}
                       disabled={isSubmitting}
-                      className={`px-4 py-2 border rounded-lg font-medium ${
+                      className={`px-4 py-3 sm:py-2.5 border rounded-lg font-medium text-base sm:text-sm ${
                         isDarkMode 
-                          ? 'border-stone-600 text-stone-300 hover:bg-stone-800' 
-                          : 'border-gray-300 text-stone-700 hover:bg-gray-50'
-                      } disabled:opacity-50`}
+                          ? 'border-stone-600 text-stone-300 hover:bg-stone-800 active:bg-stone-700' 
+                          : 'border-gray-300 text-stone-700 hover:bg-gray-50 active:bg-gray-100'
+                      } disabled:opacity-50 transition-colors w-full sm:w-auto`}
                     >
                       Cancel
                     </button>
                     <button
                       onClick={confirmDelete}
                       disabled={isSubmitting}
-                      className="px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 disabled:opacity-50 flex items-center gap-2"
+                      className="px-4 py-3 sm:py-2.5 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 active:bg-red-800 disabled:opacity-50 flex items-center justify-center gap-2 text-base sm:text-sm transition-colors w-full sm:w-auto"
                     >
                       {isSubmitting ? (
                         <>
@@ -389,7 +390,11 @@ const BulkActionsModal: React.FC<BulkActionsModalProps> = ({
                     setSelectedUser(null);
                   }}
                   disabled={isSubmitting}
-                  className={`w-full px-4 py-3 rounded-lg border ${isDarkMode ? 'bg-stone-800 border-stone-700 text-white' : 'bg-white border-gray-300 text-stone-900'} focus:ring-2 focus:ring-gold-500 focus:border-transparent disabled:opacity-50`}
+                  className={`w-full px-4 py-3 rounded-lg border text-base ${
+                    isDarkMode 
+                      ? 'bg-stone-800 border-stone-700 text-white [color-scheme:dark]' 
+                      : 'bg-white border-gray-300 text-stone-900 [color-scheme:light]'
+                  } focus:ring-2 focus:ring-gold-500 focus:border-transparent disabled:opacity-50`}
                 >
                   <option value="">Choose an action...</option>
                   <option value="update_status">Update Status</option>
@@ -421,7 +426,11 @@ const BulkActionsModal: React.FC<BulkActionsModalProps> = ({
                     value={bulkStatus}
                     onChange={(e) => setBulkStatus(e.target.value)}
                     disabled={isSubmitting}
-                    className={`w-full px-4 py-3 rounded-lg border ${isDarkMode ? 'bg-stone-900 border-stone-700 text-white' : 'bg-white border-gray-300 text-stone-900'} focus:ring-2 focus:ring-gold-500 focus:border-transparent disabled:opacity-50`}
+                    className={`w-full px-4 py-3 rounded-lg border text-base ${
+                      isDarkMode 
+                        ? 'bg-stone-900 border-stone-700 text-white [color-scheme:dark]' 
+                        : 'bg-white border-gray-300 text-stone-900 [color-scheme:light]'
+                    } focus:ring-2 focus:ring-gold-500 focus:border-transparent disabled:opacity-50`}
                   >
                     <option value="">Select status...</option>
                     {statuses.map(status => (
@@ -538,10 +547,10 @@ const BulkActionsModal: React.FC<BulkActionsModalProps> = ({
                     type="button"
                     onClick={() => setShowAssignModal(true)}
                     disabled={isSubmitting}
-                    className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                    className={`w-full flex items-center justify-center gap-2 px-4 py-3 sm:py-2.5 rounded-lg text-base sm:text-sm font-medium transition-colors ${
                       isDarkMode
-                        ? 'bg-gold-600 text-white hover:bg-gold-700 disabled:bg-gold-600/50'
-                        : 'bg-gold-500 text-white hover:bg-gold-600 disabled:bg-gold-500/50'
+                        ? 'bg-gold-600 text-white hover:bg-gold-700 active:bg-gold-800 disabled:bg-gold-600/50'
+                        : 'bg-gold-500 text-white hover:bg-gold-600 active:bg-gold-700 disabled:bg-gold-500/50'
                     }`}
                   >
                     <UserPlus className="w-4 h-4" />
@@ -600,22 +609,22 @@ const BulkActionsModal: React.FC<BulkActionsModalProps> = ({
             </div>
           )}
 
-          {/* Footer */}
+          {/* UPDATED: Footer with responsive buttons */}
           {!showConfirmation && (
-            <div className={`flex items-center justify-between p-6 border-t ${isDarkMode ? 'border-stone-800' : 'border-gray-200'}`}>
-              <p className={`text-xs ${isDarkMode ? 'text-stone-500' : 'text-stone-500'}`}>
+            <div className={`flex flex-col sm:flex-row items-center justify-between p-6 border-t gap-4 ${isDarkMode ? 'border-stone-800' : 'border-gray-200'}`}>
+              <p className={`text-xs ${isDarkMode ? 'text-stone-500' : 'text-stone-500'} w-full sm:w-auto text-center sm:text-left`}>
                 {selectedCount} booking{selectedCount !== 1 ? 's' : ''} will be affected
               </p>
-              <div className="flex gap-3">
+              <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                 <button
                   type="button"
                   onClick={onClose}
                   disabled={isSubmitting}
-                  className={`px-6 py-2.5 border rounded-lg font-medium ${
+                  className={`px-4 py-3 sm:py-2.5 border rounded-lg font-medium text-base sm:text-sm transition-colors ${
                     isDarkMode 
-                      ? 'border-stone-600 text-stone-300 hover:bg-stone-800' 
-                      : 'border-gray-300 text-stone-700 hover:bg-gray-50'
-                  } disabled:opacity-50`}
+                      ? 'border-stone-600 text-stone-300 hover:bg-stone-800 active:bg-stone-700' 
+                      : 'border-gray-300 text-stone-700 hover:bg-gray-50 active:bg-gray-100'
+                  } disabled:opacity-50 w-full sm:w-auto`}
                 >
                   Cancel
                 </button>
@@ -624,10 +633,10 @@ const BulkActionsModal: React.FC<BulkActionsModalProps> = ({
                   disabled={isSubmitting || !bulkAction || 
                     (bulkAction === 'update_status' && !bulkStatus) ||
                     (bulkAction === 'assign' && !bulkAssign)}
-                  className={`px-6 py-2.5 rounded-lg font-medium flex items-center gap-2 disabled:opacity-50 ${
+                  className={`px-4 py-3 sm:py-2.5 rounded-lg font-medium flex items-center justify-center gap-2 text-base sm:text-sm transition-colors disabled:opacity-50 w-full sm:w-auto ${
                     bulkAction === 'delete'
-                      ? 'bg-red-600 hover:bg-red-700 text-white'
-                      : 'bg-purple-600 hover:bg-purple-700 text-white'
+                      ? 'bg-red-600 hover:bg-red-700 active:bg-red-800 text-white'
+                      : 'bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white'
                   }`}
                 >
                   {isSubmitting ? (
@@ -685,7 +694,7 @@ const BulkActionsModal: React.FC<BulkActionsModalProps> = ({
                   value={userSearch}
                   onChange={(e) => setUserSearch(e.target.value)}
                   placeholder="Search by name, email, role, or phone..."
-                  className={`w-full px-4 py-2.5 pl-10 rounded-lg ${
+                  className={`w-full px-4 py-3 sm:py-2.5 pl-10 rounded-lg text-base sm:text-sm ${
                     isDarkMode 
                       ? 'bg-stone-800 text-white placeholder-stone-400 border border-stone-700' 
                       : 'bg-white text-stone-900 placeholder-gray-500 border border-gray-300'
@@ -800,18 +809,18 @@ const BulkActionsModal: React.FC<BulkActionsModalProps> = ({
               )}
             </div>
             
-            {/* Footer */}
+            {/* UPDATED: Footer with responsive buttons */}
             <div className="p-4 border-t border-stone-700">
-              <div className="flex gap-3">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <button
                   onClick={() => {
                     setShowAssignModal(false);
                     setUserSearch('');
                   }}
-                  className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                  className={`px-4 py-3 sm:py-2.5 rounded-lg text-base sm:text-sm font-medium transition-colors ${
                     isDarkMode
-                      ? 'bg-stone-800 text-white hover:bg-stone-700 border border-stone-700'
-                      : 'bg-white text-stone-900 hover:bg-gray-100 border border-gray-300'
+                      ? 'bg-stone-800 text-white hover:bg-stone-700 active:bg-stone-600 border border-stone-700'
+                      : 'bg-white text-stone-900 hover:bg-gray-100 active:bg-gray-200 border border-gray-300'
                   }`}
                 >
                   Cancel
@@ -824,13 +833,13 @@ const BulkActionsModal: React.FC<BulkActionsModalProps> = ({
                     }
                   }}
                   disabled={!selectedUser && bulkAssign !== 'unassign'}
-                  className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                  className={`px-4 py-3 sm:py-2.5 rounded-lg text-base sm:text-sm font-medium transition-colors ${
                     isDarkMode
                       ? selectedUser || bulkAssign === 'unassign'
-                        ? 'bg-gold-600 text-white hover:bg-gold-700'
+                        ? 'bg-gold-600 text-white hover:bg-gold-700 active:bg-gold-800'
                         : 'bg-gold-600/50 text-white/50 cursor-not-allowed'
                       : selectedUser || bulkAssign === 'unassign'
-                        ? 'bg-gold-500 text-white hover:bg-gold-600'
+                        ? 'bg-gold-500 text-white hover:bg-gold-600 active:bg-gold-700'
                         : 'bg-gold-500/50 text-white/50 cursor-not-allowed'
                   }`}
                 >

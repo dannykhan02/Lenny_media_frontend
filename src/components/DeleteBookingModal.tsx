@@ -1,4 +1,4 @@
-// src/components/DeleteBookingModal.tsx
+// src/components/DeleteBookingModal.tsx - UPDATED WITH RESPONSIVE BUTTONS
 import React, { useState } from 'react';
 import { X, Loader2, AlertCircle, Trash2 } from 'lucide-react';
 
@@ -133,17 +133,17 @@ const DeleteBookingModal: React.FC<DeleteBookingModalProps> = ({
           </div>
         </div>
 
-        {/* Footer */}
-        <div className={`flex items-center justify-end gap-3 p-6 border-t ${
+        {/* UPDATED: Footer with responsive buttons */}
+        <div className={`flex flex-col sm:flex-row items-center justify-end gap-3 p-6 border-t ${
           isDarkMode ? 'border-stone-800' : 'border-gray-200'
         }`}>
           <button
             onClick={handleClose}
             disabled={isLoading}
-            className={`px-6 py-2.5 border rounded-lg font-medium ${
+            className={`px-4 py-3 sm:py-2.5 border rounded-lg font-medium text-base sm:text-sm transition-colors w-full sm:w-auto ${
               isDarkMode 
-                ? 'border-stone-600 text-stone-300 hover:bg-stone-800' 
-                : 'border-gray-300 text-stone-700 hover:bg-gray-50'
+                ? 'border-stone-600 text-stone-300 hover:bg-stone-800 active:bg-stone-700' 
+                : 'border-gray-300 text-stone-700 hover:bg-gray-50 active:bg-gray-100'
             } disabled:opacity-50`}
           >
             Cancel
@@ -151,7 +151,7 @@ const DeleteBookingModal: React.FC<DeleteBookingModalProps> = ({
           <button
             onClick={handleConfirm}
             disabled={isLoading}
-            className="px-6 py-2.5 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 disabled:opacity-50 flex items-center gap-2"
+            className="px-4 py-3 sm:py-2.5 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 active:bg-red-800 disabled:opacity-50 flex items-center justify-center gap-2 text-base sm:text-sm transition-colors w-full sm:w-auto"
           >
             {isLoading ? (
               <>
