@@ -1,9 +1,9 @@
-// pages/Admin/AdminBookings.tsx - With Enhanced Filtering and Search
+// pages/Admin/AdminBookings.tsx - UPDATED with enhanced desktop filtering
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   Filter, Calendar, Clock, User, Mail, Phone, MapPin, 
   DollarSign, FileText, Edit2, Trash2, CheckCircle, XCircle, 
-  AlertCircle, Loader2, Check, X, Users,
+  AlertCircle, Loader2, Check, X, Users, Search, ChevronDown,
   ChevronLeft, ChevronRight, Grid, List,
   UserX, Camera, Video
 } from 'lucide-react';
@@ -14,7 +14,7 @@ import MobileBottomSheet from '../../components/MobileBottomSheet';
 import ResponsiveTable from '../../components/ResponsiveTable';
 import EditBookingModal from '../../components/EditBookingModal';
 import BulkActionsModal from '../../components/BulkActionsModal';
-import DeleteBookingModal from '../../components/DeleteBookingModal'; // NEW: Import DeleteBookingModal
+import DeleteBookingModal from '../../components/DeleteBookingModal';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -53,7 +53,6 @@ interface BookingStatus {
   value: string;
 }
 
-// UPDATED: Enhanced User interface to match API response
 interface StaffUser {
   id: number;
   full_name: string;
@@ -105,8 +104,8 @@ const AdminBookings: React.FC = () => {
   const isCalendarView = currentView === 'calendar';
   
   // Filter states
-  const [searchInput, setSearchInput] = useState(''); // For instant UI feedback
-  const [searchTerm, setSearchTerm] = useState(''); // Debounced search term for API
+  const [searchInput, setSearchInput] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState(isPendingView ? 'PENDING' : isConfirmedView ? 'CONFIRMED' : 'all');
   const [assignedFilter, setAssignedFilter] = useState('all');
   const [dateFrom, setDateFrom] = useState('');
@@ -124,7 +123,7 @@ const AdminBookings: React.FC = () => {
   // Modal states
   const [showEditModal, setShowEditModal] = useState(false);
   const [showBulkModal, setShowBulkModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false); // NEW: Delete modal state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [currentBooking, setCurrentBooking] = useState<Booking | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -151,8 +150,8 @@ const AdminBookings: React.FC = () => {
   // Debounced search function
   const debouncedSearch = useDebounce((value: string) => {
     setSearchTerm(value);
-    setCurrentPage(1); // Reset to first page on search
-  }, 500); // 500ms delay
+    setCurrentPage(1);
+  }, 500);
 
   // Search change handler
   const handleSearchChange = (value: string) => {
@@ -178,7 +177,7 @@ const AdminBookings: React.FC = () => {
     fetchStats();
   }, []);
 
-  // Fetch bookings when filters change (server-side filtering)
+  // Fetch bookings when filters change
   useEffect(() => {
     fetchBookings();
     if (isCalendarView) {
@@ -188,7 +187,7 @@ const AdminBookings: React.FC = () => {
     currentPage, 
     perPage, 
     currentView, 
-    searchTerm,      // Debounced search
+    searchTerm,
     statusFilter, 
     assignedFilter, 
     dateFrom, 
@@ -198,7 +197,7 @@ const AdminBookings: React.FC = () => {
   // Update filtered bookings for instant UI feedback
   useEffect(() => {
     filterBookings();
-  }, [bookings, searchInput]); // searchInput for instant feedback
+  }, [bookings, searchInput]);
 
   const fetchCurrentUser = async () => {
     try {
@@ -231,18 +230,15 @@ const AdminBookings: React.FC = () => {
     }
   };
 
-  // UPDATED: Enhanced user fetching to match API response structure
   const fetchStaffUsers = async () => {
     setIsLoadingUsers(true);
     try {
-      // Try media staff endpoint first
       const response = await fetch(`${API_URL}/api/auth/users/media-staff`, {
         credentials: 'include'
       });
       
       if (response.ok) {
         const data = await response.json();
-        // Process users from API response to match StaffUser interface
         const processedUsers: StaffUser[] = data.media_staff?.map((user: any) => ({
           id: user.id,
           full_name: user.full_name || '',
@@ -259,7 +255,6 @@ const AdminBookings: React.FC = () => {
         })) || [];
         setStaffUsers(processedUsers);
       } else {
-        // Fallback: Get all users
         const fallbackResponse = await fetch(`${API_URL}/api/auth/users`, {
           credentials: 'include'
         });
@@ -299,12 +294,10 @@ const AdminBookings: React.FC = () => {
         per_page: perPage.toString(),
       });
 
-      // Add search parameter
       if (searchTerm.trim()) {
         params.append('search', searchTerm.trim());
       }
 
-      // Add status filter
       if (isPendingView) {
         params.append('status', 'PENDING');
       } else if (isConfirmedView) {
@@ -313,7 +306,6 @@ const AdminBookings: React.FC = () => {
         params.append('status', statusFilter);
       }
 
-      // Add assignment filter
       if (assignedFilter !== 'all') {
         if (assignedFilter === 'unassigned') {
           params.append('assigned_to', 'null');
@@ -322,7 +314,6 @@ const AdminBookings: React.FC = () => {
         }
       }
 
-      // Add date range filters
       if (dateFrom) {
         params.append('date_from', dateFrom);
       }
@@ -343,7 +334,7 @@ const AdminBookings: React.FC = () => {
       
       const data = await response.json();
       setBookings(data.bookings || []);
-      setFilteredBookings(data.bookings || []); // Set both to avoid double filtering
+      setFilteredBookings(data.bookings || []);
       setTotalPages(data.pages || 1);
       setTotalBookings(data.total || 0);
       
@@ -371,11 +362,8 @@ const AdminBookings: React.FC = () => {
   };
 
   const filterBookings = () => {
-    // If we're doing server-side filtering, just use the bookings as-is
-    // This provides immediate feedback while typing
     let filtered = [...bookings];
 
-    // Only apply client-side search if user is typing (for instant feedback)
     if (searchInput && searchInput !== searchTerm) {
       const term = searchInput.toLowerCase();
       filtered = filtered.filter(booking =>
@@ -403,13 +391,11 @@ const AdminBookings: React.FC = () => {
     setCalendarBookings(bookingsByDate);
   };
 
-  // UPDATED: Enhanced function to get assigned user info
   const getAssignedUser = (booking: Booking): StaffUser | null => {
     if (!booking.assigned_to) return null;
     return staffUsers.find(user => user.id === booking.assigned_to) || null;
   };
 
-  // UPDATED: Enhanced function to get user avatar or initial with better fallback
   const getUserAvatar = (user: StaffUser | null) => {
     if (!user) return null;
     
@@ -421,15 +407,13 @@ const AdminBookings: React.FC = () => {
           className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover border-2 border-gold-500/30 flex-shrink-0 bg-stone-800"
           onError={(e) => {
             const target = e.target as HTMLImageElement;
-            // Fallback to UI Avatars
-            target.onerror = null; // Prevent infinite loop
+            target.onerror = null;
             target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.full_name)}&background=d4af37&color=1c1917&size=128&bold=true`;
           }}
         />
       );
     }
     
-    // Fallback to avatar initials
     return (
       <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center border-2 border-gold-500/30 flex-shrink-0 ${
         isDarkMode ? 'bg-gold-900/30 text-gold-400' : 'bg-gold-100 text-gold-600'
@@ -441,7 +425,6 @@ const AdminBookings: React.FC = () => {
     );
   };
 
-  // Function to get role icon
   const getRoleIcon = (role: string) => {
     switch (role?.toLowerCase()) {
       case 'photographer':
@@ -455,7 +438,6 @@ const AdminBookings: React.FC = () => {
     }
   };
 
-  // Function to get role color
   const getRoleColor = (role: string) => {
     switch (role?.toLowerCase()) {
       case 'photographer':
@@ -474,13 +456,11 @@ const AdminBookings: React.FC = () => {
     setShowEditModal(true);
   };
 
-  // NEW: Handle delete click with DeleteBookingModal
   const handleDeleteClick = (booking: Booking) => {
     setCurrentBooking(booking);
     setShowDeleteModal(true);
   };
 
-  // NEW: Confirm delete with reason
   const confirmDelete = async (reason: string) => {
     if (!currentBooking) return;
 
@@ -837,8 +817,267 @@ const AdminBookings: React.FC = () => {
     );
   };
 
-  // UPDATED: Filters with assignment filter and clear button - MOBILE OPTIMIZED
-  const renderFilters = () => (
+  // UPDATED: Desktop filtering UI to match quote filtering approach
+  const renderDesktopFilters = () => (
+    <div className={`rounded-xl shadow-sm border p-4 md:p-6 mb-6 ${
+      isDarkMode ? 'bg-stone-900 border-stone-800' : 'bg-white border-gray-200'
+    }`}>
+      {/* Top Row: Search */}
+      <div className="mb-6">
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 md:h-5 md:w-5 text-stone-400" />
+          <input
+            type="text"
+            placeholder="Search by name, email, phone, or service..."
+            value={searchInput}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            className={`w-full pl-12 pr-4 py-3.5 rounded-lg border text-base ${
+              isDarkMode 
+                ? 'bg-stone-800 border-stone-700 text-white placeholder-stone-500' 
+                : 'bg-white border-gray-300 text-stone-900 placeholder-stone-400'
+            } focus:ring-2 focus:ring-gold-500`}
+          />
+        </div>
+      </div>
+
+      {/* Filter Row */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {/* Status Filter */}
+        <div>
+          <label className={`block text-sm font-medium mb-2 ${
+            isDarkMode ? 'text-stone-300' : 'text-stone-700'
+          }`}>
+            Status
+          </label>
+          <div className="relative">
+            <select
+              value={statusFilter}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                setCurrentPage(1);
+              }}
+              className={`w-full px-4 py-3.5 rounded-lg border appearance-none text-base ${
+                isDarkMode 
+                  ? 'bg-stone-800 border-stone-700 text-white' 
+                  : 'bg-white border-gray-300 text-stone-900'
+              } focus:ring-2 focus:ring-gold-500`}
+            >
+              <option value="all">All Status</option>
+              {statuses.map(status => (
+                <option key={status.name} value={status.name}>
+                  {status.value}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className={`absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 ${
+              isDarkMode ? 'text-stone-400' : 'text-stone-500'
+            }`} />
+          </div>
+        </div>
+
+        {/* Assignment Filter */}
+        <div>
+          <label className={`block text-sm font-medium mb-2 ${
+            isDarkMode ? 'text-stone-300' : 'text-stone-700'
+          }`}>
+            Assignment
+          </label>
+          <div className="relative">
+            <select
+              value={assignedFilter}
+              onChange={(e) => {
+                setAssignedFilter(e.target.value);
+                setCurrentPage(1);
+              }}
+              disabled={isLoadingUsers}
+              className={`w-full px-4 py-3.5 rounded-lg border appearance-none text-base ${
+                isDarkMode 
+                  ? 'bg-stone-800 border-stone-700 text-white' 
+                  : 'bg-white border-gray-300 text-stone-900'
+              } focus:ring-2 focus:ring-gold-500 disabled:opacity-50`}
+            >
+              <option value="all">All Assignments</option>
+              <option value="unassigned">Unassigned</option>
+              {isLoadingUsers ? (
+                <option disabled>Loading users...</option>
+              ) : (
+                staffUsers.map(user => (
+                  <option key={user.id} value={user.id}>
+                    {user.full_name}
+                  </option>
+                ))
+              )}
+            </select>
+            <ChevronDown className={`absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 ${
+              isDarkMode ? 'text-stone-400' : 'text-stone-500'
+            }`} />
+          </div>
+        </div>
+
+        {/* Date Range Filters */}
+        <div className="md:col-span-2">
+          <label className={`block text-sm font-medium mb-2 ${
+            isDarkMode ? 'text-stone-300' : 'text-stone-700'
+          }`}>
+            Date Range
+          </label>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <input
+                type="date"
+                value={dateFrom}
+                onChange={(e) => {
+                  setDateFrom(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className={`w-full px-4 py-3.5 rounded-lg border text-base ${
+                  isDarkMode 
+                    ? 'bg-stone-800 border-stone-700 text-white' 
+                    : 'bg-white border-gray-300 text-stone-900'
+                } focus:ring-2 focus:ring-gold-500`}
+              />
+            </div>
+            <div>
+              <input
+                type="date"
+                value={dateTo}
+                onChange={(e) => {
+                  setDateTo(e.target.value);
+                  setCurrentPage(1);
+                }}
+                min={dateFrom}
+                className={`w-full px-4 py-3.5 rounded-lg border text-base ${
+                  isDarkMode 
+                    ? 'bg-stone-800 border-stone-700 text-white' 
+                    : 'bg-white border-gray-300 text-stone-900'
+                } focus:ring-2 focus:ring-gold-500`}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Active Filters & Actions */}
+      {(statusFilter !== 'all' || assignedFilter !== 'all' || dateFrom || dateTo || searchTerm) && (
+        <div className="mt-6 pt-6 border-t border-stone-200 dark:border-stone-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="flex flex-wrap gap-2">
+            {statusFilter !== 'all' && (
+              <span className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm ${
+                isDarkMode ? 'bg-stone-800 text-white' : 'bg-gray-200 text-stone-900'
+              }`}>
+                Status: {statuses.find(s => s.name === statusFilter)?.value || statusFilter}
+                <button
+                  onClick={() => setStatusFilter('all')}
+                  className="ml-1 hover:text-red-500"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            )}
+            {assignedFilter !== 'all' && (
+              <span className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm ${
+                isDarkMode ? 'bg-stone-800 text-white' : 'bg-gray-200 text-stone-900'
+              }`}>
+                {assignedFilter === 'unassigned' ? (
+                  'Unassigned'
+                ) : (
+                  `Assigned: ${staffUsers.find(u => u.id.toString() === assignedFilter)?.full_name || 'User'}`
+                )}
+                <button
+                  onClick={() => setAssignedFilter('all')}
+                  className="ml-1 hover:text-red-500"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            )}
+            {(dateFrom || dateTo) && (
+              <span className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm ${
+                isDarkMode ? 'bg-stone-800 text-white' : 'bg-gray-200 text-stone-900'
+              }`}>
+                Date Range: {dateFrom ? formatDate(dateFrom) : 'Any'} - {dateTo ? formatDate(dateTo) : 'Any'}
+                <button
+                  onClick={() => {
+                    setDateFrom('');
+                    setDateTo('');
+                  }}
+                  className="ml-1 hover:text-red-500"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            )}
+          </div>
+          
+          <button
+            onClick={clearFilters}
+            className={`px-4 py-2.5 rounded-lg flex items-center gap-2 text-sm font-medium ${
+              isDarkMode 
+                ? 'bg-stone-800 text-stone-300 hover:bg-stone-700' 
+                : 'bg-gray-100 text-stone-700 hover:bg-gray-200'
+            }`}
+          >
+            <X className="w-4 h-4" />
+            Clear All Filters
+          </button>
+        </div>
+      )}
+
+      {/* Results Count & Pagination */}
+      <div className={`mt-6 pt-6 border-t ${
+        isDarkMode ? 'border-stone-800' : 'border-gray-200'
+      } flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4`}>
+        <div>
+          <p className={`text-sm ${
+            isDarkMode ? 'text-white' : 'text-stone-900'
+          }`}>
+            Showing {filteredBookings.length} of {totalBookings} bookings
+          </p>
+          {selectedBookings.length > 0 && (
+            <p className={`text-sm mt-1 ${
+              isDarkMode ? 'text-gold-400' : 'text-gold-600'
+            }`}>
+              {selectedBookings.length} selected
+            </p>
+          )}
+        </div>
+        
+        {/* Pagination */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+            disabled={currentPage === 1}
+            className={`p-2 rounded-lg ${
+              isDarkMode 
+                ? 'bg-stone-800 text-white disabled:opacity-30 hover:bg-stone-700' 
+                : 'bg-stone-100 text-stone-900 disabled:opacity-30 hover:bg-stone-200'
+            }`}
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <span className={`text-sm ${
+            isDarkMode ? 'text-white' : 'text-stone-900'
+          }`}>
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+            disabled={currentPage === totalPages}
+            className={`p-2 rounded-lg ${
+              isDarkMode 
+                ? 'bg-stone-800 text-white disabled:opacity-30 hover:bg-stone-700' 
+                : 'bg-stone-100 text-stone-900 disabled:opacity-30 hover:bg-stone-200'
+            }`}
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Mobile filters (unchanged)
+  const renderMobileFilters = () => (
     <div className="space-y-3">
       {!isPendingView && !isConfirmedView && (
         <>
@@ -904,7 +1143,7 @@ const AdminBookings: React.FC = () => {
             </select>
           </div>
 
-          {/* Date Range Filters - FIXED FOR MOBILE */}
+          {/* Date Range Filters */}
           <div className="w-full">
             <label className={`block text-xs sm:text-sm font-medium mb-2 ${
               isDarkMode ? 'text-stone-300' : 'text-stone-700'
@@ -958,9 +1197,9 @@ const AdminBookings: React.FC = () => {
               onClick={clearFilters}
               className={`w-full px-4 py-3 rounded-lg flex items-center justify-center gap-2 text-base font-medium ${
                 isDarkMode 
-                  ? 'bg-stone-800 text-stone-300 hover:bg-stone-700 active:bg-stone-600' 
-                  : 'bg-gray-100 text-stone-700 hover:bg-gray-200 active:bg-gray-300'
-              } transition-colors`}
+                  ? 'bg-stone-800 text-stone-300 hover:bg-stone-700' 
+                  : 'bg-gray-100 text-stone-700 hover:bg-gray-200'
+              }`}
             >
               <X className="w-4 h-4" />
               Clear All Filters
@@ -971,7 +1210,6 @@ const AdminBookings: React.FC = () => {
     </div>
   );
 
-  // UPDATED: Desktop table view with enhanced assignment display - matching design
   const renderDesktopView = () => (
     <table className={`w-full rounded-lg overflow-hidden ${isDarkMode ? 'bg-stone-900' : 'bg-white'} border ${isDarkMode ? 'border-stone-800' : 'border-gray-200'}`}>
       <thead className={`${isDarkMode ? 'bg-stone-800 text-stone-300' : 'bg-gray-50 text-stone-700'}`}>
@@ -1061,7 +1299,6 @@ const AdminBookings: React.FC = () => {
                   {booking.status}
                 </span>
               </td>
-              {/* UPDATED: Enhanced Assignment cell - matching design */}
               <td className="px-4 py-4">
                 {assignedUser ? (
                   <div className="flex items-center gap-3">
@@ -1118,7 +1355,6 @@ const AdminBookings: React.FC = () => {
     </table>
   );
 
-  // UPDATED: Grid view with enhanced assignment display
   const renderGridView = () => (
     <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
       {filteredBookings.map((booking) => {
@@ -1168,7 +1404,6 @@ const AdminBookings: React.FC = () => {
                 </span>
               </div>
               
-              {/* UPDATED: Enhanced Assignment display in grid */}
               <div className="flex items-center gap-2">
                 <Users className="w-4 h-4 text-stone-500" />
                 {assignedUser ? (
@@ -1225,7 +1460,6 @@ const AdminBookings: React.FC = () => {
     </div>
   );
 
-  // UPDATED: Mobile view with enhanced assignment display
   const renderMobileView = () => (
     <div className="space-y-3">
       {filteredBookings.map((booking) => {
@@ -1270,7 +1504,6 @@ const AdminBookings: React.FC = () => {
                 </span>
               </div>
               
-              {/* UPDATED: Enhanced Assignment display in mobile */}
               <div className="flex items-center justify-between">
                 <span className={`text-sm ${isDarkMode ? 'text-stone-400' : 'text-stone-600'}`}>Assigned</span>
                 {assignedUser ? (
@@ -1377,7 +1610,7 @@ const AdminBookings: React.FC = () => {
                  `Total: ${totalBookings} bookings`}
               </p>
               
-              {/* View Toggle Buttons - FIXED FOR MOBILE */}
+              {/* View Toggle Buttons */}
               {!isCalendarView && (
                 <div className="flex items-center gap-1.5 bg-opacity-50 rounded-lg p-1 backdrop-blur-sm" style={{
                   backgroundColor: isDarkMode ? 'rgba(41, 37, 36, 0.8)' : 'rgba(245, 245, 244, 0.8)'
@@ -1439,50 +1672,86 @@ const AdminBookings: React.FC = () => {
           {isCalendarView ? (
             renderCalendarView()
           ) : (
-            <ResponsiveTable
-              isDarkMode={isDarkMode}
-              searchTerm={searchInput}  // Use searchInput for instant feedback
-              onSearchChange={handleSearchChange}  // Use debounced handler
-              searchPlaceholder="Search by name, email, phone, or service..."
-              showFilters={showFilters}
-              onToggleFilters={() => setShowFilters(!showFilters)}
-              filters={renderFilters()}
-              currentPage={currentPage}
-              totalPages={totalPages}
-              totalItems={totalBookings}
-              onPageChange={setCurrentPage}
-              itemsPerPage={perPage}
-              viewMode={viewMode}
-              onViewModeChange={setViewMode}
-              selectedCount={selectedBookings.length}
-              onBulkActionClick={() => setShowBulkModal(true)}
-              bulkActionText="Bulk Actions"
-              desktopView={viewMode === 'list' ? renderDesktopView() : renderGridView()}
-              mobileView={renderMobileView()}
-              gridView={renderGridView()}
-              isLoading={isLoading}
-              isEmpty={filteredBookings.length === 0}
-              emptyMessage={getEmptyMessage()}
-              headerActions={
-                !isPendingView && !isConfirmedView ? (
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => setShowFilters(!showFilters)}
-                      className={`md:hidden p-2 rounded-lg ${isDarkMode ? 'text-stone-400 hover:bg-stone-800' : 'text-stone-600 hover:bg-gray-100'}`}
-                    >
-                      <Filter className="w-5 h-5" />
-                    </button>
-                    {selectedBookings.length > 0 && (
+            <>
+              {/* Desktop Filtering UI - NEW: Matches quote filtering approach */}
+              <div className="hidden lg:block">
+                {renderDesktopFilters()}
+              </div>
+
+              {/* Mobile/Tablet Filtering UI */}
+              <div className="lg:hidden">
+                <ResponsiveTable
+                  isDarkMode={isDarkMode}
+                  searchTerm={searchInput}
+                  onSearchChange={handleSearchChange}
+                  searchPlaceholder="Search by name, email, phone, or service..."
+                  showFilters={showFilters}
+                  onToggleFilters={() => setShowFilters(!showFilters)}
+                  filters={renderMobileFilters()}
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  totalItems={totalBookings}
+                  onPageChange={setCurrentPage}
+                  itemsPerPage={perPage}
+                  viewMode={viewMode}
+                  onViewModeChange={setViewMode}
+                  selectedCount={selectedBookings.length}
+                  onBulkActionClick={() => setShowBulkModal(true)}
+                  bulkActionText="Bulk Actions"
+                  desktopView={viewMode === 'list' ? renderDesktopView() : renderGridView()}
+                  mobileView={renderMobileView()}
+                  gridView={renderGridView()}
+                  isLoading={isLoading}
+                  isEmpty={filteredBookings.length === 0}
+                  emptyMessage={getEmptyMessage()}
+                  headerActions={
+                    !isPendingView && !isConfirmedView ? (
                       <div className="flex items-center gap-2">
-                        <span className={`text-sm ${isDarkMode ? 'text-stone-300' : 'text-stone-700'}`}>
-                          {selectedBookings.length} selected
-                        </span>
+                        <button
+                          onClick={() => setShowFilters(!showFilters)}
+                          className={`md:hidden p-2 rounded-lg ${isDarkMode ? 'text-stone-400 hover:bg-stone-800' : 'text-stone-600 hover:bg-gray-100'}`}
+                        >
+                          <Filter className="w-5 h-5" />
+                        </button>
+                        {selectedBookings.length > 0 && (
+                          <div className="flex items-center gap-2">
+                            <span className={`text-sm ${isDarkMode ? 'text-stone-300' : 'text-stone-700'}`}>
+                              {selectedBookings.length} selected
+                            </span>
+                          </div>
+                        )}
                       </div>
-                    )}
+                    ) : undefined
+                  }
+                />
+              </div>
+
+              {/* Desktop Content Display (when not using ResponsiveTable) */}
+              <div className="hidden lg:block">
+                {isLoading ? (
+                  <div className={`rounded-xl ${isDarkMode ? 'bg-stone-900' : 'bg-white'} p-8 text-center`}>
+                    <Loader2 className="h-8 w-8 text-gold-500 animate-spin mx-auto mb-4" />
+                    <p className={`${isDarkMode ? 'text-stone-300' : 'text-stone-600'}`}>Loading bookings...</p>
                   </div>
-                ) : undefined
-              }
-            />
+                ) : filteredBookings.length === 0 ? (
+                  <div className={`rounded-xl shadow-sm border p-8 sm:p-12 text-center ${isDarkMode ? 'bg-stone-900 border-stone-800' : 'bg-white border-gray-200'}`}>
+                    <Calendar className={`h-12 w-12 sm:h-16 sm:w-16 mx-auto mb-4 ${isDarkMode ? 'text-stone-700' : 'text-stone-300'}`} />
+                    <h3 className={`text-lg sm:text-xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>
+                      {getEmptyMessage()}
+                    </h3>
+                    <p className={`text-xs sm:text-sm ${isDarkMode ? 'text-stone-300' : 'text-stone-600'}`}>
+                      {searchTerm || statusFilter !== 'all' || assignedFilter !== 'all' || dateFrom || dateTo
+                        ? 'Try adjusting your filters or search terms'
+                        : 'Create a new booking to get started'}
+                    </p>
+                  </div>
+                ) : viewMode === 'list' ? (
+                  renderDesktopView()
+                ) : (
+                  renderGridView()
+                )}
+              </div>
+            </>
           )}
         </div>
       </main>
@@ -1514,7 +1783,7 @@ const AdminBookings: React.FC = () => {
         onSubmit={handleBulkAction}
       />
       
-      {/* NEW: Delete Booking Modal */}
+      {/* Delete Booking Modal */}
       <DeleteBookingModal
         isOpen={showDeleteModal}
         isDarkMode={isDarkMode}
@@ -1527,7 +1796,7 @@ const AdminBookings: React.FC = () => {
         }}
       />
       
-      {/* Mobile Bottom Sheet - UPDATED with button spacing fix */}
+      {/* Mobile Bottom Sheet */}
       <MobileBottomSheet
         isOpen={mobileSheet.isOpen}
         isDarkMode={isDarkMode}
@@ -1561,7 +1830,6 @@ const AdminBookings: React.FC = () => {
       >
         {mobileSheet.booking && (
           <div className="space-y-4">
-            {/* Booking Details */}
             <div className={`rounded-xl p-4 border ${isDarkMode ? 'bg-stone-800/50 border-stone-700' : 'bg-gray-50 border-gray-200'}`}>
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
@@ -1592,7 +1860,6 @@ const AdminBookings: React.FC = () => {
                 )}
               </div>
               
-              {/* Service Type - UPDATED with better contrast */}
               <div className="mt-4">
                 <p className={`text-xs ${isDarkMode ? 'text-stone-400' : 'text-stone-500'} mb-1`}>Service Type</p>
                 <span className={`text-sm font-bold ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>
@@ -1600,7 +1867,6 @@ const AdminBookings: React.FC = () => {
                 </span>
               </div>
 
-              {/* Assignment Display */}
               <div className="mt-4">
                 <p className={`text-xs ${isDarkMode ? 'text-stone-400' : 'text-stone-500'} mb-1`}>Assigned To</p>
                 {mobileSheet.booking.assigned_to ? (
@@ -1636,7 +1902,6 @@ const AdminBookings: React.FC = () => {
                 )}
               </div>
 
-              {/* Budget - UPDATED with better contrast */}
               {mobileSheet.booking.budget_range && (
                 <div className="mt-4">
                   <p className={`text-xs ${isDarkMode ? 'text-stone-400' : 'text-stone-500'} mb-1`}>Budget Range</p>
@@ -1649,7 +1914,6 @@ const AdminBookings: React.FC = () => {
                 </div>
               )}
 
-              {/* Notes */}
               {mobileSheet.booking.additional_notes && (
                 <div className="mt-4">
                   <p className={`text-xs ${isDarkMode ? 'text-stone-400' : 'text-stone-500'} mb-1`}>Client Notes</p>
