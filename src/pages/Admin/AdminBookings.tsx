@@ -1501,7 +1501,7 @@ const AdminBookings: React.FC = () => {
         }}
       />
       
-      {/* Mobile Bottom Sheet */}
+      {/* Mobile Bottom Sheet - UPDATED with button spacing fix */}
       <MobileBottomSheet
         isOpen={mobileSheet.isOpen}
         isDarkMode={isDarkMode}
@@ -1509,7 +1509,7 @@ const AdminBookings: React.FC = () => {
         subtitle={mobileSheet.booking?.service_type}
         onClose={closeMobileSheet}
         actions={
-          <>
+          <div className="flex flex-col gap-3">
             <button
               onClick={() => {
                 closeMobileSheet();
@@ -1530,7 +1530,7 @@ const AdminBookings: React.FC = () => {
               <Trash2 className="w-4 h-4" />
               Delete Booking
             </button>
-          </>
+          </div>
         }
       >
         {mobileSheet.booking && (
@@ -1566,17 +1566,17 @@ const AdminBookings: React.FC = () => {
                 )}
               </div>
               
-              {/* Service Type */}
+              {/* Service Type - UPDATED with better contrast */}
               <div className="mt-4">
-                <p className={`text-xs ${isDarkMode ? 'text-stone-500' : 'text-stone-500'} mb-1`}>Service Type</p>
-                <span className={`text-sm font-bold ${isDarkMode ? 'text-gold-400' : 'text-gold-600'}`}>
+                <p className={`text-xs ${isDarkMode ? 'text-stone-400' : 'text-stone-500'} mb-1`}>Service Type</p>
+                <span className={`text-sm font-bold ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>
                   {mobileSheet.booking.service_type}
                 </span>
               </div>
 
               {/* Assignment Display */}
               <div className="mt-4">
-                <p className={`text-xs ${isDarkMode ? 'text-stone-500' : 'text-stone-500'} mb-1`}>Assigned To</p>
+                <p className={`text-xs ${isDarkMode ? 'text-stone-400' : 'text-stone-500'} mb-1`}>Assigned To</p>
                 {mobileSheet.booking.assigned_to ? (
                   (() => {
                     const assignedUser = getAssignedUser(mobileSheet.booking);
@@ -1610,13 +1610,13 @@ const AdminBookings: React.FC = () => {
                 )}
               </div>
 
-              {/* Budget */}
+              {/* Budget - UPDATED with better contrast */}
               {mobileSheet.booking.budget_range && (
                 <div className="mt-4">
-                  <p className={`text-xs ${isDarkMode ? 'text-stone-500' : 'text-stone-500'} mb-1`}>Budget Range</p>
+                  <p className={`text-xs ${isDarkMode ? 'text-stone-400' : 'text-stone-500'} mb-1`}>Budget Range</p>
                   <div className="flex items-center gap-2">
-                    <DollarSign className="w-4 h-4 text-gold-500" />
-                    <span className={`text-sm ${isDarkMode ? 'text-gold-400' : 'text-gold-600'}`}>
+                    <DollarSign className={`w-4 h-4 ${isDarkMode ? 'text-gold-400' : 'text-gold-500'}`} />
+                    <span className={`text-sm font-semibold ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>
                       {mobileSheet.booking.budget_range}
                     </span>
                   </div>
@@ -1626,7 +1626,7 @@ const AdminBookings: React.FC = () => {
               {/* Notes */}
               {mobileSheet.booking.additional_notes && (
                 <div className="mt-4">
-                  <p className={`text-xs ${isDarkMode ? 'text-stone-500' : 'text-stone-500'} mb-1`}>Client Notes</p>
+                  <p className={`text-xs ${isDarkMode ? 'text-stone-400' : 'text-stone-500'} mb-1`}>Client Notes</p>
                   <p className={`text-sm ${isDarkMode ? 'text-stone-300' : 'text-stone-600'}`}>
                     {mobileSheet.booking.additional_notes}
                   </p>
