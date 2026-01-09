@@ -1126,8 +1126,9 @@ const AdminBookings: React.FC = () => {
   );
 
   // UPDATED: Mobile filters with better spacing and touch targets
+  // UPDATED: Mobile filters with proper full-width styling and alignment
   const renderMobileFilters = () => (
-    <div className="space-y-4 p-4">
+    <div className="space-y-4 p-4 w-full">
       {!isPendingView && !isConfirmedView && (
         <>
           {/* Status Filter */}
@@ -1137,18 +1138,18 @@ const AdminBookings: React.FC = () => {
             }`}>
               Status
             </label>
-            <div className="relative">
+            <div className="relative w-full">
               <select
                 value={statusFilter}
                 onChange={(e) => {
                   setStatusFilter(e.target.value);
                   setCurrentPage(1);
                 }}
-                className={`w-full px-4 py-3.5 rounded-lg border text-base appearance-none ${
+                className={`w-full px-4 py-3.5 pr-10 rounded-lg border text-base appearance-none ${
                   isDarkMode 
                     ? 'bg-stone-800 border-stone-700 text-white [color-scheme:dark]' 
                     : 'bg-white border-gray-300 text-stone-900 [color-scheme:light]'
-                } focus:ring-2 focus:ring-gold-500 focus:border-transparent`}
+                } focus:ring-2 focus:ring-gold-500 focus:border-transparent shadow-sm`}
               >
                 <option value="all">All Status</option>
                 {statuses.map(status => (
@@ -1170,7 +1171,7 @@ const AdminBookings: React.FC = () => {
             }`}>
               Assignment
             </label>
-            <div className="relative">
+            <div className="relative w-full">
               <select
                 value={assignedFilter}
                 onChange={(e) => {
@@ -1178,11 +1179,11 @@ const AdminBookings: React.FC = () => {
                   setCurrentPage(1);
                 }}
                 disabled={isLoadingUsers}
-                className={`w-full px-4 py-3.5 rounded-lg border text-base appearance-none ${
+                className={`w-full px-4 py-3.5 pr-10 rounded-lg border text-base appearance-none ${
                   isDarkMode 
                     ? 'bg-stone-800 border-stone-700 text-white [color-scheme:dark]' 
                     : 'bg-white border-gray-300 text-stone-900 [color-scheme:light]'
-                } focus:ring-2 focus:ring-gold-500 focus:border-transparent disabled:opacity-50`}
+                } focus:ring-2 focus:ring-gold-500 focus:border-transparent disabled:opacity-50 shadow-sm`}
               >
                 <option value="all">All Assignments</option>
                 <option value="unassigned">Unassigned</option>
@@ -1209,7 +1210,7 @@ const AdminBookings: React.FC = () => {
             }`}>
               Date Range
             </label>
-            <div className="space-y-3">
+            <div className="space-y-3 w-full">
               <div className="w-full">
                 <label className={`block text-xs mb-1.5 ${isDarkMode ? 'text-stone-400' : 'text-stone-600'}`}>
                   From
@@ -1225,7 +1226,7 @@ const AdminBookings: React.FC = () => {
                     isDarkMode 
                       ? 'bg-stone-800 border-stone-700 text-white [color-scheme:dark]' 
                       : 'bg-white border-gray-300 text-stone-900 [color-scheme:light]'
-                  } focus:ring-2 focus:ring-gold-500 focus:border-transparent`}
+                  } focus:ring-2 focus:ring-gold-500 focus:border-transparent shadow-sm`}
                 />
               </div>
               <div className="w-full">
@@ -1244,7 +1245,7 @@ const AdminBookings: React.FC = () => {
                     isDarkMode 
                       ? 'bg-stone-800 border-stone-700 text-white [color-scheme:dark]' 
                       : 'bg-white border-gray-300 text-stone-900 [color-scheme:light]'
-                  } focus:ring-2 focus:ring-gold-500 focus:border-transparent`}
+                  } focus:ring-2 focus:ring-gold-500 focus:border-transparent shadow-sm`}
                 />
               </div>
             </div>
@@ -1258,7 +1259,7 @@ const AdminBookings: React.FC = () => {
                 isDarkMode 
                   ? 'bg-stone-800 text-stone-300 hover:bg-stone-700 active:bg-stone-600' 
                   : 'bg-gray-100 text-stone-700 hover:bg-gray-200 active:bg-gray-300'
-              } transition-colors`}
+              } transition-colors shadow-sm`}
             >
               <X className="w-5 h-5" />
               Clear All Filters
