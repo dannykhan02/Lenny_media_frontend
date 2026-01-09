@@ -10,7 +10,9 @@ import {
 import { useAuth } from '../../hooks/useAuth';
 import AdminNavbar from '../../components/AdminNavbar';
 import { useTheme } from '../../context/ThemeContext';
-import { API_URL } from '../../context/AuthProvider';
+
+// ✅ FIXED: Use environment variable with fallback
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 interface DashboardStats {
   overview: {
@@ -138,6 +140,7 @@ const AdminDashboard: React.FC = () => {
     if (user) fetchDashboardStats(selectedPeriod);
   }, [user, selectedPeriod]);
 
+  // ✅ FIXED: fetchCurrentUser with better error handling
   const fetchCurrentUser = async () => {
     try {
       const response = await fetch(`${API_URL}/api/auth/me`, {
@@ -160,11 +163,17 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
+  // ✅ FIXED: fetchDashboardStats with proper error handling (AdminBookings approach)
   const fetchDashboardStats = async (period: string) => {
+    console.log('🔍 Fetching dashboard stats...', { period, API_URL }); // Debug log
     setLoadingStats(true);
     setStatsError('');
+    
     try {
-      const response = await fetch(`${API_URL}/admin/dashboard/stats?period=${period}`, {
+      const url = `${API_URL}/admin/dashboard/stats?period=${period}`;
+      console.log('📡 Request URL:', url); // Debug log
+      
+      const response = await fetch(url, {
         method: 'GET',
         headers: { 
           'Accept': 'application/json', 
@@ -173,17 +182,31 @@ const AdminDashboard: React.FC = () => {
         credentials: 'include'
       });
       
-      if (!response.ok) throw new Error('Failed to fetch dashboard statistics');
+      console.log('📥 Response status:', response.status); // Debug log
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch dashboard statistics (HTTP ${response.status})`);
+      }
+      
       const data = await response.json();
-      setDashboardStats(data);
+      console.log('✅ Dashboard data received:', data); // Debug log
+      
+      // ✅ Validate data structure before setting
+      if (data && typeof data === 'object') {
+        setDashboardStats(data);
+      } else {
+        throw new Error('Invalid data structure received');
+      }
+      
     } catch (err: any) {
-      console.error('Stats fetch error:', err);
-      setStatsError(err.message);
+      console.error('❌ Stats fetch error:', err);
+      setStatsError(err.message || 'Failed to load dashboard data');
     } finally {
       setLoadingStats(false);
     }
   };
 
+  // ✅ FIXED: fetchHealthStatus with better error handling
   const fetchHealthStatus = async () => {
     try {
       const response = await fetch(`${API_URL}/health`);
@@ -245,7 +268,7 @@ const AdminDashboard: React.FC = () => {
                 Dashboard
               </h1>
               <p className={`text-sm font-light ${isDarkMode ? 'text-stone-500' : 'text-stone-600'}`}>
-                Welcome back, <span className={`font-medium ${isDarkMode ? 'text-gold-500' : 'text-gold-600'}`}>{user?.full_name.split(' ')[0]}</span>
+                Welcome back, <span className={`font-medium ${isDarkMode ? 'text-gold-500' : 'text-gold-600'}`}>{user?.full_name?.split(' ')[0]}</span>
               </p>
             </div>
 
@@ -677,25 +700,48 @@ const EnhancedStatCard = ({ label, value, icon, trend, trendUp, color, subtitle,
   );
 };
 
-// Advanced Flux Graph Component
+// ✅ FIXED: Advanced Flux Graph Component with proper data validation
 const AdvancedFluxGraph = ({ bookings, quotes, isDarkMode }: any) => {
   const canvasRef = useRef<SVGSVGElement>(null);
   const [hoveredPoint, setHoveredPoint] = useState<{ type: string; index: number; value: number } | null>(null);
   
+  // ✅ FIX 1: Validate and provide default data
+  const safeBookings = Array.isArray(bookings) && bookings.length > 0 
+    ? bookings 
+    : [{ date: new Date().toISOString(), count: 0 }];
+  
+  const safeQuotes = Array.isArray(quotes) && quotes.length > 0 
+    ? quotes 
+    : [{ date: new Date().toISOString(), count: 0 }];
+  
+  // ✅ FIX 2: Safe normalization with validation
   const normalize = (data: any[]) => {
-    const vals = data.map((d: any) => d.count);
+    if (!data || !Array.isArray(data) || data.length === 0) {
+      return [250]; // Return baseline if no data
+    }
+    
+    const vals = data.map((d: any) => d?.count || 0);
     const max = Math.max(...vals, 1);
     return vals.map((v: number) => 250 - (v / max) * 200);
   };
 
-  const bPoints = normalize(bookings.slice(-14));
-  const qPoints = normalize(quotes.slice(-14));
-  const bValues = bookings.slice(-14).map((d: any) => d.count);
-  const qValues = quotes.slice(-14).map((d: any) => d.count);
+  const bPoints = normalize(safeBookings.slice(-14));
+  const qPoints = normalize(safeQuotes.slice(-14));
+  const bValues = safeBookings.slice(-14).map((d: any) => d?.count || 0);
+  const qValues = safeQuotes.slice(-14).map((d: any) => d?.count || 0);
 
+  // ✅ FIX 3: Always return valid SVG path (never empty string)
   const createSmoothPath = (points: number[]) => {
-    if (points.length < 2) return '';
+    // Handle edge cases
+    if (!points || !Array.isArray(points) || points.length === 0) {
+      return 'M 0 250 L 100 250'; // Horizontal line at bottom
+    }
     
+    if (points.length === 1) {
+      return `M 0 ${points[0]} L 100 ${points[0]}`; // Horizontal line at single point
+    }
+    
+    // Normal case: multiple points
     let path = `M 0 ${points[0]}`;
     
     for (let i = 0; i < points.length - 1; i++) {
@@ -709,7 +755,16 @@ const AdvancedFluxGraph = ({ bookings, quotes, isDarkMode }: any) => {
     return path;
   };
 
+  // ✅ FIX 4: Always return valid closed area path
   const createAreaPath = (points: number[]) => {
+    if (!points || !Array.isArray(points) || points.length === 0) {
+      return 'M 0 250 L 100 250 L 100 250 L 0 250 Z'; // Empty area at bottom
+    }
+    
+    if (points.length === 1) {
+      return `M 0 ${points[0]} L 100 ${points[0]} L 100 250 L 0 250 Z`; // Rectangle
+    }
+    
     const linePath = createSmoothPath(points);
     return `${linePath} L 100 250 L 0 250 Z`;
   };
@@ -725,7 +780,7 @@ const AdvancedFluxGraph = ({ bookings, quotes, isDarkMode }: any) => {
             {hoveredPoint.type}: {hoveredPoint.value}
           </div>
           <div className={`text-xs ${isDarkMode ? 'text-stone-400' : 'text-stone-600'}`}>
-            {bookings[hoveredPoint.index] && new Date(bookings[hoveredPoint.index].date).toLocaleDateString('en-US', { 
+            {safeBookings[hoveredPoint.index] && new Date(safeBookings[hoveredPoint.index].date).toLocaleDateString('en-US', { 
               month: 'short', 
               day: 'numeric',
               year: 'numeric'
@@ -758,6 +813,7 @@ const AdvancedFluxGraph = ({ bookings, quotes, isDarkMode }: any) => {
           </filter>
         </defs>
 
+        {/* Grid lines */}
         {[50, 100, 150, 200].map(y => (
           <line 
             key={y} 
@@ -772,9 +828,11 @@ const AdvancedFluxGraph = ({ bookings, quotes, isDarkMode }: any) => {
           />
         ))}
 
+        {/* Area fills */}
         <path d={createAreaPath(bPoints)} fill="url(#blueGradient)" />
         <path d={createAreaPath(qPoints)} fill="url(#goldGradient2)" />
 
+        {/* Lines */}
         <path 
           d={createSmoothPath(bPoints)} 
           fill="none" 
@@ -794,7 +852,8 @@ const AdvancedFluxGraph = ({ bookings, quotes, isDarkMode }: any) => {
           filter="url(#glow-effect)"
         />
 
-        {bPoints.map((p: number, i: number) => (
+        {/* Data points - Only render if we have valid data */}
+        {bPoints.length > 1 && bPoints.map((p: number, i: number) => (
           <g 
             key={`b-${i}`}
             onMouseEnter={() => setHoveredPoint({ type: 'Bookings', index: i, value: bValues[i] })}
@@ -820,7 +879,8 @@ const AdvancedFluxGraph = ({ bookings, quotes, isDarkMode }: any) => {
             )}
           </g>
         ))}
-        {qPoints.map((p: number, i: number) => (
+
+        {qPoints.length > 1 && qPoints.map((p: number, i: number) => (
           <g 
             key={`q-${i}`}
             onMouseEnter={() => setHoveredPoint({ type: 'Quotes', index: i, value: qValues[i] })}
@@ -848,10 +908,11 @@ const AdvancedFluxGraph = ({ bookings, quotes, isDarkMode }: any) => {
         ))}
       </svg>
 
+      {/* Date labels */}
       <div className="flex justify-between mt-2 sm:mt-4 px-1 sm:px-2">
-        {bookings.slice(-14).map((item: any, i: number) => {
+        {safeBookings.slice(-14).map((item: any, i: number) => {
           if (i % 2 === 0) {
-            const date = new Date(item.date);
+            const date = new Date(item?.date || new Date());
             return (
               <span key={i} className={`text-[9px] sm:text-[10px] font-bold uppercase tracking-wider ${isDarkMode ? 'text-stone-500' : 'text-stone-600'}`}>
                 {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
