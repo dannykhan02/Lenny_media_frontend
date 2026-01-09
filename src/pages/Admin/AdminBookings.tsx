@@ -1784,19 +1784,7 @@ const AdminBookings: React.FC = () => {
                         >
                           <Filter className="w-5 h-5" />
                         </button>
-                        {selectedBookings.length > 0 && (
-                          <div className="flex items-center gap-2">
-                            <span className={`text-sm ${isDarkMode ? 'text-stone-300' : 'text-stone-700'}`}>
-                              {selectedBookings.length} selected
-                            </span>
-                            <button
-                              onClick={() => setShowBulkModal(true)}
-                              className="px-3 py-1.5 bg-purple-500 text-white rounded-lg text-sm font-medium hover:bg-purple-600"
-                            >
-                              Bulk Actions
-                            </button>
-                          </div>
-                        )}
+                        {/* REMOVED: The second bulk action button that was here */}
                       </div>
                     ) : undefined
                   }
