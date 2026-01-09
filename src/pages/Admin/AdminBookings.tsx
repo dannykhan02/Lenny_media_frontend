@@ -1,4 +1,4 @@
-// pages/Admin/AdminBookings.tsx - UPDATED with accessible bulk actions
+// pages/Admin/AdminBookings.tsx - UPDATED with accessible bulk actions and mobile responsiveness
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   Filter, Calendar, Clock, User, Mail, Phone, MapPin, 
@@ -396,6 +396,7 @@ const AdminBookings: React.FC = () => {
     return staffUsers.find(user => user.id === booking.assigned_to) || null;
   };
 
+  // UPDATED: getUserAvatar with responsive sizing for mobile
   const getUserAvatar = (user: StaffUser | null) => {
     if (!user) return null;
     
@@ -404,7 +405,7 @@ const AdminBookings: React.FC = () => {
         <img
           src={user.avatar_url}
           alt={user.full_name}
-          className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover border-2 border-gold-500/30 flex-shrink-0 bg-stone-800"
+          className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 rounded-full object-cover border-2 border-gold-500/30 flex-shrink-0 bg-stone-800"
           onError={(e) => {
             const target = e.target as HTMLImageElement;
             target.onerror = null;
@@ -415,10 +416,10 @@ const AdminBookings: React.FC = () => {
     }
     
     return (
-      <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center border-2 border-gold-500/30 flex-shrink-0 ${
+      <div className={`w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center border-2 border-gold-500/30 flex-shrink-0 ${
         isDarkMode ? 'bg-gold-900/30 text-gold-400' : 'bg-gold-100 text-gold-600'
       }`}>
-        <span className="font-bold text-xs sm:text-sm">
+        <span className="font-bold text-[10px] sm:text-xs md:text-sm">
           {user.full_name?.charAt(0)?.toUpperCase() || 'U'}
         </span>
       </div>
@@ -1124,83 +1125,93 @@ const AdminBookings: React.FC = () => {
     </div>
   );
 
-  // Mobile filters
+  // UPDATED: Mobile filters with better spacing and touch targets
   const renderMobileFilters = () => (
-    <div className="space-y-3">
+    <div className="space-y-4 p-4">
       {!isPendingView && !isConfirmedView && (
         <>
           {/* Status Filter */}
           <div className="w-full">
-            <label className={`block text-xs sm:text-sm font-medium mb-2 ${
+            <label className={`block text-sm font-medium mb-2 ${
               isDarkMode ? 'text-stone-300' : 'text-stone-700'
             }`}>
               Status
             </label>
-            <select
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value);
-                setCurrentPage(1);
-              }}
-              className={`w-full px-4 py-3 rounded-lg border text-base ${
-                isDarkMode 
-                  ? 'bg-stone-800 border-stone-700 text-white [color-scheme:dark]' 
-                  : 'bg-white border-gray-300 text-stone-900 [color-scheme:light]'
-              } focus:ring-2 focus:ring-gold-500 focus:border-transparent`}
-            >
-              <option value="all">All Status</option>
-              {statuses.map(status => (
-                <option key={status.name} value={status.name}>
-                  {status.value}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <select
+                value={statusFilter}
+                onChange={(e) => {
+                  setStatusFilter(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className={`w-full px-4 py-3.5 rounded-lg border text-base appearance-none ${
+                  isDarkMode 
+                    ? 'bg-stone-800 border-stone-700 text-white [color-scheme:dark]' 
+                    : 'bg-white border-gray-300 text-stone-900 [color-scheme:light]'
+                } focus:ring-2 focus:ring-gold-500 focus:border-transparent`}
+              >
+                <option value="all">All Status</option>
+                {statuses.map(status => (
+                  <option key={status.name} value={status.name}>
+                    {status.value}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className={`absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 pointer-events-none ${
+                isDarkMode ? 'text-stone-400' : 'text-stone-500'
+              }`} />
+            </div>
           </div>
 
           {/* Assignment Filter */}
           <div className="w-full">
-            <label className={`block text-xs sm:text-sm font-medium mb-2 ${
+            <label className={`block text-sm font-medium mb-2 ${
               isDarkMode ? 'text-stone-300' : 'text-stone-700'
             }`}>
               Assignment
             </label>
-            <select
-              value={assignedFilter}
-              onChange={(e) => {
-                setAssignedFilter(e.target.value);
-                setCurrentPage(1);
-              }}
-              disabled={isLoadingUsers}
-              className={`w-full px-4 py-3 rounded-lg border text-base ${
-                isDarkMode 
-                  ? 'bg-stone-800 border-stone-700 text-white [color-scheme:dark]' 
-                  : 'bg-white border-gray-300 text-stone-900 [color-scheme:light]'
-              } focus:ring-2 focus:ring-gold-500 focus:border-transparent disabled:opacity-50`}
-            >
-              <option value="all">All Assignments</option>
-              <option value="unassigned">Unassigned</option>
-              {isLoadingUsers ? (
-                <option disabled>Loading users...</option>
-              ) : (
-                staffUsers.map(user => (
-                  <option key={user.id} value={user.id}>
-                    {user.full_name}
-                  </option>
-                ))
-              )}
-            </select>
+            <div className="relative">
+              <select
+                value={assignedFilter}
+                onChange={(e) => {
+                  setAssignedFilter(e.target.value);
+                  setCurrentPage(1);
+                }}
+                disabled={isLoadingUsers}
+                className={`w-full px-4 py-3.5 rounded-lg border text-base appearance-none ${
+                  isDarkMode 
+                    ? 'bg-stone-800 border-stone-700 text-white [color-scheme:dark]' 
+                    : 'bg-white border-gray-300 text-stone-900 [color-scheme:light]'
+                } focus:ring-2 focus:ring-gold-500 focus:border-transparent disabled:opacity-50`}
+              >
+                <option value="all">All Assignments</option>
+                <option value="unassigned">Unassigned</option>
+                {isLoadingUsers ? (
+                  <option disabled>Loading users...</option>
+                ) : (
+                  staffUsers.map(user => (
+                    <option key={user.id} value={user.id}>
+                      {user.full_name}
+                    </option>
+                  ))
+                )}
+              </select>
+              <ChevronDown className={`absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 pointer-events-none ${
+                isDarkMode ? 'text-stone-400' : 'text-stone-500'
+              }`} />
+            </div>
           </div>
 
           {/* Date Range Filters */}
           <div className="w-full">
-            <label className={`block text-xs sm:text-sm font-medium mb-2 ${
+            <label className={`block text-sm font-medium mb-2 ${
               isDarkMode ? 'text-stone-300' : 'text-stone-700'
             }`}>
               Date Range
             </label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <label className={`text-xs ${isDarkMode ? 'text-stone-400' : 'text-stone-600'}`}>
+            <div className="space-y-3">
+              <div className="w-full">
+                <label className={`block text-xs mb-1.5 ${isDarkMode ? 'text-stone-400' : 'text-stone-600'}`}>
                   From
                 </label>
                 <input
@@ -1210,15 +1221,15 @@ const AdminBookings: React.FC = () => {
                     setDateFrom(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className={`w-full px-4 py-3 rounded-lg border text-base ${
+                  className={`w-full px-4 py-3.5 rounded-lg border text-base ${
                     isDarkMode 
                       ? 'bg-stone-800 border-stone-700 text-white [color-scheme:dark]' 
                       : 'bg-white border-gray-300 text-stone-900 [color-scheme:light]'
                   } focus:ring-2 focus:ring-gold-500 focus:border-transparent`}
                 />
               </div>
-              <div className="space-y-2">
-                <label className={`text-xs ${isDarkMode ? 'text-stone-400' : 'text-stone-600'}`}>
+              <div className="w-full">
+                <label className={`block text-xs mb-1.5 ${isDarkMode ? 'text-stone-400' : 'text-stone-600'}`}>
                   To
                 </label>
                 <input
@@ -1229,7 +1240,7 @@ const AdminBookings: React.FC = () => {
                     setCurrentPage(1);
                   }}
                   min={dateFrom}
-                  className={`w-full px-4 py-3 rounded-lg border text-base ${
+                  className={`w-full px-4 py-3.5 rounded-lg border text-base ${
                     isDarkMode 
                       ? 'bg-stone-800 border-stone-700 text-white [color-scheme:dark]' 
                       : 'bg-white border-gray-300 text-stone-900 [color-scheme:light]'
@@ -1243,13 +1254,13 @@ const AdminBookings: React.FC = () => {
           {(statusFilter !== 'all' || assignedFilter !== 'all' || dateFrom || dateTo || searchTerm) && (
             <button
               onClick={clearFilters}
-              className={`w-full px-4 py-3 rounded-lg flex items-center justify-center gap-2 text-base font-medium ${
+              className={`w-full px-4 py-3.5 rounded-lg flex items-center justify-center gap-2 text-base font-medium ${
                 isDarkMode 
-                  ? 'bg-stone-800 text-stone-300 hover:bg-stone-700' 
-                  : 'bg-gray-100 text-stone-700 hover:bg-gray-200'
-              }`}
+                  ? 'bg-stone-800 text-stone-300 hover:bg-stone-700 active:bg-stone-600' 
+                  : 'bg-gray-100 text-stone-700 hover:bg-gray-200 active:bg-gray-300'
+              } transition-colors`}
             >
-              <X className="w-4 h-4" />
+              <X className="w-5 h-5" />
               Clear All Filters
             </button>
           )}
@@ -1508,6 +1519,7 @@ const AdminBookings: React.FC = () => {
     </div>
   );
 
+  // UPDATED: Mobile view with proper avatar display
   const renderMobileView = () => (
     <div className="space-y-3">
       {filteredBookings.map((booking) => {
@@ -1555,23 +1567,22 @@ const AdminBookings: React.FC = () => {
               <div className="flex items-center justify-between">
                 <span className={`text-sm ${isDarkMode ? 'text-stone-400' : 'text-stone-600'}`}>Assigned</span>
                 {assignedUser ? (
-                  <div className="flex items-center gap-1">
-                    <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${
-                      isDarkMode ? 'bg-gold-900/30 text-gold-400' : 'bg-gold-100 text-gold-600'
-                    }`}>
-                      {assignedUser.full_name?.charAt(0) || '?'}
+                  <div className="flex items-center gap-2">
+                    {/* FIXED: Ensure avatar renders properly */}
+                    <div className="flex-shrink-0">
+                      {getUserAvatar(assignedUser)}
                     </div>
-                    <div className="text-right">
-                      <div className={`text-xs font-bold ${isDarkMode ? 'text-stone-300' : 'text-stone-700'}`}>
+                    <div className="text-right min-w-0">
+                      <div className={`text-xs font-bold truncate ${isDarkMode ? 'text-stone-300' : 'text-stone-700'}`}>
                         {assignedUser.full_name}
                       </div>
-                      <div className={`text-xs ${isDarkMode ? 'text-stone-500' : 'text-stone-500'}`}>
+                      <div className={`text-xs truncate ${isDarkMode ? 'text-stone-500' : 'text-stone-500'}`}>
                         {assignedUser.role}
                       </div>
                     </div>
                   </div>
                 ) : (
-                  <span className={`text-xs px-2 py-1 ${isDarkMode ? 'bg-stone-800 text-stone-400' : 'bg-stone-100 text-stone-700'} rounded`}>
+                  <span className={`text-xs px-2 py-1 ${isDarkMode ? 'bg-stone-800 text-stone-400' : 'bg-stone-100 text-stone-700'} rounded flex-shrink-0`}>
                     Unassigned
                   </span>
                 )}

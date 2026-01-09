@@ -1,4 +1,3 @@
-// src/components/EditBookingModal.tsx - UPDATED WITH TIME CHANGE AND CANCELLATION TRACKING
 import React, { useState, useEffect } from 'react';
 import { 
   X, Loader2, AlertCircle, Calendar, User, 
@@ -310,6 +309,7 @@ const EditBookingModal: React.FC<EditBookingModalProps> = ({
             className="w-8 h-8 rounded-full object-cover border border-gold-500/30"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
+              target.onerror = null;
               target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.full_name)}&background=1e293b&color=fbbf24&size=128`;
             }}
           />
@@ -323,6 +323,7 @@ const EditBookingModal: React.FC<EditBookingModalProps> = ({
             className="w-8 h-8 rounded-full object-cover border border-gold-500/30"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
+              target.onerror = null;
               target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.full_name)}&background=1e293b&color=fbbf24&size=128`;
             }}
           />
@@ -352,16 +353,16 @@ const EditBookingModal: React.FC<EditBookingModalProps> = ({
 
   return (
     <>
-      {/* Main Modal */}
-      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
-        <div className={`${isDarkMode ? 'bg-stone-900' : 'bg-white'} rounded-2xl shadow-2xl max-w-4xl w-full my-8`}>
+      {/* Main Modal - UPDATED: Mobile responsive padding */}
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4 overflow-y-auto">
+        <div className={`${isDarkMode ? 'bg-stone-900' : 'bg-white'} rounded-2xl shadow-2xl w-full max-w-4xl my-4 sm:my-8`}>
           {/* Header */}
-          <div className={`flex items-center justify-between p-6 border-b ${isDarkMode ? 'border-stone-800' : 'border-gray-200'}`}>
+          <div className={`flex items-center justify-between p-4 sm:p-6 border-b ${isDarkMode ? 'border-stone-800' : 'border-gray-200'}`}>
             <div>
-              <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>
+              <h2 className={`text-xl sm:text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>
                 Edit Booking
               </h2>
-              <p className={`text-sm mt-1 ${isDarkMode ? 'text-stone-400' : 'text-stone-600'}`}>
+              <p className={`text-xs sm:text-sm mt-1 ${isDarkMode ? 'text-stone-400' : 'text-stone-600'}`}>
                 Booking ID: #{booking?.id} • Created: {new Date(booking?.created_at).toLocaleDateString()}
               </p>
             </div>
@@ -370,23 +371,23 @@ const EditBookingModal: React.FC<EditBookingModalProps> = ({
               disabled={isSubmitting}
               className={`p-2 rounded-lg ${isDarkMode ? 'hover:bg-stone-800 text-stone-400' : 'hover:bg-gray-100 text-stone-600'}`}
             >
-              <X className="w-6 h-6" />
+              <X className="w-5 sm:w-6 h-5 sm:h-6" />
             </button>
           </div>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="p-6 space-y-6 max-h-[calc(90vh-200px)] overflow-y-auto">
+          {/* Form - UPDATED: Mobile responsive padding */}
+          <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-6 max-h-[calc(100vh-200px)] sm:max-h-[calc(90vh-200px)] overflow-y-auto">
             
             {/* Client Information Section */}
-            <div className={`p-4 rounded-lg border ${isDarkMode ? 'bg-stone-800/50 border-stone-700' : 'bg-gray-50 border-gray-200'}`}>
-              <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>
-                <User className="w-5 h-5" />
+            <div className={`p-3 sm:p-4 rounded-lg border ${isDarkMode ? 'bg-stone-800/50 border-stone-700' : 'bg-gray-50 border-gray-200'}`}>
+              <h3 className={`text-base sm:text-lg font-semibold mb-3 sm:mb-4 flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>
+                <User className="w-4 sm:w-5 h-4 sm:h-5" />
                 Client Information
               </h3>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                  <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-stone-300' : 'text-stone-700'}`}>
+                  <label className={`block text-xs sm:text-sm font-medium mb-2 ${isDarkMode ? 'text-stone-300' : 'text-stone-700'}`}>
                     Full Name *
                   </label>
                   <input
@@ -395,7 +396,7 @@ const EditBookingModal: React.FC<EditBookingModalProps> = ({
                     value={formData.client_name}
                     onChange={handleChange}
                     disabled={isSubmitting}
-                    className={`w-full px-4 py-2.5 rounded-lg border ${
+                    className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg border text-sm sm:text-base ${
                       errors.client_name 
                         ? 'border-red-500 ring-2 ring-red-500/20' 
                         : isDarkMode 
@@ -412,7 +413,7 @@ const EditBookingModal: React.FC<EditBookingModalProps> = ({
                 </div>
 
                 <div>
-                  <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-stone-300' : 'text-stone-700'}`}>
+                  <label className={`block text-xs sm:text-sm font-medium mb-2 ${isDarkMode ? 'text-stone-300' : 'text-stone-700'}`}>
                     Phone Number *
                   </label>
                   <input
@@ -421,7 +422,7 @@ const EditBookingModal: React.FC<EditBookingModalProps> = ({
                     value={formData.client_phone}
                     onChange={handleChange}
                     disabled={isSubmitting}
-                    className={`w-full px-4 py-2.5 rounded-lg border ${
+                    className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg border text-sm sm:text-base ${
                       errors.client_phone 
                         ? 'border-red-500 ring-2 ring-red-500/20' 
                         : isDarkMode 
@@ -438,7 +439,7 @@ const EditBookingModal: React.FC<EditBookingModalProps> = ({
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-stone-300' : 'text-stone-700'}`}>
+                  <label className={`block text-xs sm:text-sm font-medium mb-2 ${isDarkMode ? 'text-stone-300' : 'text-stone-700'}`}>
                     Email Address *
                   </label>
                   <input
@@ -447,7 +448,7 @@ const EditBookingModal: React.FC<EditBookingModalProps> = ({
                     value={formData.client_email}
                     onChange={handleChange}
                     disabled={isSubmitting}
-                    className={`w-full px-4 py-2.5 rounded-lg border ${
+                    className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg border text-sm sm:text-base ${
                       errors.client_email 
                         ? 'border-red-500 ring-2 ring-red-500/20' 
                         : isDarkMode 
@@ -466,15 +467,15 @@ const EditBookingModal: React.FC<EditBookingModalProps> = ({
             </div>
 
             {/* Booking Details Section */}
-            <div className={`p-4 rounded-lg border ${isDarkMode ? 'bg-stone-800/50 border-stone-700' : 'bg-gray-50 border-gray-200'}`}>
-              <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>
-                <Calendar className="w-5 h-5" />
+            <div className={`p-3 sm:p-4 rounded-lg border ${isDarkMode ? 'bg-stone-800/50 border-stone-700' : 'bg-gray-50 border-gray-200'}`}>
+              <h3 className={`text-base sm:text-lg font-semibold mb-3 sm:mb-4 flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>
+                <Calendar className="w-4 sm:w-5 h-4 sm:h-5" />
                 Booking Details
               </h3>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                 <div className="md:col-span-2">
-                  <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-stone-300' : 'text-stone-700'}`}>
+                  <label className={`block text-xs sm:text-sm font-medium mb-2 ${isDarkMode ? 'text-stone-300' : 'text-stone-700'}`}>
                     Service Type *
                   </label>
                   <input
@@ -483,7 +484,7 @@ const EditBookingModal: React.FC<EditBookingModalProps> = ({
                     value={formData.service_type}
                     onChange={handleChange}
                     disabled={isSubmitting}
-                    className={`w-full px-4 py-2.5 rounded-lg border ${
+                    className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg border text-sm sm:text-base ${
                       errors.service_type 
                         ? 'border-red-500 ring-2 ring-red-500/20' 
                         : isDarkMode 
@@ -500,7 +501,7 @@ const EditBookingModal: React.FC<EditBookingModalProps> = ({
                 </div>
 
                 <div>
-                  <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-stone-300' : 'text-stone-700'}`}>
+                  <label className={`block text-xs sm:text-sm font-medium mb-2 ${isDarkMode ? 'text-stone-300' : 'text-stone-700'}`}>
                     Preferred Date *
                   </label>
                   <input
@@ -509,7 +510,7 @@ const EditBookingModal: React.FC<EditBookingModalProps> = ({
                     value={formData.preferred_date}
                     onChange={handleChange}
                     disabled={isSubmitting}
-                    className={`w-full px-4 py-2.5 rounded-lg border ${
+                    className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg border text-sm sm:text-base ${
                       errors.preferred_date 
                         ? 'border-red-500 ring-2 ring-red-500/20' 
                         : isDarkMode 
@@ -526,7 +527,7 @@ const EditBookingModal: React.FC<EditBookingModalProps> = ({
                 </div>
 
                 <div>
-                  <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-stone-300' : 'text-stone-700'}`}>
+                  <label className={`block text-xs sm:text-sm font-medium mb-2 ${isDarkMode ? 'text-stone-300' : 'text-stone-700'}`}>
                     Preferred Time
                   </label>
                   <input
@@ -535,23 +536,23 @@ const EditBookingModal: React.FC<EditBookingModalProps> = ({
                     value={formData.preferred_time}
                     onChange={handleChange}
                     disabled={isSubmitting}
-                    className={`w-full px-4 py-2.5 rounded-lg border ${isDarkMode ? 'bg-stone-900 border-stone-700 text-white' : 'bg-white border-gray-300 text-stone-900'} focus:ring-2 focus:ring-gold-500 focus:border-transparent disabled:opacity-50`}
+                    className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg border text-sm sm:text-base ${isDarkMode ? 'bg-stone-900 border-stone-700 text-white' : 'bg-white border-gray-300 text-stone-900'} focus:ring-2 focus:ring-gold-500 focus:border-transparent disabled:opacity-50`}
                   />
                 </div>
 
                 {/* NEW: Time Change Warning */}
                 {showTimeChangeWarning && (
                   <div className="md:col-span-2">
-                    <div className={`mt-4 p-4 rounded-lg border-2 ${
+                    <div className={`mt-4 p-3 sm:p-4 rounded-lg border-2 ${
                       isDarkMode ? 'bg-amber-900/20 border-amber-800' : 'bg-amber-50 border-amber-300'
                     }`}>
                       <div className="flex items-start gap-3 mb-3">
-                        <AlertCircle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                        <AlertCircle className="w-4 sm:w-5 h-4 sm:h-5 text-amber-500 flex-shrink-0 mt-0.5" />
                         <div>
-                          <h4 className={`font-bold mb-1 ${isDarkMode ? 'text-amber-300' : 'text-amber-800'}`}>
+                          <h4 className={`text-sm sm:text-base font-bold mb-1 ${isDarkMode ? 'text-amber-300' : 'text-amber-800'}`}>
                             ⚠️ Time Change Detected
                           </h4>
-                          <p className={`text-sm ${isDarkMode ? 'text-amber-300' : 'text-amber-700'}`}>
+                          <p className={`text-xs sm:text-sm ${isDarkMode ? 'text-amber-300' : 'text-amber-700'}`}>
                             You're changing the booking time from <strong>{originalTime}</strong> to{' '}
                             <strong>{formData.preferred_time}</strong>. The client will receive an email 
                             notification with your reason for this change.
@@ -559,7 +560,7 @@ const EditBookingModal: React.FC<EditBookingModalProps> = ({
                         </div>
                       </div>
                       
-                      <label className={`block text-sm font-medium mb-2 ${
+                      <label className={`block text-xs sm:text-sm font-medium mb-2 ${
                         isDarkMode ? 'text-amber-300' : 'text-amber-800'
                       }`}>
                         Reason for Time Change *
@@ -579,7 +580,7 @@ const EditBookingModal: React.FC<EditBookingModalProps> = ({
                         disabled={isSubmitting}
                         rows={3}
                         placeholder="Explain why the time needs to be changed (e.g., equipment maintenance, scheduling conflict, weather concerns)..."
-                        className={`w-full px-4 py-2.5 rounded-lg border ${
+                        className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg border text-sm sm:text-base ${
                           errors.time_change_reason 
                             ? 'border-red-500 ring-2 ring-red-500/20' 
                             : isDarkMode 
@@ -598,7 +599,7 @@ const EditBookingModal: React.FC<EditBookingModalProps> = ({
                 )}
 
                 <div>
-                  <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-stone-300' : 'text-stone-700'}`}>
+                  <label className={`block text-xs sm:text-sm font-medium mb-2 ${isDarkMode ? 'text-stone-300' : 'text-stone-700'}`}>
                     Location
                   </label>
                   <input
@@ -608,12 +609,12 @@ const EditBookingModal: React.FC<EditBookingModalProps> = ({
                     onChange={handleChange}
                     disabled={isSubmitting}
                     placeholder="Venue or address"
-                    className={`w-full px-4 py-2.5 rounded-lg border ${isDarkMode ? 'bg-stone-900 border-stone-700 text-white' : 'bg-white border-gray-300 text-stone-900'} focus:ring-2 focus:ring-gold-500 focus:border-transparent disabled:opacity-50`}
+                    className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg border text-sm sm:text-base ${isDarkMode ? 'bg-stone-900 border-stone-700 text-white' : 'bg-white border-gray-300 text-stone-900'} focus:ring-2 focus:ring-gold-500 focus:border-transparent disabled:opacity-50`}
                   />
                 </div>
 
                 <div>
-                  <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-stone-300' : 'text-stone-700'}`}>
+                  <label className={`block text-xs sm:text-sm font-medium mb-2 ${isDarkMode ? 'text-stone-300' : 'text-stone-700'}`}>
                     Budget Range (KES)
                   </label>
                   <input
@@ -623,12 +624,12 @@ const EditBookingModal: React.FC<EditBookingModalProps> = ({
                     onChange={handleChange}
                     disabled={isSubmitting}
                     placeholder="e.g., 50,000 - 100,000"
-                    className={`w-full px-4 py-2.5 rounded-lg border ${isDarkMode ? 'bg-stone-900 border-stone-700 text-white' : 'bg-white border-gray-300 text-stone-900'} focus:ring-2 focus:ring-gold-500 focus:border-transparent disabled:opacity-50`}
+                    className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg border text-sm sm:text-base ${isDarkMode ? 'bg-stone-900 border-stone-700 text-white' : 'bg-white border-gray-300 text-stone-900'} focus:ring-2 focus:ring-gold-500 focus:border-transparent disabled:opacity-50`}
                   />
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-stone-300' : 'text-stone-700'}`}>
+                  <label className={`block text-xs sm:text-sm font-medium mb-2 ${isDarkMode ? 'text-stone-300' : 'text-stone-700'}`}>
                     Client Notes
                   </label>
                   <textarea
@@ -638,22 +639,24 @@ const EditBookingModal: React.FC<EditBookingModalProps> = ({
                     disabled={isSubmitting}
                     rows={3}
                     placeholder="Client's preferences and requirements..."
-                    className={`w-full px-4 py-2.5 rounded-lg border ${isDarkMode ? 'bg-stone-900 border-stone-700 text-white' : 'bg-white border-gray-300 text-stone-900'} focus:ring-2 focus:ring-gold-500 focus:border-transparent disabled:opacity-50`}
+                    className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg border text-sm sm:text-base ${isDarkMode ? 'bg-stone-900 border-stone-700 text-white' : 'bg-white border-gray-300 text-stone-900'} focus:ring-2 focus:ring-gold-500 focus:border-transparent disabled:opacity-50`}
                   />
                 </div>
               </div>
             </div>
 
             {/* Admin Management Section */}
-            <div className={`p-4 rounded-lg border ${isDarkMode ? 'bg-stone-800/50 border-stone-700' : 'bg-gray-50 border-gray-200'}`}>
-              <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>
-                <Users className="w-5 h-5" />
+            <div className={`p-3 sm:p-4 rounded-lg border ${isDarkMode ? 'bg-stone-800/50 border-stone-700' : 'bg-gray-50 border-gray-200'}`}>
+              <h3 className={`text-base sm:text-lg font-semibold mb-3 sm:mb-4 flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>
+                <Users className="w-4 sm:w-5 h-4 sm:h-5" />
                 Admin Management
               </h3>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                 <div>
-                  <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-stone-300' : 'text-stone-700'}`}>
+                  <label className={`block text-xs sm:text-sm font-medium mb-2 ${
+                    isDarkMode ? 'text-stone-300' : 'text-stone-700'
+                  }`}>
                     Status *
                   </label>
                   <select
@@ -661,7 +664,7 @@ const EditBookingModal: React.FC<EditBookingModalProps> = ({
                     value={formData.status}
                     onChange={handleChange}
                     disabled={isSubmitting}
-                    className={`w-full px-4 py-2.5 rounded-lg border ${isDarkMode ? 'bg-stone-900 border-stone-700 text-white' : 'bg-white border-gray-300 text-stone-900'} focus:ring-2 focus:ring-gold-500 focus:border-transparent disabled:opacity-50`}
+                    className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg border text-sm sm:text-base ${isDarkMode ? 'bg-stone-900 border-stone-700 text-white' : 'bg-white border-gray-300 text-stone-900'} focus:ring-2 focus:ring-gold-500 focus:border-transparent disabled:opacity-50`}
                   >
                     {statuses.map(status => (
                       <option key={status.name} value={status.name}>
@@ -672,23 +675,23 @@ const EditBookingModal: React.FC<EditBookingModalProps> = ({
                   
                   {/* NEW: Cancellation Warning */}
                   {showCancellationWarning && (
-                    <div className={`mt-4 p-4 rounded-lg border-2 ${
+                    <div className={`mt-4 p-3 sm:p-4 rounded-lg border-2 ${
                       isDarkMode ? 'bg-red-900/20 border-red-800' : 'bg-red-50 border-red-300'
                     }`}>
                       <div className="flex items-start gap-3 mb-3">
-                        <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                        <AlertCircle className="w-4 sm:w-5 h-4 sm:h-5 text-red-500 flex-shrink-0 mt-0.5" />
                         <div>
-                          <h4 className={`font-bold mb-1 ${isDarkMode ? 'text-red-300' : 'text-red-800'}`}>
+                          <h4 className={`text-sm sm:text-base font-bold mb-1 ${isDarkMode ? 'text-red-300' : 'text-red-800'}`}>
                             ⚠️ Cancellation Notice
                           </h4>
-                          <p className={`text-sm ${isDarkMode ? 'text-red-300' : 'text-red-700'}`}>
+                          <p className={`text-xs sm:text-sm ${isDarkMode ? 'text-red-300' : 'text-red-700'}`}>
                             You're about to cancel this booking. The client will receive an email notification 
                             with your cancellation reason. This action can be reversed by changing the status.
                           </p>
                         </div>
                       </div>
                       
-                      <label className={`block text-sm font-medium mb-2 ${
+                      <label className={`block text-xs sm:text-sm font-medium mb-2 ${
                         isDarkMode ? 'text-red-300' : 'text-red-800'
                       }`}>
                         Reason for Cancellation *
@@ -708,7 +711,7 @@ const EditBookingModal: React.FC<EditBookingModalProps> = ({
                         disabled={isSubmitting}
                         rows={3}
                         placeholder="Explain why this booking is being cancelled (e.g., client request, scheduling conflict, unforeseen circumstances)..."
-                        className={`w-full px-4 py-2.5 rounded-lg border ${
+                        className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg border text-sm sm:text-base ${
                           errors.cancellation_reason 
                             ? 'border-red-500 ring-2 ring-red-500/20' 
                             : isDarkMode 
@@ -727,9 +730,9 @@ const EditBookingModal: React.FC<EditBookingModalProps> = ({
                 </div>
 
                 {/* Assignment Section */}
-                <div className={`rounded-lg p-4 ${isDarkMode ? 'bg-stone-800' : 'bg-gray-100'}`}>
+                <div className={`rounded-lg p-3 sm:p-4 ${isDarkMode ? 'bg-stone-800' : 'bg-gray-100'}`}>
                   <div className="flex items-center justify-between mb-3">
-                    <label className={`block text-sm font-medium ${isDarkMode ? 'text-stone-300' : 'text-stone-700'}`}>
+                    <label className={`block text-xs sm:text-sm font-medium ${isDarkMode ? 'text-stone-300' : 'text-stone-700'}`}>
                       Assignment
                     </label>
                     {assignedUser && (
@@ -753,7 +756,7 @@ const EditBookingModal: React.FC<EditBookingModalProps> = ({
                       {/* User Details */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <p className={`font-medium text-sm ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>
+                          <p className={`text-xs sm:text-sm font-medium ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>
                             {getUserDisplayName(assignedUser)}
                           </p>
                           <span className="flex items-center gap-1 text-xs text-green-500">
@@ -776,16 +779,16 @@ const EditBookingModal: React.FC<EditBookingModalProps> = ({
                       </div>
                       
                       {/* Status Indicator */}
-                      <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                      <CheckCircle className="w-4 sm:w-5 h-4 sm:h-5 text-green-500 flex-shrink-0" />
                     </div>
                   ) : (
-                    <div className="text-center py-4">
-                      <div className={`w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center ${
+                    <div className="text-center py-3 sm:py-4">
+                      <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full mx-auto mb-2 sm:mb-3 flex items-center justify-center ${
                         isDarkMode ? 'bg-stone-700 text-stone-400' : 'bg-gray-200 text-gray-400'
                       }`}>
-                        <UserX className="w-6 h-6" />
+                        <UserX className="w-5 sm:w-6 h-5 sm:h-6" />
                       </div>
-                      <p className={`text-sm ${isDarkMode ? 'text-stone-400' : 'text-stone-600'}`}>
+                      <p className={`text-xs sm:text-sm ${isDarkMode ? 'text-stone-400' : 'text-stone-600'}`}>
                         This booking has not been assigned yet.
                       </p>
                     </div>
@@ -795,19 +798,19 @@ const EditBookingModal: React.FC<EditBookingModalProps> = ({
                     type="button"
                     onClick={() => setShowAssignModal(true)}
                     disabled={isSubmitting}
-                    className={`w-full mt-4 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                    className={`w-full mt-3 sm:mt-4 flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
                       isDarkMode
                         ? 'bg-gold-600 text-white hover:bg-gold-700 disabled:bg-gold-600/50'
                         : 'bg-gold-500 text-white hover:bg-gold-600 disabled:bg-gold-500/50'
                     }`}
                   >
-                    <UserPlus className="w-4 h-4" />
+                    <UserPlus className="w-3 sm:w-4 h-3 sm:h-4" />
                     {assignedUser ? 'Reassign Booking' : 'Assign Booking'}
                   </button>
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-stone-300' : 'text-stone-700'}`}>
+                  <label className={`block text-xs sm:text-sm font-medium mb-2 ${isDarkMode ? 'text-stone-300' : 'text-stone-700'}`}>
                     Internal Notes (Admin Only)
                   </label>
                   <textarea
@@ -817,7 +820,7 @@ const EditBookingModal: React.FC<EditBookingModalProps> = ({
                     disabled={isSubmitting}
                     rows={3}
                     placeholder="Private notes for staff (not visible to client)..."
-                    className={`w-full px-4 py-2.5 rounded-lg border ${isDarkMode ? 'bg-stone-900 border-stone-700 text-white' : 'bg-white border-gray-300 text-stone-900'} focus:ring-2 focus:ring-gold-500 focus:border-transparent disabled:opacity-50`}
+                    className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg border text-sm sm:text-base ${isDarkMode ? 'bg-stone-900 border-stone-700 text-white' : 'bg-white border-gray-300 text-stone-900'} focus:ring-2 focus:ring-gold-500 focus:border-transparent disabled:opacity-50`}
                   />
                   <p className={`text-xs mt-1 ${isDarkMode ? 'text-stone-500' : 'text-stone-500'}`}>
                     📝 These notes are only visible to admin users
@@ -827,21 +830,21 @@ const EditBookingModal: React.FC<EditBookingModalProps> = ({
             </div>
           </form>
 
-          {/* Footer */}
-          <div className={`flex items-center justify-between p-6 border-t ${isDarkMode ? 'border-stone-800' : 'border-gray-200'}`}>
-            <p className={`text-xs ${isDarkMode ? 'text-stone-500' : 'text-stone-500'}`}>
+          {/* Footer - UPDATED: Mobile responsive buttons */}
+          <div className={`flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4 p-4 sm:p-6 border-t ${isDarkMode ? 'border-stone-800' : 'border-gray-200'}`}>
+            <p className={`text-xs ${isDarkMode ? 'text-stone-500' : 'text-stone-500'} order-2 sm:order-1 text-center sm:text-left`}>
               Last updated: {booking?.updated_at ? new Date(booking.updated_at).toLocaleString() : 'Never'}
             </p>
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-3 order-1 sm:order-2 w-full sm:w-auto">
               <button
                 type="button"
                 onClick={onClose}
                 disabled={isSubmitting}
-                className={`px-6 py-2.5 border rounded-lg font-medium ${
+                className={`w-full sm:w-auto px-4 sm:px-6 py-3 sm:py-2.5 border rounded-lg font-medium text-base sm:text-sm ${
                   isDarkMode 
                     ? 'border-stone-600 text-stone-300 hover:bg-stone-800' 
                     : 'border-gray-300 text-stone-700 hover:bg-gray-50'
-                } disabled:opacity-50`}
+                } disabled:opacity-50 transition-colors`}
               >
                 Cancel
               </button>
@@ -849,11 +852,11 @@ const EditBookingModal: React.FC<EditBookingModalProps> = ({
                 type="submit"
                 onClick={handleSubmit}
                 disabled={isSubmitting}
-                className="px-6 py-2.5 bg-gold-500 text-stone-900 rounded-lg font-medium hover:bg-gold-600 disabled:opacity-50 flex items-center gap-2"
+                className="w-full sm:w-auto px-4 sm:px-6 py-3 sm:py-2.5 bg-gold-500 text-stone-900 rounded-lg font-medium text-base sm:text-sm hover:bg-gold-600 disabled:opacity-50 flex items-center justify-center gap-2 transition-colors"
               >
                 {isSubmitting ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className="w-4 h-4 sm:w-4 sm:h-4 animate-spin" />
                     Saving...
                   </>
                 ) : (
