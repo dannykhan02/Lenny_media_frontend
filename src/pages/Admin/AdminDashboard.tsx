@@ -87,6 +87,7 @@ const AdminDashboard: React.FC = () => {
   const [loadingStats, setLoadingStats] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState('year');
+  const [isMobile, setIsMobile] = useState(false);
   const navigate = useNavigate();
   const { isDarkMode } = useTheme();
 
@@ -98,6 +99,17 @@ const AdminDashboard: React.FC = () => {
     requestsPerSecond: 0,
     avgResponseTime: 0
   });
+
+  // Viewport detection for responsive behavior
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Simulate real-time metrics with more realistic patterns
   useEffect(() => {
@@ -204,26 +216,32 @@ const AdminDashboard: React.FC = () => {
     <div className={`flex min-h-screen ${isDarkMode ? 'bg-stone-950' : 'bg-gray-50'}`}>
       <AdminNavbar user={user} onCollapsedChange={setSidebarCollapsed} />
       
-      <main className={`flex-1 transition-all duration-500 p-6 md:p-10 ${sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-72'}`}>
-        {/* Animated Background Grid */}
-        <div className="fixed inset-0 pointer-events-none opacity-[0.02]">
-          <div className="absolute inset-0" style={{
-            backgroundImage: `linear-gradient(to right, ${isDarkMode ? '#eab308' : '#d97706'} 1px, transparent 1px), linear-gradient(to bottom, ${isDarkMode ? '#eab308' : '#d97706'} 1px, transparent 1px)`,
-            backgroundSize: '60px 60px'
-          }} />
-        </div>
+      <main className={`
+        flex-1 transition-all duration-500 
+        p-4 sm:p-6 md:p-10
+        ${!isMobile && (sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-72')}
+      `}>
+        {/* Animated Background Grid - Only on desktop */}
+        {!isMobile && (
+          <div className="fixed inset-0 pointer-events-none opacity-[0.02]">
+            <div className="absolute inset-0" style={{
+              backgroundImage: `linear-gradient(to right, ${isDarkMode ? '#eab308' : '#d97706'} 1px, transparent 1px), linear-gradient(to bottom, ${isDarkMode ? '#eab308' : '#d97706'} 1px, transparent 1px)`,
+              backgroundSize: '60px 60px'
+            }} />
+          </div>
+        )}
 
         {/* Header Section */}
-        <div className="relative mb-10">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <div className="relative mb-6 sm:mb-8 md:mb-10">
+          <div className="flex flex-col gap-6 mb-8">
             <div className="space-y-2">
               <div className="flex items-center gap-3">
-                <div className={`h-1 w-12 rounded-full ${isDarkMode ? 'bg-gradient-to-r from-gold-500 to-amber-500' : 'bg-gradient-to-r from-gold-600 to-amber-600'}`} />
-                <p className={`text-[9px] tracking-[0.35em] uppercase font-black ${isDarkMode ? 'text-gold-500' : 'text-gold-600'}`}>
+                <div className={`h-1 w-8 sm:w-12 rounded-full ${isDarkMode ? 'bg-gradient-to-r from-gold-500 to-amber-500' : 'bg-gradient-to-r from-gold-600 to-amber-600'}`} />
+                <p className={`text-[9px] sm:text-[10px] tracking-[0.35em] uppercase font-black ${isDarkMode ? 'text-gold-500' : 'text-gold-600'}`}>
                   Command Center
                 </p>
               </div>
-              <h1 className={`text-5xl md:text-6xl font-serif tracking-tight ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>
+              <h1 className={`text-4xl sm:text-5xl md:text-6xl font-serif tracking-tight ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>
                 Dashboard
               </h1>
               <p className={`text-sm font-light ${isDarkMode ? 'text-stone-500' : 'text-stone-600'}`}>
@@ -232,15 +250,15 @@ const AdminDashboard: React.FC = () => {
             </div>
 
             {/* Period Selector & Refresh */}
-            <div className="flex gap-3">
-              <div className="relative group">
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+              <div className="relative group w-full sm:w-auto">
                 <div className={`absolute -inset-0.5 rounded-2xl opacity-20 group-hover:opacity-40 blur transition duration-500 ${isDarkMode ? 'bg-gradient-to-r from-gold-500 to-amber-500' : 'bg-gradient-to-r from-gold-600 to-amber-600'}`} />
                 <div className={`relative p-1.5 rounded-2xl border flex gap-1 ${isDarkMode ? 'bg-stone-900 border-stone-800' : 'bg-white border-gray-200'}`}>
                   {['week', 'month', 'year'].map((p) => (
                     <button 
                       key={p} 
                       onClick={() => setSelectedPeriod(p)}
-                      className={`relative px-8 py-3 rounded-xl text-[9px] uppercase tracking-[0.2em] font-black transition-all duration-300 ${
+                      className={`relative px-6 sm:px-8 py-2.5 sm:py-3 rounded-xl text-[9px] sm:text-[10px] uppercase tracking-[0.2em] font-black transition-all duration-300 min-h-[44px] ${
                         selectedPeriod === p 
                           ? isDarkMode ? 'text-black' : 'text-white'
                           : isDarkMode ? 'text-stone-500 hover:text-stone-300' : 'text-stone-600 hover:text-stone-900'
@@ -258,14 +276,14 @@ const AdminDashboard: React.FC = () => {
               <button
                 onClick={refreshStats}
                 disabled={loadingStats}
-                className={`px-4 py-3 rounded-xl font-medium text-sm transition-all flex items-center gap-2 ${
+                className={`w-full sm:w-auto px-4 py-3 rounded-xl font-medium text-sm transition-all flex items-center justify-center gap-2 min-h-[44px] ${
                   isDarkMode 
                     ? 'bg-stone-900 border border-stone-800 text-stone-300 hover:bg-stone-800' 
                     : 'bg-white border border-gray-200 text-stone-700 hover:bg-gray-50'
                 }`}
               >
                 <RefreshCw className={`h-4 w-4 ${loadingStats ? 'animate-spin' : ''}`} />
-                {!loadingStats && <span className="hidden sm:inline">Refresh</span>}
+                <span className="hidden sm:inline">Refresh</span>
               </button>
             </div>
           </div>
@@ -273,7 +291,7 @@ const AdminDashboard: React.FC = () => {
 
         {/* Error Display */}
         {statsError && (
-          <div className={`mb-6 rounded-2xl p-4 flex items-center gap-3 border ${isDarkMode ? 'bg-red-900/20 border-red-800/50' : 'bg-red-50 border-red-200'}`}>
+          <div className={`mb-4 sm:mb-6 rounded-2xl p-4 flex items-center gap-3 border ${isDarkMode ? 'bg-red-900/20 border-red-800/50' : 'bg-red-50 border-red-200'}`}>
             <AlertTriangle className="h-5 w-5 text-red-500" />
             <p className={`text-sm flex-1 ${isDarkMode ? 'text-red-300' : 'text-red-800'}`}>Error: {statsError}</p>
             <button onClick={refreshStats} className={`text-sm font-medium ${isDarkMode ? 'text-gold-400 hover:text-gold-300' : 'text-gold-600 hover:text-gold-700'}`}>
@@ -283,7 +301,7 @@ const AdminDashboard: React.FC = () => {
         )}
 
         {/* Real-time System Health */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8">
           <SystemHealthCard
             icon={<Database size={16} />}
             label="Database"
@@ -318,9 +336,9 @@ const AdminDashboard: React.FC = () => {
             <Loader2 className={`h-12 w-12 animate-spin ${isDarkMode ? 'text-gold-500' : 'text-gold-600'}`} />
           </div>
         ) : dashboardStats ? (
-          <div className="space-y-8">
+          <div className="space-y-6 sm:space-y-8">
             {/* KPI Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6">
               <EnhancedStatCard
                 label="Total Revenue"
                 value={`KSh ${dashboardStats.revenue.total_quoted.toLocaleString()}`}
@@ -364,33 +382,33 @@ const AdminDashboard: React.FC = () => {
             </div>
 
             {/* Main Analytics Row */}
-            <div className="grid grid-cols-1 xl:grid-cols-7 gap-8">
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-8">
               {/* Advanced Activity Chart */}
-              <div className={`xl:col-span-4 p-8 rounded-[2.5rem] relative overflow-hidden border ${isDarkMode ? 'bg-stone-900 border-stone-800' : 'bg-white border-gray-200'}`}>
-                <div className={`absolute top-0 right-0 w-96 h-96 rounded-full blur-[120px] ${isDarkMode ? 'bg-gold-500/5' : 'bg-gold-500/10'}`} />
-                <div className={`absolute bottom-0 left-0 w-96 h-96 rounded-full blur-[120px] ${isDarkMode ? 'bg-blue-500/5' : 'bg-blue-500/10'}`} />
+              <div className={`xl:col-span-2 p-4 sm:p-6 lg:p-8 rounded-2xl sm:rounded-[2rem] lg:rounded-[2.5rem] relative overflow-hidden border ${isDarkMode ? 'bg-stone-900 border-stone-800' : 'bg-white border-gray-200'}`}>
+                <div className="hidden sm:block absolute top-0 right-0 w-96 h-96 rounded-full blur-[120px] opacity-10" />
+                <div className="hidden sm:block absolute bottom-0 left-0 w-96 h-96 rounded-full blur-[120px] opacity-10" />
                 
                 <div className="relative z-10">
-                  <div className="flex justify-between items-start mb-10">
+                  <div className="flex flex-col sm:flex-row justify-between items-start mb-6 sm:mb-10 gap-4 sm:gap-0">
                     <div>
-                      <h3 className={`text-2xl font-serif font-bold tracking-tight ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>Activity Analytics</h3>
-                      <p className={`text-[10px] uppercase tracking-[0.2em] mt-2 font-bold ${isDarkMode ? 'text-stone-500' : 'text-stone-600'}`}>
+                      <h3 className={`text-xl sm:text-2xl font-serif font-bold tracking-tight ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>Activity Analytics</h3>
+                      <p className={`text-[10px] sm:text-xs uppercase tracking-[0.2em] mt-2 font-bold ${isDarkMode ? 'text-stone-500' : 'text-stone-600'}`}>
                         Booking and quote trends over time
                       </p>
                     </div>
-                    <div className="flex gap-6 text-[10px] font-bold tracking-[0.15em] uppercase">
+                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 text-[10px] font-bold tracking-[0.15em] uppercase">
                       <div className="flex items-center gap-2">
-                        <div className={`h-4 w-4 rounded-full ${isDarkMode ? 'bg-blue-500 ring-2 ring-blue-400 shadow-lg shadow-blue-500/60' : 'bg-blue-600 ring-2 ring-blue-500/30 shadow-lg shadow-blue-600/50'}`} />
+                        <div className={`h-3 w-3 sm:h-4 sm:w-4 rounded-full ${isDarkMode ? 'bg-blue-500 ring-2 ring-blue-400 shadow-lg shadow-blue-500/60' : 'bg-blue-600 ring-2 ring-blue-500/30 shadow-lg shadow-blue-600/50'}`} />
                         <span className={`font-extrabold ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>Bookings</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className={`h-4 w-4 rounded-full ${isDarkMode ? 'bg-amber-500 ring-2 ring-amber-400 shadow-lg shadow-amber-500/60' : 'bg-amber-600 ring-2 ring-amber-500/30 shadow-lg shadow-amber-600/50'}`} />
+                        <div className={`h-3 w-3 sm:h-4 sm:w-4 rounded-full ${isDarkMode ? 'bg-amber-500 ring-2 ring-amber-400 shadow-lg shadow-amber-500/60' : 'bg-amber-600 ring-2 ring-amber-500/30 shadow-lg shadow-amber-600/50'}`} />
                         <span className={`font-extrabold ${isDarkMode ? 'text-amber-400' : 'text-amber-600'}`}>Quotes</span>
                       </div>
                     </div>
                   </div>
                   
-                  <div className="h-80">
+                  <div className="h-64 sm:h-80">
                     <AdvancedFluxGraph 
                       bookings={dashboardStats.trends.bookings} 
                       quotes={dashboardStats.trends.quotes}
@@ -401,18 +419,18 @@ const AdminDashboard: React.FC = () => {
               </div>
 
               {/* Side Panel */}
-              <div className="xl:col-span-3 space-y-6">
+              <div className="xl:col-span-1 space-y-4 sm:space-y-6">
                 {/* Conversion Gauge */}
-                <div className={`p-8 rounded-[2.5rem] relative overflow-hidden border ${isDarkMode ? 'bg-stone-900 border-stone-800' : 'bg-white border-gray-200'}`}>
+                <div className={`p-4 sm:p-6 lg:p-8 rounded-2xl sm:rounded-[2rem] lg:rounded-[2.5rem] relative overflow-hidden border ${isDarkMode ? 'bg-stone-900 border-stone-800' : 'bg-white border-gray-200'}`}>
                   <div className={`absolute inset-0 opacity-30 ${isDarkMode ? 'bg-gradient-radial from-gold-500/10 via-transparent to-transparent' : 'bg-gradient-radial from-gold-500/20 via-transparent to-transparent'}`} />
                   
                   <div className="relative z-10">
-                    <h3 className={`text-sm font-black tracking-[0.15em] uppercase mb-8 text-center ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>
+                    <h3 className={`text-xs sm:text-sm font-black tracking-[0.15em] uppercase mb-6 sm:mb-8 text-center ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>
                       Conversion Efficiency
                     </h3>
                     
-                    <div className="relative h-64 w-64 mx-auto flex items-center justify-center">
-                      <svg className="absolute inset-0 h-full w-full -rotate-90" viewBox="0 0 224 224">
+                    <div className="relative w-full max-w-[200px] sm:max-w-[240px] lg:max-w-[256px] aspect-square mx-auto flex items-center justify-center">
+                      <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 224 224">
                         <defs>
                           <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                             <stop offset="0%" stopColor={isDarkMode ? "#854d0e" : "#92400e"} />
@@ -453,30 +471,30 @@ const AdminDashboard: React.FC = () => {
                       </svg>
                       
                       <div className="flex flex-col items-center">
-                        <span className={`text-5xl font-black tracking-normal leading-none ${isDarkMode ? 'text-white' : 'text-transparent bg-clip-text bg-gradient-to-br from-gold-600 to-amber-700'}`}>
+                        <span className={`text-3xl sm:text-4xl lg:text-5xl font-black tracking-normal leading-none ${isDarkMode ? 'text-white' : 'text-transparent bg-clip-text bg-gradient-to-br from-gold-600 to-amber-700'}`}>
                           {dashboardStats.bookings.conversion_rate}%
                         </span>
-                        <span className={`text-[10px] uppercase tracking-[0.2em] font-black mt-3 ${isDarkMode ? 'text-stone-400' : 'text-stone-600'}`}>
+                        <span className={`text-[10px] sm:text-xs uppercase tracking-[0.2em] font-black mt-2 sm:mt-3 ${isDarkMode ? 'text-stone-400' : 'text-stone-600'}`}>
                           Success Rate
                         </span>
                       </div>
                     </div>
                     
-                    <div className="mt-8 grid grid-cols-2 gap-4 text-center">
+                    <div className="mt-6 sm:mt-8 grid grid-cols-2 gap-3 sm:gap-4 text-center">
                       <div className={`rounded-xl p-3 border ${isDarkMode ? 'bg-stone-900/50 border-stone-800' : 'bg-gray-50 border-gray-200'}`}>
-                        <p className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>{dashboardStats.quotes.by_status.accepted || 0}</p>
-                        <p className={`text-[9px] uppercase tracking-wider font-bold mt-1 ${isDarkMode ? 'text-stone-500' : 'text-stone-600'}`}>Accepted</p>
+                        <p className={`text-xl sm:text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>{dashboardStats.quotes.by_status.accepted || 0}</p>
+                        <p className={`text-[9px] sm:text-[10px] uppercase tracking-wider font-bold mt-1 ${isDarkMode ? 'text-stone-500' : 'text-stone-600'}`}>Accepted</p>
                       </div>
                       <div className={`rounded-xl p-3 border ${isDarkMode ? 'bg-stone-900/50 border-stone-800' : 'bg-gray-50 border-gray-200'}`}>
-                        <p className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>{dashboardStats.overview.period.bookings}</p>
-                        <p className={`text-[9px] uppercase tracking-wider font-bold mt-1 ${isDarkMode ? 'text-stone-500' : 'text-stone-600'}`}>Confirmed</p>
+                        <p className={`text-xl sm:text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>{dashboardStats.overview.period.bookings}</p>
+                        <p className={`text-[9px] sm:text-[10px] uppercase tracking-wider font-bold mt-1 ${isDarkMode ? 'text-stone-500' : 'text-stone-600'}`}>Confirmed</p>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Quick Stats */}
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3 sm:gap-4">
                   <QuickStatCard
                     icon={<Users size={16} />}
                     label="Clients"
@@ -496,7 +514,7 @@ const AdminDashboard: React.FC = () => {
             </div>
 
             {/* Revenue Breakdown */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
               <RevenueCard
                 title="Realized Revenue"
                 amount={dashboardStats.revenue.total_quoted}
@@ -524,7 +542,7 @@ const AdminDashboard: React.FC = () => {
             </div>
 
             {/* Status Distribution */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
               <StatusPieChart
                 title="Booking Distribution"
                 data={dashboardStats.bookings.by_status}
@@ -544,7 +562,7 @@ const AdminDashboard: React.FC = () => {
         ) : (
           <div className={`text-center py-20 ${isDarkMode ? 'text-stone-500' : 'text-stone-600'}`}>
             <p>No dashboard data available</p>
-            <button onClick={refreshStats} className={`mt-4 px-6 py-2 rounded-lg font-medium ${isDarkMode ? 'bg-stone-800 text-white hover:bg-stone-700' : 'bg-gray-200 text-stone-900 hover:bg-gray-300'}`}>
+            <button onClick={refreshStats} className={`mt-4 px-6 py-2 rounded-lg font-medium min-h-[44px] ${isDarkMode ? 'bg-stone-800 text-white hover:bg-stone-700' : 'bg-gray-200 text-stone-900 hover:bg-gray-300'}`}>
               Load Data
             </button>
           </div>
@@ -580,28 +598,28 @@ const SystemHealthCard = ({ icon, label, status, metric, unit, color, isDarkMode
   const colors = colorMap[color];
 
   return (
-    <div className={`relative group bg-gradient-to-br ${colors.bg} border ${colors.border} p-6 rounded-[2rem] overflow-hidden transition-all duration-300 hover:shadow-lg ${colors.glow}`}>
-      <div className={`absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl transform translate-x-8 -translate-y-8 ${isDarkMode ? 'bg-white/5' : 'bg-white/20'}`} />
+    <div className={`relative group bg-gradient-to-br ${colors.bg} border ${colors.border} p-4 sm:p-6 rounded-xl sm:rounded-[2rem] overflow-hidden transition-all duration-300 hover:shadow-lg ${colors.glow}`}>
+      <div className={`absolute top-0 right-0 w-24 sm:w-32 h-24 sm:h-32 rounded-full blur-3xl transform translate-x-4 sm:translate-x-8 -translate-y-4 sm:-translate-y-8 opacity-50 ${isDarkMode ? 'bg-white/5' : 'bg-white/20'}`} />
       
-      <div className="relative z-10 flex items-start justify-between mb-4">
-        <div className={`p-3 rounded-xl ${colors.text} ${isDarkMode ? 'bg-white/10' : 'bg-white/30'}`}>
+      <div className="relative z-10 flex items-start justify-between mb-3 sm:mb-4">
+        <div className={`p-2 sm:p-3 rounded-lg sm:rounded-xl ${colors.text} ${isDarkMode ? 'bg-white/10' : 'bg-white/30'}`}>
           {icon}
         </div>
-        <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider ${
+        <div className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 rounded-full text-[8px] sm:text-[9px] font-black uppercase tracking-wider ${
           isConnected 
             ? isDarkMode ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-500/30 text-emerald-700'
             : isDarkMode ? 'bg-red-500/20 text-red-400' : 'bg-red-500/30 text-red-700'
         }`}>
-          <div className={`h-2 w-2 rounded-full animate-pulse ${isConnected ? 'bg-emerald-400' : 'bg-red-400'}`} />
+          <div className={`h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full animate-pulse ${isConnected ? 'bg-emerald-400' : 'bg-red-400'}`} />
           {isConnected ? 'Online' : 'Offline'}
         </div>
       </div>
 
       <div className="relative z-10">
-        <h4 className={`text-sm font-bold tracking-wide mb-1 ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>{label}</h4>
-        <div className="flex items-baseline gap-2">
-          <span className={`text-3xl font-black ${colors.text}`}>{metric}</span>
-          <span className={`text-xs font-bold uppercase tracking-wider ${isDarkMode ? 'text-stone-500' : 'text-stone-600'}`}>{unit}</span>
+        <h4 className={`text-xs sm:text-sm font-bold tracking-wide mb-1 ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>{label}</h4>
+        <div className="flex items-baseline gap-1 sm:gap-2">
+          <span className={`text-xl sm:text-2xl lg:text-3xl font-black ${colors.text}`}>{metric}</span>
+          <span className={`text-[10px] sm:text-xs font-bold uppercase tracking-wider ${isDarkMode ? 'text-stone-500' : 'text-stone-600'}`}>{unit}</span>
         </div>
       </div>
     </div>
@@ -635,25 +653,25 @@ const EnhancedStatCard = ({ label, value, icon, trend, trendUp, color, subtitle,
   const colors = colorMap[color];
 
   return (
-    <div className={`relative group bg-gradient-to-br ${colors.bg} border ${colors.border} backdrop-blur-sm p-6 rounded-[2rem] overflow-hidden transition-all duration-300 hover:scale-[1.02]`}>
+    <div className={`relative group bg-gradient-to-br ${colors.bg} border ${colors.border} backdrop-blur-sm p-4 sm:p-6 rounded-xl sm:rounded-[2rem] overflow-hidden transition-all duration-300 hover:scale-[1.02]`}>
       <div className={`absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity ${isDarkMode ? 'from-white/[0.03] to-transparent' : 'from-white/[0.1] to-transparent'}`} />
       
       <div className="relative z-10">
-        <div className="flex justify-between items-start mb-6">
-          <div className={`p-3 rounded-xl ${colors.icon} backdrop-blur-sm`}>
+        <div className="flex justify-between items-start mb-4 sm:mb-6">
+          <div className={`p-2 sm:p-3 rounded-lg sm:rounded-xl ${colors.icon} backdrop-blur-sm`}>
             {icon}
           </div>
           {trend && (
-            <div className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wider">
-              <ArrowUpRight size={12} className={trendUp ? (isDarkMode ? 'text-emerald-400' : 'text-emerald-600') : (isDarkMode ? 'text-red-400' : 'text-red-600')} />
+            <div className="flex items-center gap-1 text-[8px] sm:text-[9px] font-black uppercase tracking-wider">
+              <ArrowUpRight size={trendUp ? 10 : 10} className={`w-2.5 h-2.5 sm:w-3 sm:h-3 ${trendUp ? (isDarkMode ? 'text-emerald-400' : 'text-emerald-600') : (isDarkMode ? 'text-red-400' : 'text-red-600')}`} />
               <span className={trendUp ? (isDarkMode ? 'text-emerald-400' : 'text-emerald-600') : (isDarkMode ? 'text-red-400' : 'text-red-600')}>{trend}</span>
             </div>
           )}
         </div>
 
-        <h4 className={`text-3xl font-black mb-2 tracking-tight ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>{value}</h4>
-        <p className={`text-xs uppercase tracking-[0.15em] font-bold mb-1 ${isDarkMode ? 'text-stone-400' : 'text-stone-600'}`}>{label}</p>
-        <p className={`text-[10px] font-medium ${isDarkMode ? 'text-stone-600' : 'text-stone-500'}`}>{subtitle}</p>
+        <h4 className={`text-xl sm:text-2xl lg:text-3xl font-black mb-1 sm:mb-2 tracking-tight ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>{value}</h4>
+        <p className={`text-[10px] sm:text-xs uppercase tracking-[0.15em] font-bold mb-1 ${isDarkMode ? 'text-stone-400' : 'text-stone-600'}`}>{label}</p>
+        <p className={`text-[9px] sm:text-[10px] font-medium ${isDarkMode ? 'text-stone-600' : 'text-stone-500'}`}>{subtitle}</p>
       </div>
     </div>
   );
@@ -830,12 +848,12 @@ const AdvancedFluxGraph = ({ bookings, quotes, isDarkMode }: any) => {
         ))}
       </svg>
 
-      <div className="flex justify-between mt-4 px-2">
+      <div className="flex justify-between mt-2 sm:mt-4 px-1 sm:px-2">
         {bookings.slice(-14).map((item: any, i: number) => {
           if (i % 2 === 0) {
             const date = new Date(item.date);
             return (
-              <span key={i} className={`text-[10px] font-bold uppercase tracking-wider ${isDarkMode ? 'text-stone-500' : 'text-stone-600'}`}>
+              <span key={i} className={`text-[9px] sm:text-[10px] font-bold uppercase tracking-wider ${isDarkMode ? 'text-stone-500' : 'text-stone-600'}`}>
                 {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
               </span>
             );
@@ -855,12 +873,12 @@ const QuickStatCard = ({ icon, label, value, color, isDarkMode }: any) => {
   };
 
   return (
-    <div className={`bg-gradient-to-br ${colorMap[color]} border p-5 rounded-2xl`}>
-      <div className={`p-2 rounded-lg w-fit mb-3 ${color === 'blue' ? (isDarkMode ? 'bg-white/10 text-blue-400' : 'bg-white/30 text-blue-700') : (isDarkMode ? 'bg-white/10 text-amber-400' : 'bg-white/30 text-amber-700')}`}>
+    <div className={`bg-gradient-to-br ${colorMap[color]} border p-4 sm:p-5 rounded-xl sm:rounded-2xl`}>
+      <div className={`p-2 rounded-lg w-fit mb-2 sm:mb-3 ${color === 'blue' ? (isDarkMode ? 'bg-white/10 text-blue-400' : 'bg-white/30 text-blue-700') : (isDarkMode ? 'bg-white/10 text-amber-400' : 'bg-white/30 text-amber-700')}`}>
         {icon}
       </div>
-      <p className={`text-2xl font-black mb-1 ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>{value}</p>
-      <p className={`text-[10px] uppercase tracking-wider font-bold ${isDarkMode ? 'text-stone-500' : 'text-stone-600'}`}>{label}</p>
+      <p className={`text-xl sm:text-2xl font-black mb-1 ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>{value}</p>
+      <p className={`text-[10px] sm:text-xs uppercase tracking-wider font-bold ${isDarkMode ? 'text-stone-500' : 'text-stone-600'}`}>{label}</p>
     </div>
   );
 };
@@ -890,23 +908,23 @@ const RevenueCard = ({ title, amount, icon, color, percentage, isDarkMode }: any
   const colors = colorMap[color];
 
   return (
-    <div className={`relative bg-gradient-to-br ${colors.bg} border ${colors.border} p-8 rounded-[2rem] overflow-hidden group hover:scale-[1.02] transition-all`}>
-      <div className={`absolute top-0 right-0 w-40 h-40 rounded-full blur-3xl transform translate-x-12 -translate-y-12 ${isDarkMode ? 'bg-white/5' : 'bg-white/20'}`} />
+    <div className={`relative bg-gradient-to-br ${colors.bg} border ${colors.border} p-4 sm:p-6 lg:p-8 rounded-xl sm:rounded-[2rem] overflow-hidden group hover:scale-[1.02] transition-all`}>
+      <div className={`absolute top-0 right-0 w-32 sm:w-40 h-32 sm:h-40 rounded-full blur-3xl transform translate-x-6 sm:translate-x-12 -translate-y-6 sm:-translate-y-12 opacity-50 ${isDarkMode ? 'bg-white/5' : 'bg-white/20'}`} />
       
       <div className="relative z-10">
-        <div className="flex items-start justify-between mb-6">
-          <div className={`p-3 rounded-xl ${colors.text} ${isDarkMode ? 'bg-white/10' : 'bg-white/30'}`}>
+        <div className="flex items-start justify-between mb-4 sm:mb-6">
+          <div className={`p-2 sm:p-3 rounded-lg sm:rounded-xl ${colors.text} ${isDarkMode ? 'bg-white/10' : 'bg-white/30'}`}>
             {icon}
           </div>
           <span className={`text-xs font-bold ${colors.text}`}>{percentage}%</span>
         </div>
 
-        <h3 className={`text-xs uppercase tracking-[0.15em] font-bold mb-3 ${isDarkMode ? 'text-stone-400' : 'text-stone-600'}`}>{title}</h3>
-        <p className={`text-3xl font-black mb-4 ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>
+        <h3 className={`text-xs uppercase tracking-[0.15em] font-bold mb-2 sm:mb-3 ${isDarkMode ? 'text-stone-400' : 'text-stone-600'}`}>{title}</h3>
+        <p className={`text-xl sm:text-2xl lg:text-3xl font-black mb-3 sm:mb-4 ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>
           KSh {Math.round(amount).toLocaleString()}
         </p>
 
-        <div className={`h-2 rounded-full overflow-hidden ${isDarkMode ? 'bg-stone-900/50' : 'bg-gray-200'}`}>
+        <div className={`h-1.5 sm:h-2 rounded-full overflow-hidden ${isDarkMode ? 'bg-stone-900/50' : 'bg-gray-200'}`}>
           <div 
             className={`h-full ${colors.bar} rounded-full transition-all duration-1000 ease-out`}
             style={{ width: `${percentage}%` }}
@@ -939,22 +957,22 @@ const StatusPieChart = ({ title, data, totalLabel, total, isDarkMode }: any) => 
   let cumulativePercentage = 0;
 
   return (
-    <div className={`p-8 rounded-[2.5rem] relative overflow-hidden border ${isDarkMode ? 'bg-stone-900 border-stone-800' : 'bg-white border-gray-200'}`}>
-      <div className={`absolute top-0 right-0 w-64 h-64 rounded-full blur-[100px] ${isDarkMode ? 'bg-gold-500/5' : 'bg-gold-500/10'}`} />
+    <div className={`p-4 sm:p-6 lg:p-8 rounded-2xl sm:rounded-[2.5rem] relative overflow-hidden border ${isDarkMode ? 'bg-stone-900 border-stone-800' : 'bg-white border-gray-200'}`}>
+      <div className="hidden sm:block absolute top-0 right-0 w-64 h-64 rounded-full blur-[100px] opacity-10" />
       
       <div className="relative z-10">
-        <h3 className={`text-xl font-serif font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>{title}</h3>
-        <p className={`text-[10px] uppercase tracking-wider mb-8 ${isDarkMode ? 'text-stone-500' : 'text-stone-600'}`}>
+        <h3 className={`text-lg sm:text-xl font-serif font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>{title}</h3>
+        <p className={`text-[10px] sm:text-xs uppercase tracking-wider mb-6 sm:mb-8 ${isDarkMode ? 'text-stone-500' : 'text-stone-600'}`}>
           {totalLabel}: <span className={`font-bold ${isDarkMode ? 'text-gold-400' : 'text-gold-600'}`}>{total}</span>
         </p>
 
-        <div className="flex items-center gap-8">
-          <div className="relative w-48 h-48">
-            <svg viewBox="0 0 200 200" className="transform -rotate-90">
+        <div className="flex flex-col sm:flex-row items-center gap-6 sm:gap-8">
+          <div className="relative w-40 h-40 sm:w-48 sm:h-48">
+            <svg viewBox="0 0 200 200" className="transform -rotate-90 w-full h-full">
               {dataArray.map((item, index) => {
                 const percentage = totalCount > 0 ? (item.count / totalCount) * 100 : 0;
-                const angle = (percentage / 100) * 360;
                 const startAngle = (cumulativePercentage / 100) * 360;
+                const angle = (percentage / 100) * 360;
                 
                 const startRad = (startAngle * Math.PI) / 180;
                 const endRad = ((startAngle + angle) * Math.PI) / 180;
@@ -993,26 +1011,26 @@ const StatusPieChart = ({ title, data, totalLabel, total, isDarkMode }: any) => 
             
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="text-center">
-                <p className={`text-4xl font-black ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>{total}</p>
+                <p className={`text-3xl sm:text-4xl font-black ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>{total}</p>
                 <p className={`text-[10px] uppercase tracking-wider font-black mt-1 ${isDarkMode ? 'text-stone-400' : 'text-stone-600'}`}>Total</p>
               </div>
             </div>
           </div>
 
-          <div className="flex-1 space-y-3">
+          <div className="flex-1 w-full space-y-2 sm:space-y-3">
             {dataArray.map((item, index) => {
               const percentage = totalCount > 0 ? Math.round((item.count / totalCount) * 100) : 0;
               return (
                 <div key={index} className="flex items-center justify-between group hover:bg-stone-800/30 dark:hover:bg-stone-800/30 p-2 rounded-lg transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className="w-4 h-4 rounded-full shadow-sm" style={{ backgroundColor: item.color }} />
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="w-3 h-3 sm:w-4 sm:h-4 rounded-full shadow-sm" style={{ backgroundColor: item.color }} />
                     <span className={`text-sm capitalize font-semibold ${isDarkMode ? 'text-stone-200' : 'text-stone-800'}`}>
                       {item.status}
                     </span>
                   </div>
                   <div className="text-right">
                     <span className={`text-base font-bold ${isDarkMode ? 'text-white' : 'text-stone-900'}`}>{item.count}</span>
-                    <span className={`text-sm ml-2 ${isDarkMode ? 'text-stone-400' : 'text-stone-500'}`}>({percentage}%)</span>
+                    <span className={`text-sm ml-1 sm:ml-2 ${isDarkMode ? 'text-stone-400' : 'text-stone-500'}`}>({percentage}%)</span>
                   </div>
                 </div>
               );
