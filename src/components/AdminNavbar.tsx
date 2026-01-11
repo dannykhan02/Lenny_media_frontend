@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, 
@@ -91,7 +91,12 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
   const [profileLoading, setProfileLoading] = useState(true);
   const [profileError, setProfileError] = useState('');
 
-  // ✅ ADD: Debounce state
+  // ✅ ADD: Ref-based mount tracking
+  const isMountedRef = useRef(false);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const lastBookingFetchRef = useRef<number>(0);
+  const lastQuoteFetchRef = useRef<number>(0);
+  const lastNotificationFetchRef = useRef<number>(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // ✅ FIXED: Helper function to get auth headers
@@ -113,12 +118,20 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
   });
   const [localNotificationCount, setLocalNotificationCount] = useState(notificationCount);
 
-  // ✅ MODIFIED: Add debouncing to fetchBookingStats
+  // ✅ REPLACE: fetchBookingStats with debounced version
   const fetchBookingStats = useCallback(async () => {
-    if (isRefreshing) return; // Prevent concurrent calls
+    const now = Date.now();
+    const timeSinceLastFetch = now - lastBookingFetchRef.current;
+    
+    // ✅ Debounce: Don't fetch if called within 5 seconds
+    if (timeSinceLastFetch < 5000) {
+      console.log(`⏭️ Skipping booking stats fetch (called ${timeSinceLastFetch}ms ago)`);
+      return;
+    }
+    
+    lastBookingFetchRef.current = now;
     
     try {
-      setIsRefreshing(true);
       const response = await fetch(`${API_URL}/admin/bookings/stats`, {
         headers: getAuthHeaders(),
       });
@@ -139,15 +152,21 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
       if (process.env.NODE_ENV === 'development') {
         console.error('Failed to fetch booking stats:', err);
       }
-    } finally {
-      // ✅ ADD: Delay before allowing next call
-      setTimeout(() => setIsRefreshing(false), 1000);
     }
-  }, [getAuthHeaders, isRefreshing]);
+  }, [getAuthHeaders]);
 
-  // ✅ MODIFIED: Add debouncing to fetchQuoteStats
+  // ✅ REPLACE: fetchQuoteStats with debounced version
   const fetchQuoteStats = useCallback(async () => {
-    if (isRefreshing) return; // Prevent concurrent calls
+    const now = Date.now();
+    const timeSinceLastFetch = now - lastQuoteFetchRef.current;
+    
+    // ✅ Debounce: Don't fetch if called within 5 seconds
+    if (timeSinceLastFetch < 5000) {
+      console.log(`⏭️ Skipping quote stats fetch (called ${timeSinceLastFetch}ms ago)`);
+      return;
+    }
+    
+    lastQuoteFetchRef.current = now;
     
     try {
       const response = await fetch(`${API_URL}/quotes/summary`, {
@@ -172,11 +191,20 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
         console.error('Failed to fetch quote stats:', err);
       }
     }
-  }, [getAuthHeaders, isRefreshing]);
+  }, [getAuthHeaders]);
 
-  // ✅ MODIFIED: Add debouncing to fetchNotificationCount
+  // ✅ REPLACE: fetchNotificationCount with debounced version
   const fetchNotificationCount = useCallback(async () => {
-    if (isRefreshing) return; // Prevent concurrent calls
+    const now = Date.now();
+    const timeSinceLastFetch = now - lastNotificationFetchRef.current;
+    
+    // ✅ Debounce: Don't fetch if called within 5 seconds
+    if (timeSinceLastFetch < 5000) {
+      console.log(`⏭️ Skipping notification fetch (called ${timeSinceLastFetch}ms ago)`);
+      return;
+    }
+    
+    lastNotificationFetchRef.current = now;
     
     try {
       const response = await fetch(`${API_URL}/notifications/unread-count`, {
@@ -197,48 +225,58 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
         console.error('Failed to fetch notification count:', err);
       }
     }
-  }, [getAuthHeaders, isRefreshing]);
+  }, [getAuthHeaders]);
 
-  // ✅ MODIFIED: Auto-refresh stats every 2 MINUTES instead of 30 seconds
+  // ✅ REPLACE: The entire stats fetching useEffect with this
   useEffect(() => {
-    // Initial fetch
-    fetchBookingStats();
-    fetchQuoteStats();
-    fetchNotificationCount();
-
-    // ✅ CHANGED: Refresh every 2 minutes (120000ms) instead of 30 seconds
-    const interval = setInterval(() => {
-      fetchBookingStats();
-      fetchQuoteStats();
-      fetchNotificationCount();
-    }, 120000); // Was 30000 - now 120000 (2 minutes)
-
-    return () => clearInterval(interval);
-  }, [fetchBookingStats, fetchQuoteStats, fetchNotificationCount]);
-
-  // Update local stats when props change
-  useEffect(() => {
-    if (bookingStats) {
-      setLocalBookingStats(bookingStats);
+    // ✅ CRITICAL: Prevent double execution in React Strict Mode
+    if (isMountedRef.current) {
+      console.log('⚠️ Already mounted, skipping duplicate initialization');
+      return;
     }
-  }, [bookingStats]);
+    isMountedRef.current = true;
 
-  useEffect(() => {
-    if (quoteStats) {
-      setLocalQuoteStats(quoteStats);
-    }
-  }, [quoteStats]);
+    console.log('✅ Initializing stats polling (2-minute interval)');
 
-  useEffect(() => {
-    setLocalNotificationCount(notificationCount);
-  }, [notificationCount]);
+    // Initial fetch - with stagger to prevent thundering herd
+    const initialFetch = async () => {
+      setIsRefreshing(true);
+      await fetchBookingStats();
+      await new Promise(resolve => setTimeout(resolve, 500)); // Stagger 500ms
+      await fetchQuoteStats();
+      await new Promise(resolve => setTimeout(resolve, 500)); // Stagger 500ms
+      await fetchNotificationCount();
+      setIsRefreshing(false);
+    };
+
+    initialFetch();
+
+    // ✅ Set up interval - 2 minutes (120000ms)
+    intervalRef.current = setInterval(() => {
+      console.log('🔄 Auto-refreshing stats (2-minute interval)');
+      initialFetch();
+    }, 120000); // 2 minutes
+
+    // ✅ Cleanup function
+    return () => {
+      console.log('🧹 Cleaning up stats polling interval');
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, []); // ✅ CRITICAL: Empty dependency array
 
   // ✅ ADD: Manual refresh function
   const handleManualRefresh = useCallback(() => {
     if (!isRefreshing) {
-      fetchBookingStats();
-      fetchQuoteStats();
-      fetchNotificationCount();
+      console.log('🔄 Manual refresh triggered');
+      setIsRefreshing(true);
+      Promise.all([
+        fetchBookingStats(),
+        fetchQuoteStats(),
+        fetchNotificationCount()
+      ]).finally(() => setIsRefreshing(false));
     }
   }, [fetchBookingStats, fetchQuoteStats, fetchNotificationCount, isRefreshing]);
 
@@ -716,10 +754,18 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
             <Home className="h-5 w-5 flex-shrink-0" />
             {!collapsed && <span className="font-medium text-sm">View Website</span>}
           </a>
-          <Link to="/admin/profile" onClick={closeSidebar} className={`flex items-center gap-3 rounded-lg transition-colors ${collapsed ? 'justify-center p-3' : 'px-3 py-2.5'} ${isActive('/admin/profile') ? (isDarkMode ? 'bg-stone-800 text-white' : 'bg-gray-100 text-stone-900') : (isDarkMode ? 'text-stone-300 hover:bg-stone-800' : 'text-stone-600 hover:bg-gray-50 hover:text-stone-900')}`} title={collapsed ? 'My Profile' : ''}>
+          
+          {/* ✅ FIXED: This was the problematic Link - line 780 issue */}
+          <Link 
+            to="/admin/profile" 
+            onClick={closeSidebar} 
+            className={`flex items-center gap-3 rounded-lg transition-colors ${collapsed ? 'justify-center p-3' : 'px-3 py-2.5'} ${isActive('/admin/profile') ? (isDarkMode ? 'bg-stone-800 text-white' : 'bg-gray-100 text-stone-900') : (isDarkMode ? 'text-stone-300 hover:bg-stone-800' : 'text-stone-600 hover:bg-gray-50 hover:text-stone-900')}`} 
+            title={collapsed ? 'My Profile' : ''}
+          >
             <User className="w-5 h-5 flex-shrink-0" />
             {!collapsed && <span className="text-sm font-medium">My Profile</span>}
           </Link>
+          
           <button onClick={toggleTheme} className={`w-full flex items-center gap-3 rounded-lg transition-colors ${collapsed ? 'justify-center p-3' : 'px-3 py-2.5'} ${isDarkMode ? 'text-stone-300 hover:bg-stone-800' : 'text-stone-600 hover:bg-gray-50 hover:text-stone-900'}`} title={isDarkMode ? 'Light Mode' : 'Dark Mode'}>
             {isDarkMode ? <Sun className="w-5 h-5 flex-shrink-0" /> : <Moon className="w-5 h-5 flex-shrink-0" />}
             {!collapsed && <span className="text-sm font-medium">{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>}

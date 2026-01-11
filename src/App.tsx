@@ -27,7 +27,25 @@ const AdminProfile = React.lazy(() => import('./pages/Admin/AdminProfile'));
 const AdminQuotes = React.lazy(() => import('./pages/Admin/AdminQuotes'));
 const AdminQuoteDetail = React.lazy(() => import('./pages/Admin/AdminQuoteDetail'));
 const AdminPortfolio = React.lazy(() => import('./pages/Admin/AdminPortfolio'));
-const BookingCleanup = React.lazy(() => import('./pages/Admin/BookingCleanup')); 
+const BookingCleanup = React.lazy(() => import('./pages/Admin/BookingCleanup'));
+
+// ✅ FIXED: Enhanced Page Loader Component (removed ErrorBoundary import)
+const EnhancedPageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-stone-900 via-stone-950 to-black">
+    <div className="relative">
+      <div className="absolute inset-0 blur-3xl opacity-20 bg-gradient-to-r from-gold-500 to-amber-500 rounded-full animate-pulse" />
+      <div className="relative">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-gold-500"></div>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="h-8 w-8 rounded-full bg-gradient-to-r from-gold-500 to-amber-500 animate-ping"></div>
+        </div>
+      </div>
+      <p className="mt-6 text-center text-stone-400 text-sm font-light tracking-wider animate-pulse">
+        Loading Experience...
+      </p>
+    </div>
+  </div>
+);
 
 const AppContent = () => {
   const location = useLocation();
@@ -41,7 +59,8 @@ const AppContent = () => {
       {!isAdminRoute && <Navbar />}
       
       <main className="flex-grow">
-        <Suspense fallback={<PageLoader />}>
+        {/* ✅ FIXED: Removed ErrorBoundary wrapper since component doesn't exist */}
+        <Suspense fallback={<EnhancedPageLoader />}>
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<Home />} />

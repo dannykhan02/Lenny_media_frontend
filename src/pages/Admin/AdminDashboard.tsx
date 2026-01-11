@@ -104,6 +104,11 @@ const AdminDashboard: React.FC = () => {
   // ✅ ADD: State for explicit refresh
   const [refreshRequested, setRefreshRequested] = useState(false);
 
+  // ✅ ADD: Ref-based mount tracking
+  const isMountedRef = useRef(false);
+  const healthIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const metricsIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
   // ✅ Get token from auth context
   const getAuthHeaders = () => {
     const token = getAccessToken();
@@ -125,8 +130,58 @@ const AdminDashboard: React.FC = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // ✅ CHANGED: Optimize real-time metrics simulation - 10 seconds instead of 3 seconds
+  // ✅ REPLACE: Health check polling with ref tracking
   useEffect(() => {
+    // ✅ Prevent double execution in React Strict Mode
+    if (healthIntervalRef.current) {
+      console.log('⚠️ Health check already initialized, skipping');
+      return;
+    }
+
+    console.log('✅ Initializing health check (5-minute interval)');
+    
+    fetchHealthStatus();
+    
+    // ✅ Set interval - 5 minutes (300000ms)
+    healthIntervalRef.current = setInterval(() => {
+      console.log('🔄 Auto-refreshing health status (5-minute interval)');
+      fetchHealthStatus();
+    }, 300000); // 5 minutes
+    
+    return () => {
+      console.log('🧹 Cleaning up health check interval');
+      if (healthIntervalRef.current) {
+        clearInterval(healthIntervalRef.current);
+        healthIntervalRef.current = null;
+      }
+    };
+  }, []); // ✅ CRITICAL: Empty dependency array
+
+  // ✅ REPLACE: Dashboard stats useEffect
+  useEffect(() => {
+    // ✅ Only fetch stats if user is authenticated
+    if (!authUser) {
+      console.log('⏳ Waiting for auth user...');
+      return;
+    }
+
+    console.log('✅ Fetching dashboard stats for period:', selectedPeriod);
+    fetchDashboardStats(selectedPeriod);
+    
+    // ✅ NO AUTO-REFRESH - only fetch when period changes or user manually refreshes
+    
+  }, [authUser, selectedPeriod]); // Only re-fetch when these change
+
+  // ✅ REPLACE: Realtime metrics simulation
+  useEffect(() => {
+    // ✅ Prevent double execution in React Strict Mode
+    if (metricsIntervalRef.current) {
+      console.log('⚠️ Metrics simulation already initialized, skipping');
+      return;
+    }
+
+    console.log('✅ Initializing realtime metrics simulation (10-second interval)');
+    
     const updateMetrics = () => {
       setRealtimeMetrics(prev => ({
         activeUsers: Math.max(15, prev.activeUsers + (Math.random() - 0.5) * 10),
@@ -137,47 +192,42 @@ const AdminDashboard: React.FC = () => {
 
     // Initial values
     updateMetrics();
-    // ✅ CHANGED: Update every 10 seconds instead of 3 seconds
-    const interval = setInterval(updateMetrics, 10000); // Was 3000
     
-    return () => clearInterval(interval);
-  }, []);
+    // ✅ Update every 10 seconds instead of 3
+    metricsIntervalRef.current = setInterval(() => {
+      updateMetrics();
+    }, 10000); // 10 seconds
+    
+    return () => {
+      console.log('🧹 Cleaning up metrics simulation interval');
+      if (metricsIntervalRef.current) {
+        clearInterval(metricsIntervalRef.current);
+        metricsIntervalRef.current = null;
+      }
+    };
+  }, []); // ✅ CRITICAL: Empty dependency array
 
-  // ✅ CHANGED: Optimize health check polling - every 5 MINUTES instead of 30 seconds
+  // ✅ REPLACE: Auth check useEffect
   useEffect(() => {
-    fetchHealthStatus();
-    
-    // ✅ CHANGED: Check health every 5 MINUTES instead of 30 seconds
-    const healthInterval = setInterval(fetchHealthStatus, 300000); // Was 30000
-    
-    return () => clearInterval(healthInterval);
-  }, []);
-
-  // ✅ CHANGED: Remove auto-refresh of dashboard stats - only fetch when period changes
-  useEffect(() => {
-    // ✅ Only fetch stats if user is authenticated
-    if (authUser) {
-      fetchDashboardStats(selectedPeriod);
+    // ✅ Prevent infinite loop
+    if (isMountedRef.current) {
+      return;
     }
     
-    // ✅ REMOVED: No auto-refresh - only fetch when period changes
-    // This prevents unnecessary re-renders and API calls
-  }, [authUser, selectedPeriod]); // Only re-fetch when these change
-
-  // ✅ FIXED: Remove fetchCurrentUser since we get user from auth context
-  useEffect(() => {
     const checkAuthentication = async () => {
       setIsLoading(true);
       try {
-        // Wait a moment for auth context to initialize
         await new Promise(resolve => setTimeout(resolve, 100));
         
-        // If no user in auth context after initialization, redirect to login
         if (!authUser) {
           const token = getAccessToken();
           if (!token) {
+            console.log('❌ No token found, redirecting to login');
             navigate('/admin/login');
           }
+        } else {
+          console.log('✅ User authenticated:', authUser.email);
+          isMountedRef.current = true;
         }
       } finally {
         setIsLoading(false);
@@ -195,7 +245,7 @@ const AdminDashboard: React.FC = () => {
     
     try {
       // ✅ ADD: Tell backend to use cache unless explicitly refreshing
-      const useCache = !refreshRequested; // Add this state variable
+      const useCache = !refreshRequested;
       const url = `${API_URL}/admin/dashboard/stats?period=${period}${useCache ? '&cached=true' : ''}`;
       
       console.log('📡 Request URL:', url);
@@ -257,6 +307,7 @@ const AdminDashboard: React.FC = () => {
 
   // ✅ IMPROVED: Refresh function with explicit refresh flag
   const refreshStats = () => {
+    console.log('🔄 Manual refresh triggered');
     setRefreshRequested(true); // Force fresh data
     fetchDashboardStats(selectedPeriod);
     fetchHealthStatus();
