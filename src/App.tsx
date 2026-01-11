@@ -1,6 +1,6 @@
 import React, { Suspense } from 'react';
 import { HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { AuthProvider, ProtectedRoute, ScrollToTop, PageLoader } from './context/AuthProvider';
+import { AuthProvider, ProtectedRoute, ScrollToTop, PageLoader } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import { ThemeProvider } from './context/ThemeContext';
