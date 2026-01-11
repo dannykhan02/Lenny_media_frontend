@@ -1,4 +1,3 @@
-// pages/Admin/AdminDashboard.tsx
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -7,7 +6,7 @@ import {
   AlertTriangle, TrendingUp, Users, Clock, Zap, 
   BarChart3, PieChart, Target, Award, RefreshCw
 } from 'lucide-react';
-import { useAuth } from '../../hooks/useAuth'; // ✅ Import useAuth
+import { useAuth } from '../../hooks/useAuth';
 import AdminNavbar from '../../components/AdminNavbar';
 import { useTheme } from '../../context/ThemeContext';
 
@@ -84,7 +83,7 @@ interface HealthStatus {
 }
 
 const AdminDashboard: React.FC = () => {
-  const { user: authUser, getAccessToken, logout } = useAuth(); // ✅ Use auth context
+  const { user: authUser, getAccessToken, logout } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [loadingStats, setLoadingStats] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -101,6 +100,9 @@ const AdminDashboard: React.FC = () => {
     requestsPerSecond: 0,
     avgResponseTime: 0
   });
+
+  // ✅ ADD: State for explicit refresh
+  const [refreshRequested, setRefreshRequested] = useState(false);
 
   // ✅ Get token from auth context
   const getAuthHeaders = () => {
@@ -123,7 +125,7 @@ const AdminDashboard: React.FC = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Simulate real-time metrics with more realistic patterns
+  // ✅ CHANGED: Optimize real-time metrics simulation - 10 seconds instead of 3 seconds
   useEffect(() => {
     const updateMetrics = () => {
       setRealtimeMetrics(prev => ({
@@ -135,22 +137,32 @@ const AdminDashboard: React.FC = () => {
 
     // Initial values
     updateMetrics();
-    const interval = setInterval(updateMetrics, 3000);
+    // ✅ CHANGED: Update every 10 seconds instead of 3 seconds
+    const interval = setInterval(updateMetrics, 10000); // Was 3000
+    
     return () => clearInterval(interval);
   }, []);
 
+  // ✅ CHANGED: Optimize health check polling - every 5 MINUTES instead of 30 seconds
   useEffect(() => {
     fetchHealthStatus();
-    const healthInterval = setInterval(fetchHealthStatus, 30000);
+    
+    // ✅ CHANGED: Check health every 5 MINUTES instead of 30 seconds
+    const healthInterval = setInterval(fetchHealthStatus, 300000); // Was 30000
+    
     return () => clearInterval(healthInterval);
   }, []);
 
+  // ✅ CHANGED: Remove auto-refresh of dashboard stats - only fetch when period changes
   useEffect(() => {
     // ✅ Only fetch stats if user is authenticated
     if (authUser) {
       fetchDashboardStats(selectedPeriod);
     }
-  }, [authUser, selectedPeriod]);
+    
+    // ✅ REMOVED: No auto-refresh - only fetch when period changes
+    // This prevents unnecessary re-renders and API calls
+  }, [authUser, selectedPeriod]); // Only re-fetch when these change
 
   // ✅ FIXED: Remove fetchCurrentUser since we get user from auth context
   useEffect(() => {
@@ -175,27 +187,28 @@ const AdminDashboard: React.FC = () => {
     checkAuthentication();
   }, [authUser, getAccessToken, navigate]);
 
-  // ✅ FIXED: fetchDashboardStats with proper token-based authentication
+  // ✅ MODIFIED: fetchDashboardStats with cache awareness
   const fetchDashboardStats = async (period: string) => {
     console.log('🔍 Fetching dashboard stats...', { period, API_URL });
     setLoadingStats(true);
     setStatsError('');
     
     try {
-      const url = `${API_URL}/admin/dashboard/stats?period=${period}`;
+      // ✅ ADD: Tell backend to use cache unless explicitly refreshing
+      const useCache = !refreshRequested; // Add this state variable
+      const url = `${API_URL}/admin/dashboard/stats?period=${period}${useCache ? '&cached=true' : ''}`;
+      
       console.log('📡 Request URL:', url);
       
       const response = await fetch(url, {
         method: 'GET',
-        headers: getAuthHeaders(), // ✅ Use token-based headers
-        // REMOVED: credentials: 'include' - we're using tokens now
+        headers: getAuthHeaders(),
       });
       
       console.log('📥 Response status:', response.status);
       
       if (!response.ok) {
         if (response.status === 401) {
-          // Token expired or invalid
           console.log('🔄 Token expired, logging out...');
           await logout();
           navigate('/admin/login');
@@ -207,7 +220,11 @@ const AdminDashboard: React.FC = () => {
       const data = await response.json();
       console.log('✅ Dashboard data received:', data);
       
-      // ✅ Validate data structure before setting
+      // ✅ ADD: Show cache info in UI if available
+      if (data._cache_age !== undefined) {
+        console.log(`📦 Using cached data (age: ${data._cache_age}s, ttl: ${data._cache_ttl}s)`);
+      }
+      
       if (data && typeof data === 'object') {
         setDashboardStats(data);
       } else {
@@ -219,6 +236,7 @@ const AdminDashboard: React.FC = () => {
       setStatsError(err.message || 'Failed to load dashboard data');
     } finally {
       setLoadingStats(false);
+      setRefreshRequested(false); // Reset refresh flag
     }
   };
 
@@ -226,8 +244,7 @@ const AdminDashboard: React.FC = () => {
   const fetchHealthStatus = async () => {
     try {
       const response = await fetch(`${API_URL}/health`, {
-        headers: getAuthHeaders(), // ✅ Use token-based headers
-        // REMOVED: credentials: 'include'
+        headers: getAuthHeaders(),
       });
       if (response.ok) {
         const data = await response.json();
@@ -238,7 +255,9 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
+  // ✅ IMPROVED: Refresh function with explicit refresh flag
   const refreshStats = () => {
+    setRefreshRequested(true); // Force fresh data
     fetchDashboardStats(selectedPeriod);
     fetchHealthStatus();
   };

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, 
@@ -24,16 +24,17 @@ import {
   FileText,
   Loader2,
   AlertTriangle,
-  Trash2
+  Trash2,
+  RefreshCw
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../context/ThemeContext';
 
-// ✅ UPDATED: Use environment variable with fallback
+// ✅ FIXED: Use environment variable with fallback
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 interface AdminNavbarProps {
-  user: any; // ✅ This will now be the authUser from useAuth
+  user: any;
   onCollapsedChange?: (collapsed: boolean) => void;
   bookingStats?: {
     pending: number;
@@ -80,7 +81,7 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
 }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { logout, getAccessToken } = useAuth(); // ✅ Get getAccessToken from useAuth
+  const { logout, getAccessToken } = useAuth();
   const { isDarkMode, toggleTheme } = useTheme();
   const [collapsed, setCollapsed] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -90,15 +91,18 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
   const [profileLoading, setProfileLoading] = useState(true);
   const [profileError, setProfileError] = useState('');
 
-  // ✅ UPDATED: Helper function to get auth headers
-  const getAuthHeaders = () => {
+  // ✅ ADD: Debounce state
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // ✅ FIXED: Helper function to get auth headers
+  const getAuthHeaders = useCallback(() => {
     const token = getAccessToken();
     return {
       'Accept': 'application/json',
       'Content-Type': 'application/json',
       ...(token && { 'Authorization': `Bearer ${token}` })
     };
-  };
+  }, [getAccessToken]);
 
   // Local state for stats with auto-refresh
   const [localBookingStats, setLocalBookingStats] = useState(bookingStats || { pending: 0, confirmed: 0 });
@@ -109,15 +113,17 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
   });
   const [localNotificationCount, setLocalNotificationCount] = useState(notificationCount);
 
-  // ✅ UPDATED: Fetch booking stats with token-based authentication
-  const fetchBookingStats = async () => {
+  // ✅ MODIFIED: Add debouncing to fetchBookingStats
+  const fetchBookingStats = useCallback(async () => {
+    if (isRefreshing) return; // Prevent concurrent calls
+    
     try {
+      setIsRefreshing(true);
       const response = await fetch(`${API_URL}/admin/bookings/stats`, {
         headers: getAuthHeaders(),
       });
       
       if (!response.ok) {
-        // Don't throw, just log and return - silent fail
         if (process.env.NODE_ENV === 'development') {
           console.warn(`Booking stats returned ${response.status}`);
         }
@@ -130,15 +136,19 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
         confirmed: data.stats?.confirmed || 0
       });
     } catch (err) {
-      // Silent fail - only log in development
       if (process.env.NODE_ENV === 'development') {
         console.error('Failed to fetch booking stats:', err);
       }
+    } finally {
+      // ✅ ADD: Delay before allowing next call
+      setTimeout(() => setIsRefreshing(false), 1000);
     }
-  };
+  }, [getAuthHeaders, isRefreshing]);
 
-  // ✅ UPDATED: Fetch quote stats with token-based authentication
-  const fetchQuoteStats = async () => {
+  // ✅ MODIFIED: Add debouncing to fetchQuoteStats
+  const fetchQuoteStats = useCallback(async () => {
+    if (isRefreshing) return; // Prevent concurrent calls
+    
     try {
       const response = await fetch(`${API_URL}/quotes/summary`, {
         headers: getAuthHeaders(),
@@ -162,10 +172,12 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
         console.error('Failed to fetch quote stats:', err);
       }
     }
-  };
+  }, [getAuthHeaders, isRefreshing]);
 
-  // ✅ UPDATED: Fetch notification count with token-based authentication
-  const fetchNotificationCount = async () => {
+  // ✅ MODIFIED: Add debouncing to fetchNotificationCount
+  const fetchNotificationCount = useCallback(async () => {
+    if (isRefreshing) return; // Prevent concurrent calls
+    
     try {
       const response = await fetch(`${API_URL}/notifications/unread-count`, {
         headers: getAuthHeaders(),
@@ -185,22 +197,24 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
         console.error('Failed to fetch notification count:', err);
       }
     }
-  };
+  }, [getAuthHeaders, isRefreshing]);
 
-  // Auto-refresh stats every 30 seconds
+  // ✅ MODIFIED: Auto-refresh stats every 2 MINUTES instead of 30 seconds
   useEffect(() => {
+    // Initial fetch
     fetchBookingStats();
     fetchQuoteStats();
     fetchNotificationCount();
 
+    // ✅ CHANGED: Refresh every 2 minutes (120000ms) instead of 30 seconds
     const interval = setInterval(() => {
       fetchBookingStats();
       fetchQuoteStats();
       fetchNotificationCount();
-    }, 30000); // Refresh every 30 seconds
+    }, 120000); // Was 30000 - now 120000 (2 minutes)
 
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchBookingStats, fetchQuoteStats, fetchNotificationCount]);
 
   // Update local stats when props change
   useEffect(() => {
@@ -219,7 +233,16 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
     setLocalNotificationCount(notificationCount);
   }, [notificationCount]);
 
-  // ✅ UPDATED: Fetch profile using token-based authentication
+  // ✅ ADD: Manual refresh function
+  const handleManualRefresh = useCallback(() => {
+    if (!isRefreshing) {
+      fetchBookingStats();
+      fetchQuoteStats();
+      fetchNotificationCount();
+    }
+  }, [fetchBookingStats, fetchQuoteStats, fetchNotificationCount, isRefreshing]);
+
+  // ✅ MODIFIED: Fetch profile using token-based authentication
   useEffect(() => {
     const fetchProfileFromMe = async () => {
       setProfileLoading(true);
@@ -232,7 +255,6 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
         });
 
         if (!response.ok) {
-          // If unauthorized, the parent component will handle logout
           throw new Error(`HTTP error! status: ${response.status}`);
         }
 
@@ -285,7 +307,7 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
     if (user) {
       fetchProfileFromMe();
     }
-  }, [user]);
+  }, [user, getAuthHeaders]);
 
   const getInitials = (name: string) => {
     if (!name) return 'A';
@@ -463,7 +485,6 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
     if (onNotificationClick) {
       onNotificationClick();
     } else {
-      // Default: Navigate to bookings page with pending filter
       navigate('/admin/bookings?status=PENDING');
     }
   };
@@ -524,9 +545,20 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
               <p className={`text-xs truncate ${isDarkMode ? 'text-stone-400' : 'text-stone-500'}`}>{email}</p>
               <p className={`text-xs font-medium mt-0.5 px-2 py-0.5 rounded-full inline-block ${isDarkMode ? 'bg-purple-900/30 text-purple-300' : 'bg-purple-100 text-purple-800'}`}>{role}</p>
             </div>
+            {/* ✅ ADD: Manual refresh button */}
+            <button 
+              onClick={handleManualRefresh}
+              disabled={isRefreshing}
+              className={`p-2 rounded-lg transition-colors ${
+                isRefreshing ? 'opacity-50 cursor-not-allowed' : ''
+              } ${isDarkMode ? 'text-stone-400 hover:bg-stone-800 hover:text-white' : 'text-stone-500 hover:bg-gray-100 hover:text-stone-900'}`}
+              title="Refresh stats"
+            >
+              <RefreshCw className={`h-5 w-5 ${isRefreshing ? 'animate-spin' : ''}`} />
+            </button>
             <button 
               onClick={handleNotificationClick}
-              className={`p-2 rounded-lg transition-colors flex-shrink-0 relative ${isDarkMode ? 'text-stone-400 hover:bg-stone-800 hover:text-white' : 'text-stone-500 hover:bg-gray-100'}`}
+              className={`p-2 rounded-lg transition-colors flex-shrink-0 relative ${isDarkMode ? 'text-stone-400 hover:bg-stone-800 hover:text-white' : 'text-stone-500 hover:bg-gray-100 hover:text-stone-900'}`}
               title={localNotificationCount > 0 ? `${localNotificationCount} items need attention` : 'Notifications'}
             >
               <Bell className="h-5 w-5" />
