@@ -17,6 +17,7 @@ import {
 import { useTheme } from '../../context/ThemeContext';
 import AdminNavbar from '../../components/AdminNavbar';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth'; // ✅ Import useAuth
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -24,7 +25,7 @@ const AdminQuotes = () => {
   const { isDarkMode } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
-  const [currentUser, setCurrentUser] = useState(null);
+  const { user: authUser, getAccessToken, logout } = useAuth(); // ✅ Use auth context
   
   // ============================================================================
   // STATE MANAGEMENT
@@ -103,80 +104,133 @@ const AdminQuotes = () => {
   const [expandedDay, setExpandedDay] = useState(null);
   const [showWeekends, setShowWeekends] = useState(true);
 
+  // ✅ Get token from auth context
+  const getAuthHeaders = () => {
+    const token = getAccessToken();
+    return {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      ...(token && { 'Authorization': `Bearer ${token}` })
+    };
+  };
+
   // ============================================================================
   // DATA FETCHING
   // ============================================================================
 
+  // ✅ Check authentication on component mount
   useEffect(() => {
-    const fetchQuoteStatuses = async () => {
-      setIsStatusLoading(true);
+    const checkAuthentication = async () => {
+      setIsLoading(true);
       try {
-        const response = await fetch(`${API_URL}/quote-statuses`, {
-          credentials: 'include',
-        });
-
-        if (!response.ok) throw new Error('Failed to fetch quote statuses');
+        // Wait a moment for auth context to initialize
+        await new Promise(resolve => setTimeout(resolve, 100));
         
-        const data = await response.json();
-        setQuoteStatuses(data.statuses || []);
-      } catch (err) {
-        console.error('Error fetching quote statuses:', err);
-        setQuoteStatuses([
-          { name: 'PENDING', value: 'PENDING' },
-          { name: 'SENT', value: 'SENT' },
-          { name: 'ACCEPTED', value: 'ACCEPTED' },
-          { name: 'REJECTED', value: 'REJECTED' },
-          { name: 'CANCELLED', value: 'CANCELLED' }
-        ]);
-      } finally {
-        setIsStatusLoading(false);
-      }
-    };
-
-    fetchQuoteStatuses();
-  }, []);
-
-  // Fetch available users for assignment filter
-  useEffect(() => {
-    const fetchAvailableUsers = async () => {
-      setIsLoadingUsers(true);
-      try {
-        // Try media staff endpoint first
-        const response = await fetch(`${API_URL}/api/auth/users/media-staff`, {
-          credentials: 'include'
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          setAvailableUsers(data.media_staff || []);
-        } else {
-          // Fallback: Get all non-admin users
-          const fallbackResponse = await fetch(`${API_URL}/api/auth/users/non-admins`, {
-            credentials: 'include'
-          });
-          
-          if (fallbackResponse.ok) {
-            const fallbackData = await fallbackResponse.json();
-            setAvailableUsers(fallbackData.users || []);
+        // If no user in auth context after initialization, redirect to login
+        if (!authUser) {
+          const token = getAccessToken();
+          if (!token) {
+            navigate('/admin/login');
           }
         }
-      } catch (err) {
-        console.error('Error fetching users:', err);
       } finally {
-        setIsLoadingUsers(false);
+        setIsLoading(false);
       }
     };
+    
+    checkAuthentication();
+  }, [authUser, getAccessToken, navigate]);
 
-    fetchAvailableUsers();
-  }, []);
+  useEffect(() => {
+    if (authUser) {
+      fetchQuoteStatuses();
+      fetchAvailableUsers();
+    }
+  }, [authUser]);
+
+  const fetchQuoteStatuses = async () => {
+    setIsStatusLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/quote-statuses`, {
+        headers: getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          await logout();
+          navigate('/admin/login');
+          return;
+        }
+        throw new Error('Failed to fetch quote statuses');
+      }
+      
+      const data = await response.json();
+      setQuoteStatuses(data.statuses || []);
+    } catch (err) {
+      console.error('Error fetching quote statuses:', err);
+      setQuoteStatuses([
+        { name: 'PENDING', value: 'PENDING' },
+        { name: 'SENT', value: 'SENT' },
+        { name: 'ACCEPTED', value: 'ACCEPTED' },
+        { name: 'REJECTED', value: 'REJECTED' },
+        { name: 'CANCELLED', value: 'CANCELLED' }
+      ]);
+    } finally {
+      setIsStatusLoading(false);
+    }
+  };
+
+  // Fetch available users for assignment filter
+  const fetchAvailableUsers = async () => {
+    if (!authUser) return;
+    
+    setIsLoadingUsers(true);
+    try {
+      // Try media staff endpoint first
+      const response = await fetch(`${API_URL}/api/auth/users/media-staff`, {
+        headers: getAuthHeaders(),
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setAvailableUsers(data.media_staff || []);
+      } else {
+        if (response.status === 401) {
+          await logout();
+          navigate('/admin/login');
+          return;
+        }
+        
+        // Fallback: Get all non-admin users
+        const fallbackResponse = await fetch(`${API_URL}/api/auth/users/non-admins`, {
+          headers: getAuthHeaders(),
+        });
+        
+        if (fallbackResponse.ok) {
+          const fallbackData = await fallbackResponse.json();
+          setAvailableUsers(fallbackData.users || []);
+        } else if (fallbackResponse.status === 401) {
+          await logout();
+          navigate('/admin/login');
+          return;
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching users:', err);
+    } finally {
+      setIsLoadingUsers(false);
+    }
+  };
 
   useEffect(() => {
     const fetchQuotesWithDebounce = setTimeout(() => {
-      fetchQuotes();
+      if (authUser) {
+        fetchQuotes();
+      }
     }, 300);
 
     return () => clearTimeout(fetchQuotesWithDebounce);
-  }, [filters.status, filters.has_conflicts, filters.date_from, filters.date_to, filters.assigned_to, filters.page]);
+  }, [filters.status, filters.has_conflicts, filters.date_from, filters.date_to, filters.assigned_to, filters.page, authUser]);
 
   useEffect(() => {
     setSearchInput(filters.search);
@@ -273,21 +327,9 @@ const AdminQuotes = () => {
     }
   }, [quotes, activeTab, calendarStatusFilter, calendarUserFilter, prepareCalendarData]);
 
-  const fetchCurrentUser = async () => {
-    try {
-      const response = await fetch(`${API_URL}/api/auth/me`, {
-        credentials: 'include',
-      });
-      if (!response.ok) throw new Error('Not authenticated');
-      const data = await response.json();
-      setCurrentUser(data);
-    } catch (err) {
-      setError(err.message);
-      navigate('/admin/login');
-    }
-  };
-
   const fetchQuotes = async () => {
+    if (!authUser) return;
+    
     setIsLoading(true);
     setError('');
     setProcessingInfo([]);
@@ -304,10 +346,17 @@ const AdminQuotes = () => {
       params.append('per_page', filters.per_page);
 
       const response = await fetch(`${API_URL}/quotes?${params.toString()}`, {
-        credentials: 'include',
+        headers: getAuthHeaders(),
       });
 
-      if (!response.ok) throw new Error('Failed to fetch quotes');
+      if (!response.ok) {
+        if (response.status === 401) {
+          await logout();
+          navigate('/admin/login');
+          return;
+        }
+        throw new Error('Failed to fetch quotes');
+      }
       
       const data = await response.json();
       
@@ -368,6 +417,8 @@ const AdminQuotes = () => {
   };
 
   const handleDrop = async (e, targetDate) => {
+    if (!authUser) return;
+    
     e.preventDefault();
     if (!draggingQuote) return;
     
@@ -383,8 +434,7 @@ const AdminQuotes = () => {
     try {
       const response = await fetch(`${API_URL}/quotes/${draggingQuote.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        headers: getAuthHeaders(),
         body: JSON.stringify({ 
           event_date: targetDate,
           event_time: draggingQuote.event_time,
@@ -401,6 +451,11 @@ const AdminQuotes = () => {
           setProcessingInfo([]);
         }, 3000);
       } else {
+        if (response.status === 401) {
+          await logout();
+          navigate('/admin/login');
+          return;
+        }
         throw new Error('Failed to reschedule');
       }
     } catch (err) {
@@ -949,6 +1004,8 @@ const AdminQuotes = () => {
   // ============================================================================
 
   const handleQuickStatusUpdate = async (quoteId, newStatus) => {
+    if (!authUser) return;
+    
     setIsLoading(true);
     setProcessingInfo([
       '🔄 Updating quote status...',
@@ -959,8 +1016,7 @@ const AdminQuotes = () => {
     try {
       const response = await fetch(`${API_URL}/quotes/${quoteId}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        headers: getAuthHeaders(),
         body: JSON.stringify({ 
           status: newStatus,
           ...(newStatus === 'CANCELLED' && { 
@@ -1006,6 +1062,11 @@ const AdminQuotes = () => {
           setProcessingInfo([]);
         }, 5000);
       } else {
+        if (response.status === 401) {
+          await logout();
+          navigate('/admin/login');
+          return;
+        }
         const errorData = await response.json();
         setError(errorData.message || 'Failed to update status');
         setProcessingInfo([]);
@@ -1023,6 +1084,8 @@ const AdminQuotes = () => {
   // ============================================================================
 
   const handleBulkAction = async () => {
+    if (!authUser) return;
+    
     setIsLoading(true);
     setProcessingInfo(['🔄 Preparing bulk action...', '📧 Gathering email recipients...']);
     
@@ -1031,8 +1094,7 @@ const AdminQuotes = () => {
       
       const previewResponse = await fetch(`${API_URL}/quotes/bulk-action`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           action: bulkAction,
           quote_ids: selectedQuotes,
@@ -1068,8 +1130,7 @@ const AdminQuotes = () => {
 
         const executeResponse = await fetch(`${API_URL}/quotes/bulk-action`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
+          headers: getAuthHeaders(),
           body: JSON.stringify(executePayload)
         });
         
@@ -1097,7 +1158,15 @@ const AdminQuotes = () => {
             setSuccessMessage('');
             setProcessingInfo([]);
           }, 5000);
+        } else if (executeResponse.status === 401) {
+          await logout();
+          navigate('/admin/login');
+          return;
         }
+      } else if (previewResponse.status === 401) {
+        await logout();
+        navigate('/admin/login');
+        return;
       }
     } catch (err) {
       setError(err.message);
@@ -1117,6 +1186,8 @@ const AdminQuotes = () => {
   };
 
   const handleAlertActionConfirm = async () => {
+    if (!authUser) return;
+    
     setAlertActionProgress('🔄 Processing cleanup action...');
     
     try {
@@ -1131,7 +1202,7 @@ const AdminQuotes = () => {
           `${API_URL}/quotes/cleanup?type=overcrowded_day&date=${selectedAlert.date}`, 
           { 
             method: 'DELETE',
-            credentials: 'include' 
+            headers: getAuthHeaders()
           }
         );
         
@@ -1153,6 +1224,10 @@ const AdminQuotes = () => {
           setTimeout(() => {
             setProcessingInfo([]);
           }, 5000);
+        } else if (response.status === 401) {
+          await logout();
+          navigate('/admin/login');
+          return;
         }
         
       } else if (selectedAlert.type === 'OLD_QUOTES') {
@@ -1164,7 +1239,7 @@ const AdminQuotes = () => {
         
         const response = await fetch(`${API_URL}/quotes/cleanup?type=old_quotes`, {
           method: 'DELETE',
-          credentials: 'include',
+          headers: getAuthHeaders(),
         });
         
         if (response.ok) {
@@ -1185,6 +1260,10 @@ const AdminQuotes = () => {
           setTimeout(() => {
             setProcessingInfo([]);
           }, 5000);
+        } else if (response.status === 401) {
+          await logout();
+          navigate('/admin/login');
+          return;
         }
         
       } else if (selectedAlert.type === 'TIME_CONFLICT' && selectedAlert.quote_id) {
@@ -1324,12 +1403,17 @@ const AdminQuotes = () => {
   if (isLoading && quotes.length === 0 && !isStatusLoading) {
     return (
       <div className={`min-h-screen flex items-center justify-center ${isDarkMode ? 'bg-stone-950' : 'bg-gray-50'}`}>
-        <div className="flex flex-col items-center">
-          <Loader2 className="h-10 w-10 text-gold-500 animate-spin mb-4" />
-          <p className={`font-serif ${isDarkMode ? 'text-white' : 'text-stone-600'}`}>Loading quotes...</p>
+        <div className="relative">
+          <div className="absolute inset-0 blur-3xl opacity-20 bg-gradient-to-r from-gold-500 to-amber-500 rounded-full animate-pulse" />
+          <Loader2 className={`relative animate-spin h-12 w-12 ${isDarkMode ? 'text-gold-500' : 'text-gold-600'}`} />
         </div>
       </div>
     );
+  }
+
+  // ✅ Check if user is authenticated
+  if (!authUser) {
+    return null; // Will redirect via useEffect
   }
 
   // ============================================================================
@@ -1558,7 +1642,7 @@ const AdminQuotes = () => {
   return (
     <div className={`flex min-h-screen ${isDarkMode ? 'bg-stone-950' : 'bg-gray-50'}`}>
       <AdminNavbar 
-        user={currentUser} 
+        user={authUser} // ✅ Use authUser from context
         onCollapsedChange={setSidebarCollapsed}
       />
       

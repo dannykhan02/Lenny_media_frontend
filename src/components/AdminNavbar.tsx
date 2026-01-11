@@ -24,16 +24,16 @@ import {
   FileText,
   Loader2,
   AlertTriangle,
-  Trash2 // NEW: Import Trash2 icon for cleanup
+  Trash2
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../context/ThemeContext';
 
-// ✅ FIXED: Use environment variable with fallback
+// ✅ UPDATED: Use environment variable with fallback
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 interface AdminNavbarProps {
-  user: any;
+  user: any; // ✅ This will now be the authUser from useAuth
   onCollapsedChange?: (collapsed: boolean) => void;
   bookingStats?: {
     pending: number;
@@ -80,7 +80,7 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
 }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { logout, refreshAuth } = useAuth();
+  const { logout, getAccessToken } = useAuth(); // ✅ Get getAccessToken from useAuth
   const { isDarkMode, toggleTheme } = useTheme();
   const [collapsed, setCollapsed] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -89,6 +89,16 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
   const [profileError, setProfileError] = useState('');
+
+  // ✅ UPDATED: Helper function to get auth headers
+  const getAuthHeaders = () => {
+    const token = getAccessToken();
+    return {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      ...(token && { 'Authorization': `Bearer ${token}` })
+    };
+  };
 
   // Local state for stats with auto-refresh
   const [localBookingStats, setLocalBookingStats] = useState(bookingStats || { pending: 0, confirmed: 0 });
@@ -99,15 +109,11 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
   });
   const [localNotificationCount, setLocalNotificationCount] = useState(notificationCount);
 
-  // ✅ FIXED: Fetch booking stats with proper error handling
+  // ✅ UPDATED: Fetch booking stats with token-based authentication
   const fetchBookingStats = async () => {
     try {
       const response = await fetch(`${API_URL}/admin/bookings/stats`, {
-        credentials: 'include',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(),
       });
       
       if (!response.ok) {
@@ -131,15 +137,11 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
     }
   };
 
-  // ✅ FIXED: Fetch quote stats with proper error handling
+  // ✅ UPDATED: Fetch quote stats with token-based authentication
   const fetchQuoteStats = async () => {
     try {
       const response = await fetch(`${API_URL}/quotes/summary`, {
-        credentials: 'include',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(),
       });
       
       if (!response.ok) {
@@ -162,15 +164,11 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
     }
   };
 
-  // ✅ FIXED: Fetch notification count with proper error handling
+  // ✅ UPDATED: Fetch notification count with token-based authentication
   const fetchNotificationCount = async () => {
     try {
       const response = await fetch(`${API_URL}/notifications/unread-count`, {
-        credentials: 'include',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(),
       });
       
       if (!response.ok) {
@@ -221,6 +219,7 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
     setLocalNotificationCount(notificationCount);
   }, [notificationCount]);
 
+  // ✅ UPDATED: Fetch profile using token-based authentication
   useEffect(() => {
     const fetchProfileFromMe = async () => {
       setProfileLoading(true);
@@ -229,14 +228,11 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
       try {
         const response = await fetch(`${API_URL}/api/auth/me`, {
           method: 'GET',
-          credentials: 'include',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-          },
+          headers: getAuthHeaders(),
         });
 
         if (!response.ok) {
+          // If unauthorized, the parent component will handle logout
           throw new Error(`HTTP error! status: ${response.status}`);
         }
 
@@ -263,6 +259,7 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
         console.error('Failed to fetch admin profile from /api/auth/me:', error);
         setProfileError('Failed to load profile data');
         
+        // Fallback to user prop if available
         if (user) {
           const fallbackProfile: ProfileData = {
             id: user.id || 0,
@@ -285,7 +282,9 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
       }
     };
 
-    fetchProfileFromMe();
+    if (user) {
+      fetchProfileFromMe();
+    }
   }, [user]);
 
   const getInitials = (name: string) => {
@@ -344,7 +343,7 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
     });
   };
 
-  // UPDATED: Navigation items structure with Booking Cleanup subitem
+  // Navigation items structure with Booking Cleanup subitem
   const navItems: NavItem[] = [
     {
       name: 'Dashboard',
@@ -381,7 +380,7 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
         { 
           name: 'Booking Cleanup', 
           path: '/admin/bookings/cleanup',
-          icon: <Trash2 className="h-4 w-4" />, // NEW: Add Booking Cleanup subitem
+          icon: <Trash2 className="h-4 w-4" />,
         },
       ]
     },
@@ -394,7 +393,7 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
           name: 'All Quotes', 
           path: '/admin/quotes',
           icon: <FileText className="h-4 w-4" />,
-          badge: localQuoteStats.pending_count || 0  // Show pending count on All Quotes
+          badge: localQuoteStats.pending_count || 0
         },
         { 
           name: 'Calendar View', 
@@ -454,7 +453,6 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
   const handleLogout = async () => {
     try {
       await logout();
-      refreshAuth();
       navigate('/admin/login');
     } catch (err) {
       console.error('Logout failed:', err);
@@ -470,7 +468,7 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
     }
   };
 
-  // FIXED: Added proper type for the image error event
+  // ✅ FIXED: Added proper type for the image error event
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     const target = e.currentTarget as HTMLImageElement;
     target.style.display = 'none';
@@ -496,9 +494,9 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
     }
 
     const avatarUrl = getAvatarUrl();
-    const fullName = profile?.full_name || 'Admin';
-    const email = profile?.email || 'admin@lennymedia.co.ke';
-    const role = profile?.role || 'ADMIN';
+    const fullName = profile?.full_name || user?.full_name || 'Admin';
+    const email = profile?.email || user?.email || 'admin@lennymedia.co.ke';
+    const role = profile?.role || user?.role || 'ADMIN';
     const initials = getInitials(fullName);
 
     return (
@@ -515,7 +513,7 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
           <div className={`w-10 h-10 rounded-full bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center text-stone-900 font-bold text-lg border-2 border-gold-500 ${avatarUrl ? 'hidden avatar-fallback' : ''}`}>
             {initials}
           </div>
-          {profile?.is_active && (
+          {(profile?.is_active || user?.is_active) && (
             <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-stone-900"></div>
           )}
         </div>

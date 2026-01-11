@@ -8,7 +8,9 @@ import { useNavigate } from 'react-router-dom';
 import MobileBottomSheet from '../../components/MobileBottomSheet';
 import DeleteConfirmationModal from '../../components/DeleteConfirmationModal';
 import ResponsiveTable from '../../components/ResponsiveTable';
+import { useAuth } from '../../hooks/useAuth'; // ✅ Import useAuth
 
+// ✅ Use environment variable with fallback
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 interface Service {
@@ -32,7 +34,7 @@ interface Service {
 const AdminServices: React.FC = () => {
   const { isDarkMode } = useTheme();
   const navigate = useNavigate();
-  const [user, setUser] = useState<any>(null);
+  const { user: authUser, getAccessToken, logout } = useAuth(); // ✅ Use auth context
   const [services, setServices] = useState<Service[]>([]);
   const [filteredServices, setFilteredServices] = useState<Service[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -89,40 +91,77 @@ const AdminServices: React.FC = () => {
   // View mode
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
 
-  useEffect(() => {
-    fetchCurrentUser();
-    fetchCategories();
-    fetchServices();
-  }, []);
+  // ✅ Get token from auth context
+  const getAuthHeaders = () => {
+    const token = getAccessToken();
+    return {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      ...(token && { 'Authorization': `Bearer ${token}` })
+    };
+  };
 
   useEffect(() => {
-    fetchServices();
-  }, [currentPage, perPage]);
+    // ✅ Check authentication first
+    const checkAuthentication = async () => {
+      setIsLoading(true);
+      try {
+        // Wait a moment for auth context to initialize
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // If no user in auth context after initialization, redirect to login
+        if (!authUser) {
+          const token = getAccessToken();
+          if (!token) {
+            navigate('/admin/login');
+            return;
+          }
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    checkAuthentication();
+  }, [authUser, getAccessToken, navigate]);
+
+  useEffect(() => {
+    if (authUser) {
+      fetchCategories();
+      fetchServices();
+    }
+  }, [authUser]);
+
+  useEffect(() => {
+    if (authUser) {
+      fetchServices();
+    }
+  }, [authUser, currentPage, perPage]);
 
   useEffect(() => {
     filterServices();
   }, [services, searchTerm, categoryFilter, statusFilter]);
 
-  const fetchCurrentUser = async () => {
-    try {
-      const response = await fetch(`${API_URL}/api/auth/me`, {
-        credentials: 'include',
-      });
-      if (!response.ok) throw new Error('Not authenticated');
-      const data = await response.json();
-      setUser(data);
-    } catch (err: any) {
-      setError(err.message);
-      navigate('/admin/login');
-    }
-  };
-
+  // ✅ FIXED: fetchCategories with token-based authentication
   const fetchCategories = async () => {
     try {
       const response = await fetch(`${API_URL}/service-categories`, {
-        credentials: 'include',
+        method: 'GET',
+        headers: getAuthHeaders(), // ✅ Use token-based headers
+        // REMOVED: credentials: 'include'
       });
-      if (!response.ok) throw new Error('Failed to fetch categories');
+      
+      if (!response.ok) {
+        if (response.status === 401) {
+          // Token expired or invalid
+          console.log('🔄 Token expired, logging out...');
+          await logout();
+          navigate('/admin/login');
+          return;
+        }
+        throw new Error(`Failed to fetch categories (HTTP ${response.status})`);
+      }
+      
       const data = await response.json();
       setCategories(data.categories || []);
       
@@ -138,8 +177,10 @@ const AdminServices: React.FC = () => {
     }
   };
 
+  // ✅ FIXED: fetchServices with token-based authentication
   const fetchServices = async () => {
     setIsLoading(true);
+    setError('');
     try {
       const params = new URLSearchParams({
         page: currentPage.toString(),
@@ -150,14 +191,24 @@ const AdminServices: React.FC = () => {
       });
 
       const response = await fetch(`${API_URL}/admin/services?${params}`, {
-        credentials: 'include',
+        method: 'GET',
+        headers: getAuthHeaders(), // ✅ Use token-based headers
+        // REMOVED: credentials: 'include'
       });
       
       if (!response.ok) {
+        if (response.status === 401) {
+          // Token expired or invalid
+          console.log('🔄 Token expired, logging out...');
+          await logout();
+          navigate('/admin/login');
+          return;
+        }
+        
         if (response.status === 403) {
           throw new Error('Only admins can access services');
         }
-        throw new Error('Failed to fetch services');
+        throw new Error(`Failed to fetch services (HTTP ${response.status})`);
       }
       
       const data = await response.json();
@@ -280,6 +331,7 @@ const AdminServices: React.FC = () => {
     });
   };
 
+  // ✅ FIXED: handleSubmit with token-based authentication
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -308,12 +360,20 @@ const AdminServices: React.FC = () => {
 
       const response = await fetch(url, {
         method: modalMode === 'create' ? 'POST' : 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        headers: getAuthHeaders(), // ✅ Use token-based headers
+        // REMOVED: credentials: 'include'
         body: JSON.stringify(payload)
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          // Token expired or invalid
+          console.log('🔄 Token expired, logging out...');
+          await logout();
+          navigate('/admin/login');
+          return;
+        }
+        
         const errorData = await response.json();
         console.error('Server error details:', errorData);
         const errorMessage = errorData.message || errorData.error || JSON.stringify(errorData) || 'Operation failed';
@@ -340,6 +400,7 @@ const AdminServices: React.FC = () => {
     });
   };
 
+  // ✅ FIXED: confirmDelete with token-based authentication
   const confirmDelete = async () => {
     if (!deleteModal.serviceId) return;
 
@@ -347,10 +408,20 @@ const AdminServices: React.FC = () => {
     try {
       const response = await fetch(`${API_URL}/services/${deleteModal.serviceId}`, {
         method: 'DELETE',
-        credentials: 'include',
+        headers: getAuthHeaders(), // ✅ Use token-based headers
+        // REMOVED: credentials: 'include'
       });
 
-      if (!response.ok) throw new Error('Failed to delete service');
+      if (!response.ok) {
+        if (response.status === 401) {
+          // Token expired or invalid
+          console.log('🔄 Token expired, logging out...');
+          await logout();
+          navigate('/admin/login');
+          return;
+        }
+        throw new Error(`Failed to delete service (HTTP ${response.status})`);
+      }
 
       setSuccessMessage('Service deleted successfully!');
       setTimeout(() => setSuccessMessage(''), 3000);
@@ -364,16 +435,26 @@ const AdminServices: React.FC = () => {
     }
   };
 
+  // ✅ FIXED: toggleServiceStatus with token-based authentication
   const toggleServiceStatus = async (service: Service) => {
     try {
       const response = await fetch(`${API_URL}/services/${service.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        headers: getAuthHeaders(), // ✅ Use token-based headers
+        // REMOVED: credentials: 'include'
         body: JSON.stringify({ is_active: !service.is_active })
       });
 
-      if (!response.ok) throw new Error('Failed to update service status');
+      if (!response.ok) {
+        if (response.status === 401) {
+          // Token expired or invalid
+          console.log('🔄 Token expired, logging out...');
+          await logout();
+          navigate('/admin/login');
+          return;
+        }
+        throw new Error(`Failed to update service status (HTTP ${response.status})`);
+      }
 
       setSuccessMessage('Service status updated!');
       setTimeout(() => setSuccessMessage(''), 3000);
@@ -772,7 +853,7 @@ const AdminServices: React.FC = () => {
     return null;
   };
 
-  if (isLoading && !user) {
+  if (isLoading && !authUser) {
     return (
       <div className={`min-h-screen flex items-center justify-center ${isDarkMode ? 'bg-stone-950' : 'bg-gray-50'}`}>
         <div className="flex flex-col items-center">
@@ -783,9 +864,14 @@ const AdminServices: React.FC = () => {
     );
   }
 
+  // ✅ Check if user is authenticated
+  if (!authUser) {
+    return null; // Will redirect via useEffect
+  }
+
   return (
     <div className={`flex min-h-screen ${isDarkMode ? 'bg-stone-950' : 'bg-gray-50'}`}>
-      <AdminNavbar user={user} onCollapsedChange={setSidebarCollapsed} />
+      <AdminNavbar user={authUser} onCollapsedChange={setSidebarCollapsed} />
       <main className={`flex-1 min-h-screen overflow-y-auto transition-all duration-300 pt-20 lg:pt-0 ${sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-72'}`}>
         <div className="p-3 sm:p-4 md:p-6 lg:p-8 max-w-[1600px] mx-auto">
           

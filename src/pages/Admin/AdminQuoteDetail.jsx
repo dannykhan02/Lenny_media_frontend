@@ -1,3 +1,4 @@
+// pages/Admin/AdminQuoteDetail.tsx
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { 
   ArrowLeft, Edit3, Save, X, Trash2, Send, CheckCircle, XCircle, 
@@ -15,6 +16,7 @@ import {
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
 import AdminNavbar from '../../components/AdminNavbar';
+import { useAuth } from '../../hooks/useAuth'; // ✅ Import useAuth
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -36,9 +38,10 @@ const AdminQuoteDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { isDarkMode } = useTheme();
+  const { getAccessToken, logout } = useAuth(); // ✅ Get token functions from auth context
 
   // ============================================================================
-  // ENHANCED STATE MANAGEMENT WITH BACKEND INTEGRATION
+  // STATE MANAGEMENT
   // ============================================================================
   
   const [quote, setQuote] = useState(null);
@@ -65,7 +68,7 @@ const AdminQuoteDetail = () => {
   const [showStudioHours, setShowStudioHours] = useState(false);
   const [activeAlertAction, setActiveAlertAction] = useState(null);
   
-  // NEW: Backend-powered states
+  // Backend-powered states
   const [dateAvailability, setDateAvailability] = useState(null);
   const [studioHoursWarning, setStudioHoursWarning] = useState(null);
   const [bulkPreviewData, setBulkPreviewData] = useState(null);
@@ -79,23 +82,33 @@ const AdminQuoteDetail = () => {
   // Studio hours from hardcoded constant (matches backend)
   const [studioHours, setStudioHours] = useState(STUDIO_HOURS);
   
-  // NEW: Alternative times diagnostics
+  // Alternative times diagnostics
   const [alternativeTimesDiagnostics, setAlternativeTimesDiagnostics] = useState(null);
   const [isFetchingAlternatives, setIsFetchingAlternatives] = useState(false);
   
-  // NEW: Enhanced states for auto-fill and auto-resolve features
+  // Enhanced states for auto-fill and auto-resolve features
   const [selectedAlternativeTime, setSelectedAlternativeTime] = useState(null);
   const [autoResolvedConflict, setAutoResolvedConflict] = useState(false);
   const [enhancedAlerts, setEnhancedAlerts] = useState([]);
 
-  // NEW: Assignment functionality states
+  // Assignment functionality states
   const [availableUsers, setAvailableUsers] = useState([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState(null);
 
+  // ✅ Helper function to get authentication headers with token
+  const getAuthHeaders = () => {
+    const token = getAccessToken();
+    return {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      ...(token && { 'Authorization': `Bearer ${token}` })
+    };
+  };
+
   // ============================================================================
-  // ENHANCED UTILITY FUNCTIONS WITH BACKEND INTEGRATION
+  // UTILITY FUNCTIONS
   // ============================================================================
 
   // Use hardcoded studio hours (matches backend)
@@ -180,28 +193,38 @@ const AdminQuoteDetail = () => {
     try {
       const response = await fetch(
         `${API_URL}/quotes/${quoteId}/alternative-times?max_suggestions=${maxSuggestions}`,
-        { credentials: 'include' }
+        {
+          headers: getAuthHeaders(), // ✅ Use token-based headers
+          // REMOVED: credentials: 'include'
+        }
       );
       
-      if (response.ok) {
-        const data = await response.json();
-        
-        if (data.success && data.available_times) {
-          setTimeSuggestions(data.available_times);
-          setAlternativeTimesDiagnostics(data.diagnostics);
-          
-          if (!silent) {
-            setSuccessMessage('✅ Alternative times refreshed successfully!');
-          }
-          
-          return data.available_times;
-        } else {
-          console.warn('No verified alternatives available:', data.error);
-          setTimeSuggestions([]);
+      if (!response.ok) {
+        if (response.status === 401) {
+          // Token expired or invalid
+          console.log('🔄 Token expired, logging out...');
+          await logout();
+          navigate('/admin/login');
           return [];
         }
-      } else {
         console.error('Failed to fetch alternative times');
+        setTimeSuggestions([]);
+        return [];
+      }
+      
+      const data = await response.json();
+      
+      if (data.success && data.available_times) {
+        setTimeSuggestions(data.available_times);
+        setAlternativeTimesDiagnostics(data.diagnostics);
+        
+        if (!silent) {
+          setSuccessMessage('✅ Alternative times refreshed successfully!');
+        }
+        
+        return data.available_times;
+      } else {
+        console.warn('No verified alternatives available:', data.error);
         setTimeSuggestions([]);
         return [];
       }
@@ -217,7 +240,7 @@ const AdminQuoteDetail = () => {
         }
       }, 2000);
     }
-  }, [processingInfo]);
+  }, [processingInfo, getAccessToken, logout, navigate]);
 
   const checkDateAvailability = useCallback(async (selectedDate, excludeQuoteId = id) => {
     if (!selectedDate) return;
@@ -227,37 +250,47 @@ const AdminQuoteDetail = () => {
     try {
       const response = await fetch(
         `${API_URL}/quotes?date_from=${selectedDate}&date_to=${selectedDate}&status=PENDING,SENT,ACCEPTED`,
-        { credentials: 'include' }
+        {
+          headers: getAuthHeaders(), // ✅ Use token-based headers
+          // REMOVED: credentials: 'include'
+        }
       );
       
-      if (response.ok) {
-        const data = await response.json();
-        const quoteCount = data.quotes?.filter(q => parseInt(q.id) !== parseInt(excludeQuoteId)).length || 0;
-        
-        const availability = {
-          count: quoteCount,
-          available: quoteCount < MAX_QUOTES_PER_DAY,
-          remaining: MAX_QUOTES_PER_DAY - quoteCount,
-          message: quoteCount >= MAX_QUOTES_PER_DAY 
-            ? `❌ Day fully booked (${quoteCount}/${MAX_QUOTES_PER_DAY})`
-            : `✅ ${MAX_QUOTES_PER_DAY - quoteCount} slot${MAX_QUOTES_PER_DAY - quoteCount === 1 ? '' : 's'} remaining`
-        };
-        
-        setDateAvailability(availability);
-        
-        setDailyQuoteCounts(prev => ({
-          ...prev,
-          [selectedDate]: quoteCount
-        }));
-        
-        return availability;
+      if (!response.ok) {
+        if (response.status === 401) {
+          await logout();
+          navigate('/admin/login');
+          return;
+        }
+        return;
       }
+      
+      const data = await response.json();
+      const quoteCount = data.quotes?.filter(q => parseInt(q.id) !== parseInt(excludeQuoteId)).length || 0;
+      
+      const availability = {
+        count: quoteCount,
+        available: quoteCount < MAX_QUOTES_PER_DAY,
+        remaining: MAX_QUOTES_PER_DAY - quoteCount,
+        message: quoteCount >= MAX_QUOTES_PER_DAY 
+          ? `❌ Day fully booked (${quoteCount}/${MAX_QUOTES_PER_DAY})`
+          : `✅ ${MAX_QUOTES_PER_DAY - quoteCount} slot${MAX_QUOTES_PER_DAY - quoteCount === 1 ? '' : 's'} remaining`
+      };
+      
+      setDateAvailability(availability);
+      
+      setDailyQuoteCounts(prev => ({
+        ...prev,
+        [selectedDate]: quoteCount
+      }));
+      
+      return availability;
     } catch (err) {
       console.error('Error checking availability:', err);
     } finally {
       setTimeout(() => setProcessingInfo([]), 2000);
     }
-  }, [id]);
+  }, [id, getAccessToken, logout, navigate]);
 
   // Enhanced conflict resolution check
   const checkConflictResolved = useCallback((newDate, newTime) => {
@@ -342,13 +375,13 @@ const AdminQuoteDetail = () => {
   }, [quote?.event_date, validateStudioHours, checkDateAvailability]);
 
   // ============================================================================
-  // ENHANCED DATA FETCHING WITH BACKEND CAPABILITIES
+  // DATA FETCHING WITH TOKEN-BASED AUTHENTICATION
   // ============================================================================
 
   useEffect(() => {
     fetchQuote();
     fetchQuoteStatuses();
-    fetchAvailableUsers(); // NEW: Fetch users for assignment
+    fetchAvailableUsers(); // Fetch users for assignment
   }, [id]);
 
   // Auto-refresh when date/time changes
@@ -385,29 +418,28 @@ const AdminQuoteDetail = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isEditMode]);
 
-  // NEW: Fetch available users for assignment
+  // Fetch available users for assignment
   const fetchAvailableUsers = async () => {
     setIsLoadingUsers(true);
     try {
       // Get all media staff (photographers + videographers)
       const response = await fetch(`${API_URL}/api/auth/users/media-staff`, {
-        credentials: 'include'
+        headers: getAuthHeaders(), // ✅ Use token-based headers
+        // REMOVED: credentials: 'include'
       });
       
-      if (response.ok) {
-        const data = await response.json();
-        setAvailableUsers(data.media_staff || []);
-      } else {
-        // Fallback: Get all non-admin users
-        const fallbackResponse = await fetch(`${API_URL}/api/auth/users/non-admins`, {
-          credentials: 'include'
-        });
-        
-        if (fallbackResponse.ok) {
-          const fallbackData = await fallbackResponse.json();
-          setAvailableUsers(fallbackData.users || []);
+      if (!response.ok) {
+        if (response.status === 401) {
+          await logout();
+          navigate('/admin/login');
+          return;
         }
+        throw new Error('Failed to fetch users');
       }
+      
+      const data = await response.json();
+      setAvailableUsers(data.media_staff || []);
+      
     } catch (err) {
       console.error('Error fetching users:', err);
       setError('Failed to load users for assignment');
@@ -416,7 +448,7 @@ const AdminQuoteDetail = () => {
     }
   };
 
-  // NEW: Handle user assignment
+  // Handle user assignment
   const handleAssignUser = async () => {
     if (!selectedUserId) {
       setError('Please select a user to assign');
@@ -436,14 +468,18 @@ const AdminQuoteDetail = () => {
     try {
       const response = await fetch(`${API_URL}/quotes/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        headers: getAuthHeaders(), // ✅ Use token-based headers
         body: JSON.stringify({
           assigned_to: selectedUserId
         })
       });
       
       if (!response.ok) {
+        if (response.status === 401) {
+          await logout();
+          navigate('/admin/login');
+          return;
+        }
         const errorData = await response.json();
         throw new Error(errorData.message || 'Failed to assign quote');
       }
@@ -486,10 +522,16 @@ const AdminQuoteDetail = () => {
     
     try {
       const response = await fetch(`${API_URL}/quotes/${id}`, {
-        credentials: 'include'
+        headers: getAuthHeaders(), // ✅ Use token-based headers
+        // REMOVED: credentials: 'include'
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          await logout();
+          navigate('/admin/login');
+          return;
+        }
         if (response.status === 404) {
           throw new Error('Quote not found');
         }
@@ -559,13 +601,22 @@ const AdminQuoteDetail = () => {
   const fetchQuoteStatuses = async () => {
     try {
       const response = await fetch(`${API_URL}/quote-statuses`, {
-        credentials: 'include',
+        headers: getAuthHeaders(), // ✅ Use token-based headers
+        // REMOVED: credentials: 'include'
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        setQuoteStatuses(data.statuses || []);
+      if (!response.ok) {
+        if (response.status === 401) {
+          await logout();
+          navigate('/admin/login');
+          return;
+        }
+        throw new Error('Failed to fetch statuses');
       }
+      
+      const data = await response.json();
+      setQuoteStatuses(data.statuses || []);
+      
     } catch (err) {
       console.error('Error fetching statuses:', err);
       setQuoteStatuses([
@@ -579,7 +630,7 @@ const AdminQuoteDetail = () => {
   };
 
   // ============================================================================
-  // ENHANCED EDIT HANDLERS WITH BACKEND INTEGRATION & GAP FIXES
+  // EDIT HANDLERS
   // ============================================================================
 
   const handleEditToggle = () => {
@@ -605,7 +656,7 @@ const AdminQuoteDetail = () => {
     setSelectedAlternativeTime(null);
   };
 
-  // NEW: Handle alternative time click with auto-fill
+  // Handle alternative time click with auto-fill
   const handleAlternativeTimeClick = (altTime) => {
     const timeValue = altTime.time || altTime;
     setSelectedAlternativeTime(timeValue);
@@ -759,12 +810,16 @@ const AdminQuoteDetail = () => {
 
       const response = await fetch(`${API_URL}/quotes/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        headers: getAuthHeaders(), // ✅ Use token-based headers
         body: JSON.stringify(payload)
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          await logout();
+          navigate('/admin/login');
+          return;
+        }
         const errorData = await response.json();
         throw new Error(errorData.message || 'Failed to update quote');
       }
@@ -860,7 +915,7 @@ const AdminQuoteDetail = () => {
   };
 
   // ============================================================================
-  // ENHANCED STATUS CHANGE HANDLERS WITH EMAIL PROCESSING FEEDBACK
+  // STATUS CHANGE HANDLERS
   // ============================================================================
 
   const handleStatusChange = async (newStatus) => {
@@ -884,8 +939,7 @@ const AdminQuoteDetail = () => {
     try {
       const response = await fetch(`${API_URL}/quotes/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        headers: getAuthHeaders(), // ✅ Use token-based headers
         body: JSON.stringify({ 
           status: newStatus,
           ...(isCancellation && { cancellation_reason: cancellationReason })
@@ -893,6 +947,11 @@ const AdminQuoteDetail = () => {
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          await logout();
+          navigate('/admin/login');
+          return;
+        }
         const errorData = await response.json();
         throw new Error(errorData.message || 'Failed to update status');
       }
@@ -953,7 +1012,7 @@ const AdminQuoteDetail = () => {
   };
 
   // ============================================================================
-  // ENHANCED DELETE HANDLER WITH EMAIL PROCESSING FEEDBACK
+  // DELETE HANDLER
   // ============================================================================
 
   const handleDelete = async () => {
@@ -969,14 +1028,18 @@ const AdminQuoteDetail = () => {
     try {
       const response = await fetch(`${API_URL}/quotes/${id}`, {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        headers: getAuthHeaders(), // ✅ Use token-based headers
         body: JSON.stringify({ 
           cancellation_reason: deleteReason || 'Quote cancelled by admin'
         })
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          await logout();
+          navigate('/admin/login');
+          return;
+        }
         const errorData = await response.json();
         throw new Error(errorData.message || 'Failed to delete quote');
       }
@@ -1019,7 +1082,7 @@ const AdminQuoteDetail = () => {
   };
 
   // ============================================================================
-  // ALERT ACTION HANDLERS WITH BACKEND API CALL INTEGRATION
+  // ALERT ACTION HANDLERS
   // ============================================================================
 
   const handleAlertAction = async (alert) => {
@@ -1041,45 +1104,48 @@ const AdminQuoteDetail = () => {
         `${API_URL}${alert.api_call.endpoint}`,
         {
           method: alert.api_call.method,
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
+          headers: getAuthHeaders(), // ✅ Use token-based headers
           body: alert.api_call.payload ? JSON.stringify(alert.api_call.payload) : undefined
         }
       );
       
-      if (response.ok) {
-        const data = await response.json();
-        
-        // Enhanced success feedback
-        setSuccessMessage(`✅ ${alert.suggested_action || 'Action'} completed successfully!`);
-        
-        if (data.processing_info) {
-          setProcessingInfo([
-            '✅ Action completed!',
-            data.processing_info.email_sent ? '📧 Email notifications sent' : '📧 Emails queued',
-            '🔄 Refreshing data...'
-          ]);
-        } else {
-          setProcessingInfo(['✅ Action completed!', '🔄 Refreshing data...']);
+      if (!response.ok) {
+        if (response.status === 401) {
+          await logout();
+          navigate('/admin/login');
+          return;
         }
-        
-        // Refresh the quote data
-        fetchQuote();
-        
-        // Clear conflict if resolved
-        if (alert.type === 'TIME_CONFLICT' && conflictDetails) {
-          setConflictDetails(null);
-        }
-        
-        setTimeout(() => {
-          setSuccessMessage('');
-          setProcessingInfo([]);
-        }, 5000);
-        
-      } else {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Failed to execute action');
       }
+      
+      const data = await response.json();
+      
+      // Enhanced success feedback
+      setSuccessMessage(`✅ ${alert.suggested_action || 'Action'} completed successfully!`);
+      
+      if (data.processing_info) {
+        setProcessingInfo([
+          '✅ Action completed!',
+          data.processing_info.email_sent ? '📧 Email notifications sent' : '📧 Emails queued',
+          '🔄 Refreshing data...'
+        ]);
+      } else {
+        setProcessingInfo(['✅ Action completed!', '🔄 Refreshing data...']);
+      }
+      
+      // Refresh the quote data
+      fetchQuote();
+      
+      // Clear conflict if resolved
+      if (alert.type === 'TIME_CONFLICT' && conflictDetails) {
+        setConflictDetails(null);
+      }
+      
+      setTimeout(() => {
+        setSuccessMessage('');
+        setProcessingInfo([]);
+      }, 5000);
       
     } catch (err) {
       setError(`Failed to process alert: ${err.message}`);
@@ -1153,7 +1219,7 @@ const AdminQuoteDetail = () => {
     return date.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
   };
 
-  // NEW: Enhanced alert renderer
+  // Enhanced alert renderer
   const renderEnhancedAlert = (alert) => {
     const isActive = activeAlertAction === alert.type;
     
@@ -1398,7 +1464,7 @@ const AdminQuoteDetail = () => {
   };
 
   // ============================================================================
-  // ENHANCED CONFLICT DETAILS WITH BACKEND VERIFIED ALTERNATIVES
+  // CONFLICT DETAILS
   // ============================================================================
 
   const renderConflictDetails = () => {
@@ -1486,7 +1552,7 @@ const AdminQuoteDetail = () => {
                 </div>
               )}
               
-              {/* Action buttons - Remove Apply Suggested Fix button here */}
+              {/* Action buttons */}
               <div className="flex flex-wrap gap-2 mt-3">
                 <button
                   onClick={() => {
@@ -1582,7 +1648,7 @@ const AdminQuoteDetail = () => {
   };
 
   // ============================================================================
-  // ENHANCED ALERTS WITH BACKEND API CALL INTEGRATION
+  // ALERTS
   // ============================================================================
 
   const renderBackendAlerts = () => {
@@ -1700,7 +1766,7 @@ const AdminQuoteDetail = () => {
   };
 
   // ============================================================================
-  // UPDATED: Services rendering with price range (Kenyan Shilling & Dark Mode Support)
+  // SERVICES RENDERING
   // ============================================================================
 
   const renderServicesWithPriceRange = () => {
@@ -2307,7 +2373,7 @@ const AdminQuoteDetail = () => {
                 </div>
               </div>
 
-              {/* Services Section - UPDATED with Ksh Price Range */}
+              {/* Services Section */}
               <div className={`rounded-xl border p-4 sm:p-6 ${
                 isDarkMode ? 'bg-stone-900 border-stone-800' : 'bg-white border-gray-200'
               }`}>
@@ -2353,7 +2419,7 @@ const AdminQuoteDetail = () => {
                 )}
               </div>
 
-              {/* Quote Response - UPDATED with Ksh */}
+              {/* Quote Response */}
               <div className={`rounded-xl border p-4 sm:p-6 ${
                 isDarkMode ? 'bg-stone-900 border-stone-800' : 'bg-white border-gray-200'
               }`}>
@@ -2568,7 +2634,7 @@ const AdminQuoteDetail = () => {
                 )}
               </div>
 
-              {/* NEW: Assignment Management - Updated with Avatar Display */}
+              {/* Assignment Management */}
               <div className={`rounded-xl border p-4 sm:p-6 ${
                 isDarkMode ? 'bg-stone-900 border-stone-800' : 'bg-white border-gray-200'
               }`}>
@@ -2590,7 +2656,6 @@ const AdminQuoteDetail = () => {
                         Assigned To:
                       </p>
                       <div className="flex items-center gap-2">
-                        {/* Updated Avatar Display */}
                         {(() => {
                           const assignedUser = availableUsers.find(u => u.id === quote.assigned_to);
                           if (assignedUser?.avatar_url) {
@@ -2797,7 +2862,7 @@ const AdminQuoteDetail = () => {
       MODALS
       ============================================================================ */}
 
-      {/* Delete Confirmation Modal - Fully Responsive */}
+      {/* Delete Confirmation Modal */}
       {showDeleteModal && (
         <div className={`fixed inset-0 ${isDarkMode ? 'bg-black/60' : 'bg-black/50'} backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4`}>
           <div className={`${isDarkMode ? 'bg-stone-900/50' : 'bg-white'} rounded-xl shadow-2xl w-full max-w-md border ${isDarkMode ? 'border-stone-700' : 'border-gray-200'} max-h-[90vh] overflow-y-auto`}>
@@ -2859,7 +2924,7 @@ const AdminQuoteDetail = () => {
         </div>
       )}
 
-      {/* Reschedule Modal - Fully Responsive */}
+      {/* Reschedule Modal */}
       {showRescheduleModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3 sm:p-4">
           <div className={`rounded-xl max-w-md w-full p-4 sm:p-6 max-h-[90vh] overflow-y-auto ${
@@ -3015,7 +3080,7 @@ const AdminQuoteDetail = () => {
         </div>
       )}
 
-      {/* NEW: Assignment Modal - Fully Responsive with Avatar Display */}
+      {/* Assignment Modal */}
       {showAssignModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3 sm:p-4">
           <div className={`rounded-xl max-w-md w-full p-4 sm:p-6 max-h-[90vh] overflow-y-auto ${
@@ -3068,7 +3133,7 @@ const AdminQuoteDetail = () => {
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        {/* Avatar - Updated to use avatar_url */}
+                        {/* Avatar */}
                         {user.avatar_url ? (
                           <img
                             src={user.avatar_url}

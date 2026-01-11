@@ -7,7 +7,7 @@ import {
   AlertTriangle, TrendingUp, Users, Clock, Zap, 
   BarChart3, PieChart, Target, Award, RefreshCw
 } from 'lucide-react';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '../../hooks/useAuth'; // ✅ Import useAuth
 import AdminNavbar from '../../components/AdminNavbar';
 import { useTheme } from '../../context/ThemeContext';
 
@@ -84,7 +84,7 @@ interface HealthStatus {
 }
 
 const AdminDashboard: React.FC = () => {
-  const [user, setUser] = useState<any>(null);
+  const { user: authUser, getAccessToken, logout } = useAuth(); // ✅ Use auth context
   const [isLoading, setIsLoading] = useState(true);
   const [loadingStats, setLoadingStats] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -101,6 +101,16 @@ const AdminDashboard: React.FC = () => {
     requestsPerSecond: 0,
     avgResponseTime: 0
   });
+
+  // ✅ Get token from auth context
+  const getAuthHeaders = () => {
+    const token = getAccessToken();
+    return {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      ...(token && { 'Authorization': `Bearer ${token}` })
+    };
+  };
 
   // Viewport detection for responsive behavior
   useEffect(() => {
@@ -130,66 +140,72 @@ const AdminDashboard: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    fetchCurrentUser();
     fetchHealthStatus();
     const healthInterval = setInterval(fetchHealthStatus, 30000);
     return () => clearInterval(healthInterval);
   }, []);
 
   useEffect(() => {
-    if (user) fetchDashboardStats(selectedPeriod);
-  }, [user, selectedPeriod]);
-
-  // ✅ FIXED: fetchCurrentUser with better error handling
-  const fetchCurrentUser = async () => {
-    try {
-      const response = await fetch(`${API_URL}/api/auth/me`, {
-        method: 'GET',
-        headers: { 
-          'Accept': 'application/json', 
-          'Content-Type': 'application/json' 
-        },
-        credentials: 'include'
-      });
-      
-      if (!response.ok) throw new Error('Not authenticated');
-      const data = await response.json();
-      setUser(data);
-    } catch (err) {
-      console.error('Failed to fetch user:', err);
-      navigate('/admin/login');
-    } finally {
-      setIsLoading(false);
+    // ✅ Only fetch stats if user is authenticated
+    if (authUser) {
+      fetchDashboardStats(selectedPeriod);
     }
-  };
+  }, [authUser, selectedPeriod]);
 
-  // ✅ FIXED: fetchDashboardStats with proper error handling (AdminBookings approach)
+  // ✅ FIXED: Remove fetchCurrentUser since we get user from auth context
+  useEffect(() => {
+    const checkAuthentication = async () => {
+      setIsLoading(true);
+      try {
+        // Wait a moment for auth context to initialize
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // If no user in auth context after initialization, redirect to login
+        if (!authUser) {
+          const token = getAccessToken();
+          if (!token) {
+            navigate('/admin/login');
+          }
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    checkAuthentication();
+  }, [authUser, getAccessToken, navigate]);
+
+  // ✅ FIXED: fetchDashboardStats with proper token-based authentication
   const fetchDashboardStats = async (period: string) => {
-    console.log('🔍 Fetching dashboard stats...', { period, API_URL }); // Debug log
+    console.log('🔍 Fetching dashboard stats...', { period, API_URL });
     setLoadingStats(true);
     setStatsError('');
     
     try {
       const url = `${API_URL}/admin/dashboard/stats?period=${period}`;
-      console.log('📡 Request URL:', url); // Debug log
+      console.log('📡 Request URL:', url);
       
       const response = await fetch(url, {
         method: 'GET',
-        headers: { 
-          'Accept': 'application/json', 
-          'Content-Type': 'application/json' 
-        },
-        credentials: 'include'
+        headers: getAuthHeaders(), // ✅ Use token-based headers
+        // REMOVED: credentials: 'include' - we're using tokens now
       });
       
-      console.log('📥 Response status:', response.status); // Debug log
+      console.log('📥 Response status:', response.status);
       
       if (!response.ok) {
+        if (response.status === 401) {
+          // Token expired or invalid
+          console.log('🔄 Token expired, logging out...');
+          await logout();
+          navigate('/admin/login');
+          return;
+        }
         throw new Error(`Failed to fetch dashboard statistics (HTTP ${response.status})`);
       }
       
       const data = await response.json();
-      console.log('✅ Dashboard data received:', data); // Debug log
+      console.log('✅ Dashboard data received:', data);
       
       // ✅ Validate data structure before setting
       if (data && typeof data === 'object') {
@@ -206,10 +222,13 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
-  // ✅ FIXED: fetchHealthStatus with better error handling
+  // ✅ FIXED: fetchHealthStatus with token-based auth if needed
   const fetchHealthStatus = async () => {
     try {
-      const response = await fetch(`${API_URL}/health`);
+      const response = await fetch(`${API_URL}/health`, {
+        headers: getAuthHeaders(), // ✅ Use token-based headers
+        // REMOVED: credentials: 'include'
+      });
       if (response.ok) {
         const data = await response.json();
         setHealthStatus(data);
@@ -235,9 +254,14 @@ const AdminDashboard: React.FC = () => {
     );
   }
 
+  // ✅ Check if user is authenticated
+  if (!authUser) {
+    return null; // Will redirect via ProtectedRoute or useEffect
+  }
+
   return (
     <div className={`flex min-h-screen ${isDarkMode ? 'bg-stone-950' : 'bg-gray-50'}`}>
-      <AdminNavbar user={user} onCollapsedChange={setSidebarCollapsed} />
+      <AdminNavbar user={authUser} onCollapsedChange={setSidebarCollapsed} />
       
       <main className={`
         flex-1 transition-all duration-500 
@@ -268,7 +292,7 @@ const AdminDashboard: React.FC = () => {
                 Dashboard
               </h1>
               <p className={`text-sm font-light ${isDarkMode ? 'text-stone-500' : 'text-stone-600'}`}>
-                Welcome back, <span className={`font-medium ${isDarkMode ? 'text-gold-500' : 'text-gold-600'}`}>{user?.full_name?.split(' ')[0]}</span>
+                Welcome back, <span className={`font-medium ${isDarkMode ? 'text-gold-500' : 'text-gold-600'}`}>{authUser?.full_name?.split(' ')[0]}</span>
               </p>
             </div>
 
@@ -700,12 +724,12 @@ const EnhancedStatCard = ({ label, value, icon, trend, trendUp, color, subtitle,
   );
 };
 
-// ✅ FIXED: Advanced Flux Graph Component with proper data validation
+// Advanced Flux Graph Component
 const AdvancedFluxGraph = ({ bookings, quotes, isDarkMode }: any) => {
   const canvasRef = useRef<SVGSVGElement>(null);
   const [hoveredPoint, setHoveredPoint] = useState<{ type: string; index: number; value: number } | null>(null);
   
-  // ✅ FIX 1: Validate and provide default data
+  // Validate and provide default data
   const safeBookings = Array.isArray(bookings) && bookings.length > 0 
     ? bookings 
     : [{ date: new Date().toISOString(), count: 0 }];
@@ -714,7 +738,7 @@ const AdvancedFluxGraph = ({ bookings, quotes, isDarkMode }: any) => {
     ? quotes 
     : [{ date: new Date().toISOString(), count: 0 }];
   
-  // ✅ FIX 2: Safe normalization with validation
+  // Safe normalization with validation
   const normalize = (data: any[]) => {
     if (!data || !Array.isArray(data) || data.length === 0) {
       return [250]; // Return baseline if no data
@@ -730,15 +754,15 @@ const AdvancedFluxGraph = ({ bookings, quotes, isDarkMode }: any) => {
   const bValues = safeBookings.slice(-14).map((d: any) => d?.count || 0);
   const qValues = safeQuotes.slice(-14).map((d: any) => d?.count || 0);
 
-  // ✅ FIX 3: Always return valid SVG path (never empty string)
+  // Always return valid SVG path
   const createSmoothPath = (points: number[]) => {
     // Handle edge cases
     if (!points || !Array.isArray(points) || points.length === 0) {
-      return 'M 0 250 L 100 250'; // Horizontal line at bottom
+      return 'M 0 250 L 100 250';
     }
     
     if (points.length === 1) {
-      return `M 0 ${points[0]} L 100 ${points[0]}`; // Horizontal line at single point
+      return `M 0 ${points[0]} L 100 ${points[0]}`;
     }
     
     // Normal case: multiple points
@@ -755,14 +779,14 @@ const AdvancedFluxGraph = ({ bookings, quotes, isDarkMode }: any) => {
     return path;
   };
 
-  // ✅ FIX 4: Always return valid closed area path
+  // Always return valid closed area path
   const createAreaPath = (points: number[]) => {
     if (!points || !Array.isArray(points) || points.length === 0) {
-      return 'M 0 250 L 100 250 L 100 250 L 0 250 Z'; // Empty area at bottom
+      return 'M 0 250 L 100 250 L 100 250 L 0 250 Z';
     }
     
     if (points.length === 1) {
-      return `M 0 ${points[0]} L 100 ${points[0]} L 100 250 L 0 250 Z`; // Rectangle
+      return `M 0 ${points[0]} L 100 ${points[0]} L 100 250 L 0 250 Z`;
     }
     
     const linePath = createSmoothPath(points);

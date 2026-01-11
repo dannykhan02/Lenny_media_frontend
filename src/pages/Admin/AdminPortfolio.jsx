@@ -1,42 +1,50 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Image, Loader2, Clock, Sparkles, Palette, Camera, Video, Edit, Settings } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import AdminNavbar from '../../components/AdminNavbar';
 import { useTheme } from '../../context/ThemeContext';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 const AdminPortfolio = () => {
-  const [user, setUser] = React.useState(null);
-  const [isLoading, setIsLoading] = React.useState(true);
-  const [sidebarCollapsed, setSidebarCollapsed] = React.useState(false);
+  const { user: authUser, getAccessToken, logout } = useAuth(); // ✅ Use auth context
+  const [isLoading, setIsLoading] = useState(true);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const navigate = useNavigate();
   const { isDarkMode } = useTheme();
 
-  React.useEffect(() => {
-    fetchCurrentUser();
-  }, []);
-
-  const fetchCurrentUser = async () => {
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/me`, {
-        method: 'GET',
-        headers: { 
-          'Accept': 'application/json', 
-          'Content-Type': 'application/json' 
-        },
-        credentials: 'include'
-      });
-      
-      if (!response.ok) throw new Error('Not authenticated');
-      const data = await response.json();
-      setUser(data);
-    } catch (err) {
-      console.error('Failed to fetch user:', err);
-      navigate('/admin/login');
-    } finally {
-      setIsLoading(false);
-    }
+  // ✅ Get token from auth context
+  const getAuthHeaders = () => {
+    const token = getAccessToken();
+    return {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      ...(token && { 'Authorization': `Bearer ${token}` })
+    };
   };
+
+  useEffect(() => {
+    const checkAuthentication = async () => {
+      setIsLoading(true);
+      try {
+        // Wait a moment for auth context to initialize
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // If no user in auth context after initialization, redirect to login
+        if (!authUser) {
+          const token = getAccessToken();
+          if (!token) {
+            navigate('/admin/login');
+          }
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    checkAuthentication();
+  }, [authUser, getAccessToken, navigate]);
 
   if (isLoading) {
     return (
@@ -49,9 +57,14 @@ const AdminPortfolio = () => {
     );
   }
 
+  // ✅ Check if user is authenticated
+  if (!authUser) {
+    return null; // Will redirect via useEffect
+  }
+
   return (
     <div className={`flex min-h-screen ${isDarkMode ? 'bg-stone-950' : 'bg-gray-50'}`}>
-      <AdminNavbar user={user} onCollapsedChange={setSidebarCollapsed} />
+      <AdminNavbar user={authUser} onCollapsedChange={setSidebarCollapsed} />
       
       <main className={`flex-1 transition-all duration-500 p-6 md:p-10 ${sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-72'}`}>
         {/* Animated Background Grid */}
@@ -76,7 +89,7 @@ const AdminPortfolio = () => {
                 Portfolio
               </h1>
               <p className={`text-sm font-light ${isDarkMode ? 'text-stone-500' : 'text-stone-600'}`}>
-                Manage your creative work showcase, <span className={`font-medium ${isDarkMode ? 'text-gold-500' : 'text-gold-600'}`}>{user?.full_name?.split(' ')[0]}</span>
+                Manage your creative work showcase, <span className={`font-medium ${isDarkMode ? 'text-gold-500' : 'text-gold-600'}`}>{authUser?.full_name?.split(' ')[0]}</span>
               </p>
             </div>
 

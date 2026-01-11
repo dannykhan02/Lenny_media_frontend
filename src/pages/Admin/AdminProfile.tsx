@@ -1,9 +1,12 @@
+// pages/Admin/AdminProfile.tsx
 import React, { useState, useEffect, useRef } from 'react';
 import { User, Mail, Phone, Calendar, Clock, Shield, Camera, Save, Edit2, X, AlertCircle, Loader2, Key, Check, Upload, Image as ImageIcon, Trash2, Eye, EyeOff } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import AdminNavbar from '../../components/AdminNavbar';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth'; // ✅ Import useAuth
 
+// ✅ Use environment variable with fallback
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 interface ProfileData {
@@ -33,7 +36,7 @@ interface CloudinaryConfig {
 const AdminProfile: React.FC = () => {
   const { isDarkMode } = useTheme();
   const navigate = useNavigate();
-  const [currentAdmin, setCurrentAdmin] = useState<any>(null);
+  const { user: authUser, getAccessToken, logout } = useAuth(); // ✅ Use auth context
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
@@ -74,33 +77,78 @@ const AdminProfile: React.FC = () => {
     isOpen: false
   });
 
-  useEffect(() => {
-    fetchCurrentAdmin();
-    fetchProfile();
-    fetchCloudinaryConfig();
-  }, []);
-
-  const fetchCurrentAdmin = async () => {
-    try {
-      const response = await fetch(`${API_URL}/api/auth/me`, {
-        credentials: 'include',
-      });
-      if (!response.ok) throw new Error('Not authenticated');
-      const data = await response.json();
-      setCurrentAdmin(data);
-    } catch (err: any) {
-      setError(err.message);
-      navigate('/admin/login');
-    }
+  // ✅ Get token from auth context
+  const getAuthHeaders = () => {
+    const token = getAccessToken();
+    return {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      ...(token && { 'Authorization': `Bearer ${token}` })
+    };
   };
 
+  // ✅ Get headers for file uploads (without Content-Type for FormData)
+  const getAuthUploadHeaders = () => {
+    const token = getAccessToken();
+    return {
+      'Accept': 'application/json',
+      ...(token && { 'Authorization': `Bearer ${token}` })
+    };
+  };
+
+  useEffect(() => {
+    // ✅ Check authentication first
+    const checkAuthentication = async () => {
+      setIsLoading(true);
+      try {
+        // Wait a moment for auth context to initialize
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // If no user in auth context after initialization, redirect to login
+        if (!authUser) {
+          const token = getAccessToken();
+          if (!token) {
+            navigate('/admin/login');
+            return;
+          }
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    checkAuthentication();
+  }, [authUser, getAccessToken, navigate]);
+
+  useEffect(() => {
+    if (authUser) {
+      fetchProfile();
+      fetchCloudinaryConfig();
+    }
+  }, [authUser]);
+
+  // ✅ FIXED: fetchProfile with token-based authentication
   const fetchProfile = async () => {
     setIsLoading(true);
+    setError('');
     try {
       const response = await fetch(`${API_URL}/api/auth/profile`, {
-        credentials: 'include',
+        method: 'GET',
+        headers: getAuthHeaders(), // ✅ Use token-based headers
+        // REMOVED: credentials: 'include' - we're using tokens now
       });
-      if (!response.ok) throw new Error('Failed to fetch profile');
+      
+      if (!response.ok) {
+        if (response.status === 401) {
+          // Token expired or invalid
+          console.log('🔄 Token expired, logging out...');
+          await logout();
+          navigate('/admin/login');
+          return;
+        }
+        throw new Error(`Failed to fetch profile (HTTP ${response.status})`);
+      }
+      
       const data = await response.json();
       setProfile(data);
       setFormData({
@@ -109,17 +157,21 @@ const AdminProfile: React.FC = () => {
         avatar_url: data.avatar_url || ''
       });
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || 'Failed to fetch profile');
     } finally {
       setIsLoading(false);
     }
   };
 
+  // ✅ FIXED: fetchCloudinaryConfig with token-based authentication
   const fetchCloudinaryConfig = async () => {
     try {
       const response = await fetch(`${API_URL}/api/auth/cloudinary/config`, {
-        credentials: 'include',
+        method: 'GET',
+        headers: getAuthHeaders(), // ✅ Use token-based headers
+        // REMOVED: credentials: 'include'
       });
+      
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
@@ -148,6 +200,7 @@ const AdminProfile: React.FC = () => {
     if (passwordError) setPasswordError('');
   };
 
+  // ✅ FIXED: handleSaveProfile with token-based authentication
   const handleSaveProfile = async () => {
     if (!formData.full_name.trim()) {
       setError('Full name is required');
@@ -160,14 +213,22 @@ const AdminProfile: React.FC = () => {
     try {
       const response = await fetch(`${API_URL}/api/auth/profile`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        headers: getAuthHeaders(), // ✅ Use token-based headers
+        // REMOVED: credentials: 'include'
         body: JSON.stringify(formData)
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          // Token expired or invalid
+          console.log('🔄 Token expired, logging out...');
+          await logout();
+          navigate('/admin/login');
+          return;
+        }
+        
         const errorData = await response.json();
-        throw new Error(errorData.msg || 'Failed to update profile');
+        throw new Error(errorData.msg || `Failed to update profile (HTTP ${response.status})`);
       }
 
       const result = await response.json();
@@ -183,6 +244,7 @@ const AdminProfile: React.FC = () => {
     }
   };
 
+  // ✅ FIXED: handleChangePassword with token-based authentication
   const handleChangePassword = async () => {
     setPasswordError('');
     
@@ -211,8 +273,8 @@ const AdminProfile: React.FC = () => {
     try {
       const response = await fetch(`${API_URL}/api/auth/change-password`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        headers: getAuthHeaders(), // ✅ Use token-based headers
+        // REMOVED: credentials: 'include'
         body: JSON.stringify({
           current_password: passwordData.currentPassword,
           new_password: passwordData.newPassword,
@@ -221,8 +283,16 @@ const AdminProfile: React.FC = () => {
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          // Token expired or invalid
+          console.log('🔄 Token expired, logging out...');
+          await logout();
+          navigate('/admin/login');
+          return;
+        }
+        
         const errorData = await response.json();
-        throw new Error(errorData.msg || 'Failed to change password');
+        throw new Error(errorData.msg || `Failed to change password (HTTP ${response.status})`);
       }
 
       const result = await response.json();
@@ -279,6 +349,7 @@ const AdminProfile: React.FC = () => {
     reader.readAsDataURL(file);
   };
 
+  // ✅ FIXED: handleUploadAvatar with token-based authentication
   const handleUploadAvatar = async () => {
     if (!selectedFile) {
       setUploadError('Please select a file to upload');
@@ -295,13 +366,22 @@ const AdminProfile: React.FC = () => {
     try {
       const response = await fetch(`${API_URL}/api/auth/profile/avatar`, {
         method: 'POST',
-        credentials: 'include',
+        headers: getAuthUploadHeaders(), // ✅ Use token-based headers (without Content-Type)
+        // REMOVED: credentials: 'include'
         body: formData,
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          // Token expired or invalid
+          console.log('🔄 Token expired, logging out...');
+          await logout();
+          navigate('/admin/login');
+          return;
+        }
+        
         const errorData = await response.json();
-        throw new Error(errorData.msg || errorData.error || 'Upload failed');
+        throw new Error(errorData.msg || errorData.error || `Upload failed (HTTP ${response.status})`);
       }
 
       const result = await response.json();
@@ -332,6 +412,7 @@ const AdminProfile: React.FC = () => {
     setDeleteAvatarModal({ isOpen: true });
   };
 
+  // ✅ FIXED: confirmDeleteAvatar with token-based authentication
   const confirmDeleteAvatar = async () => {
     setIsDeletingAvatar(true);
     setError('');
@@ -339,12 +420,21 @@ const AdminProfile: React.FC = () => {
     try {
       const response = await fetch(`${API_URL}/api/auth/profile/avatar`, {
         method: 'DELETE',
-        credentials: 'include',
+        headers: getAuthHeaders(), // ✅ Use token-based headers
+        // REMOVED: credentials: 'include'
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          // Token expired or invalid
+          console.log('🔄 Token expired, logging out...');
+          await logout();
+          navigate('/admin/login');
+          return;
+        }
+        
         const errorData = await response.json();
-        throw new Error(errorData.msg || 'Delete failed');
+        throw new Error(errorData.msg || `Delete failed (HTTP ${response.status})`);
       }
 
       const result = await response.json();
@@ -640,7 +730,7 @@ const AdminProfile: React.FC = () => {
     );
   };
 
-  if (isLoading && !currentAdmin) {
+  if (isLoading) {
     return (
       <div className={`min-h-screen flex items-center justify-center ${isDarkMode ? 'bg-stone-950' : 'bg-gray-50'}`}>
         <div className="flex flex-col items-center">
@@ -651,9 +741,14 @@ const AdminProfile: React.FC = () => {
     );
   }
 
+  // ✅ Check if user is authenticated
+  if (!authUser) {
+    return null; // Will redirect via useEffect
+  }
+
   return (
     <div className={`flex min-h-screen ${isDarkMode ? 'bg-stone-950' : 'bg-gray-50'}`}>
-      <AdminNavbar user={currentAdmin} onCollapsedChange={setSidebarCollapsed} />
+      <AdminNavbar user={authUser} onCollapsedChange={setSidebarCollapsed} />
       
       <main className={`flex-1 min-h-screen overflow-y-auto transition-all duration-300 pt-20 lg:pt-0 ${sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-72'}`}>
         <div className="p-3 sm:p-4 md:p-6 lg:p-8 max-w-6xl mx-auto">

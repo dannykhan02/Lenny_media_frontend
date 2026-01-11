@@ -1,18 +1,52 @@
-import React, { useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
-import { AuthContext, AuthContextType, User } from './AuthContext';
 
 // CRITICAL FIX: Ensure API_URL points to your backend server
-// If VITE_API_URL is not set, default to backend URL (e.g., http://localhost:5000)
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-
-// Log the API URL being used for debugging
 console.log('🔧 API_URL configured as:', API_URL);
-
-// Export API_URL for use in other components
 export { API_URL };
 
+// Auth Context Types
+export interface User {
+  id: string;
+  email: string;
+  role: string;
+  full_name: string;
+  phone?: string;
+  avatar_url?: string;
+  is_active: boolean;
+}
+
+export interface AuthContextType {
+  user: User | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  adminExists: boolean | null;
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
+  checkAuth: () => Promise<boolean>;
+  registerFirstAdmin: (email: string, password: string, full_name: string) => Promise<void>;
+  checkAdminExists: () => Promise<void>;
+  error: string | null;
+  refreshAuth: () => Promise<void>;
+  setAccessToken: (token: string) => void;
+  getAccessToken: () => string | null;
+}
+
+// Create Auth Context
+const AuthContext = createContext<AuthContextType | null>(null);
+
+// Custom hook for auth context
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within AuthProvider');
+  }
+  return context;
+}
+
+// Auth Provider Component
 interface AuthProviderProps {
   children: React.ReactNode;
 }
@@ -22,30 +56,43 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [adminExists, setAdminExists] = useState<boolean | null>(null);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
 
+  // Token management
+  const storeToken = (token: string) => {
+    localStorage.setItem('accessToken', token);
+    setAccessToken(token);
+  };
+
+  const getStoredToken = (): string | null => {
+    return localStorage.getItem('accessToken');
+  };
+
+  const removeToken = () => {
+    localStorage.removeItem('accessToken');
+    setAccessToken(null);
+  };
+
+  // Auth functions
   const checkAuth = async (): Promise<boolean> => {
-    console.log('\n🔐 checkAuth() called');
-    
     try {
-      const url = `${API_URL}/api/auth/me`;
-      console.log('📡 Making request to:', url);
-      console.log('Request will include cookies automatically via credentials: include');
+      const token = getStoredToken();
+      if (!token) {
+        setUser(null);
+        return false;
+      }
 
-      const response = await fetch(url, {
+      const response = await fetch(`${API_URL}/api/auth/me`, {
         method: 'GET',
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
-        credentials: 'include', // Browser will send HttpOnly cookies automatically
       });
-
-      console.log('📥 Response status:', response.status);
 
       if (response.ok) {
         const data = await response.json();
-        console.log('✅ Auth successful, user data:', data);
-        
         setUser({
           id: data.id,
           email: data.email,
@@ -58,27 +105,21 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setError(null);
         return true;
       } else if (response.status === 401) {
-        console.log('⚠️ 401 Unauthorized - User not logged in');
+        removeToken();
         setUser(null);
         setError(null);
         return false;
       } else {
-        // Try to parse error response
         let errorMsg = 'Authentication failed';
         try {
           const errorData = await response.json();
           errorMsg = errorData.msg || errorData.message || errorMsg;
-          console.error('❌ Auth check failed:', errorData);
-        } catch (parseError) {
-          console.error('❌ Auth check failed with status:', response.status);
-        }
+        } catch {}
         setError(errorMsg);
         setUser(null);
         return false;
       }
     } catch (err: any) {
-      console.error('💥 Auth check error:', err.message);
-      console.error('💥 Full error:', err);
       setError(null);
       setUser(null);
       return false;
@@ -86,212 +127,159 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const checkAdminExists = async (): Promise<void> => {
-    console.log('\n👤 checkAdminExists() called');
-    
     try {
-      const url = `${API_URL}/api/auth/check-admin`;
-      console.log('📡 Checking admin at:', url);
-      
-      const response = await fetch(url, {
+      const token = getStoredToken();
+      if (!token) {
+        setAdminExists(false);
+        return;
+      }
+
+      const response = await fetch(`${API_URL}/api/auth/check-admin`, {
         method: 'GET',
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
-        credentials: 'include',
       });
 
       if (response.ok) {
         const data = await response.json();
         setAdminExists(data.admin_exists);
-        console.log('✅ Admin exists:', data.admin_exists);
       } else {
         setAdminExists(false);
-        console.warn('⚠️ Failed to check admin status, assuming false');
       }
-    } catch (err: any) {
-      console.warn('❌ Failed to check admin status:', err.message);
+    } catch {
       setAdminExists(false);
     }
   };
 
   const login = async (email: string, password: string) => {
-    console.log('\n🔑 login() called for:', email);
-    
     try {
-      const url = `${API_URL}/api/auth/login`;
-      console.log('📡 Posting to:', url);
-      
-      const response = await fetch(url, {
+      const response = await fetch(`${API_URL}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
         body: JSON.stringify({ email, password }),
       });
-
-      console.log('📥 Login response status:', response.status);
-      console.log('📥 Login response headers:', Object.fromEntries(response.headers.entries()));
 
       if (!response.ok) {
         let errorMsg = 'Login failed';
         try {
           const errorData = await response.json();
           errorMsg = errorData.error || errorData.msg || errorData.message || errorMsg;
-          console.error('❌ Login failed:', errorData);
-        } catch (parseError) {
-          console.error('❌ Login failed with status:', response.status);
-        }
+        } catch {}
         throw new Error(errorMsg);
       }
 
       const data = await response.json();
-      console.log('✅ Login successful, user data:', data.user);
+      
+      if (data.access_token) {
+        storeToken(data.access_token);
+      } else {
+        throw new Error('No access token received');
+      }
       
       setUser(data.user);
       setError(null);
-      
-      console.log('🍪 Cookie should be set by server (HttpOnly - not readable by JS)');
-      console.log('🍪 Browser will automatically send it with future requests');
-      
-      // IMPORTANT: Wait a moment for cookie to be properly set
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      // Check admin status again after login
       await checkAdminExists();
-      
-      // Verify auth immediately after login
-      console.log('🔍 Running post-login auth verification...');
       const authSuccess = await checkAuth();
-      console.log('🔐 Post-login auth check:', authSuccess ? 'SUCCESS ✅' : 'FAILED ❌');
-      
       if (!authSuccess) {
-        console.error('⚠️ WARNING: Login succeeded but auth check failed - cookie may not be set properly');
-        console.error('⚠️ This usually indicates a CORS or cookie configuration issue');
+        console.error('⚠️ WARNING: Login succeeded but auth check failed');
       }
     } catch (err: any) {
-      console.error('💥 Login error:', err.message);
       throw new Error(err.message || 'Login failed');
     }
   };
 
   const registerFirstAdmin = async (email: string, password: string, full_name: string) => {
-    console.log('\n👤 registerFirstAdmin() called for:', email);
-    
     try {
-      const url = `${API_URL}/api/auth/register-first-admin`;
-      console.log('📡 Posting to:', url);
-      
-      const response = await fetch(url, {
+      const response = await fetch(`${API_URL}/api/auth/register-first-admin`, {
         method: 'POST',
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
         body: JSON.stringify({ email, password, full_name }),
       });
-
-      console.log('📥 Registration response status:', response.status);
 
       if (!response.ok) {
         let errorMsg = 'Registration failed';
         try {
           const errorData = await response.json();
           errorMsg = errorData.msg || errorData.error || errorData.message || errorMsg;
-          console.error('❌ Registration failed:', errorData);
-        } catch (parseError) {
-          console.error('❌ Registration failed with status:', response.status);
-        }
+        } catch {}
         throw new Error(errorMsg);
       }
 
       const data = await response.json();
-      console.log('✅ Registration successful, user data:', data.user);
+      
+      if (data.access_token) {
+        storeToken(data.access_token);
+      } else {
+        throw new Error('No access token received');
+      }
       
       setUser(data.user);
       setError(null);
       setAdminExists(true);
-      
-      console.log('🍪 Cookie set by server');
-      
-      // IMPORTANT: Wait a moment for cookie to be properly set
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      // Verify auth immediately after registration
-      console.log('🔍 Running post-registration auth verification...');
       const authSuccess = await checkAuth();
-      console.log('🔐 Post-registration auth check:', authSuccess ? 'SUCCESS ✅' : 'FAILED ❌');
-      
       if (!authSuccess) {
-        console.error('⚠️ WARNING: Registration succeeded but auth check failed - cookie may not be set properly');
-        console.error('⚠️ This usually indicates a CORS or cookie configuration issue');
+        console.error('⚠️ WARNING: Registration succeeded but auth check failed');
       }
     } catch (err: any) {
-      console.error('💥 Registration error:', err.message);
       throw new Error(err.message || 'Registration failed');
     }
   };
 
   const logout = async () => {
-    console.log('\n🚪 logout() called');
-    
     try {
-      const url = `${API_URL}/api/auth/logout`;
-      await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-      });
+      const token = getStoredToken();
+      if (token) {
+        await fetch(`${API_URL}/api/auth/logout`, {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+      }
       
-      console.log('✅ Logout successful');
+      removeToken();
       setUser(null);
       setError(null);
-      
       await checkAdminExists();
-    } catch (err: any) {
-      console.error('💥 Logout failed:', err);
+    } catch {
+      removeToken();
       setUser(null);
       setError('Logout failed');
     }
   };
 
   const refreshAuth = async () => {
-    console.log('\n🔄 refreshAuth() called');
     setIsLoading(true);
-    
     try {
       await checkAuth();
       await checkAdminExists();
-    } catch (err) {
-      console.error('💥 Auth refresh failed:', err);
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Initialize auth on mount
   useEffect(() => {
     const initializeAuth = async () => {
-      console.log('\n🚀 Initializing auth...');
-      console.log('🔧 Using API_URL:', API_URL);
       setIsLoading(true);
-      
       try {
         await checkAuth();
         await checkAdminExists();
-      } catch (err) {
-        console.error('💥 Auth initialization failed:', err);
       } finally {
         setIsLoading(false);
-        console.log('✅ Auth initialization complete');
       }
     };
-
     initializeAuth();
   }, []);
 
@@ -307,11 +295,14 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     checkAdminExists,
     error,
     refreshAuth,
+    setAccessToken: storeToken,
+    getAccessToken: getStoredToken,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
+// Protected Route Component
 interface ProtectedRouteProps {
   children: React.ReactNode;
   allowedRoles?: string[];
@@ -321,7 +312,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children, 
   allowedRoles = ['ADMIN'] 
 }) => {
-  const context = React.useContext(AuthContext);
+  const context = useContext(AuthContext);
   
   if (!context) {
     throw new Error('ProtectedRoute must be used within AuthProvider');
@@ -344,6 +335,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   return <>{children}</>;
 };
 
+// Scroll to top component
 const ScrollToTop = () => {
   const { pathname } = useLocation();
 
@@ -354,6 +346,7 @@ const ScrollToTop = () => {
   return null;
 };
 
+// Page loader component
 const PageLoader = () => (
   <div className="min-h-[60vh] flex flex-col items-center justify-center bg-stone-50">
     <Loader2 className="h-10 w-10 text-gold-500 animate-spin mb-4" />

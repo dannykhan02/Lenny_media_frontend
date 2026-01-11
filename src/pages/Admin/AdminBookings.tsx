@@ -1,4 +1,4 @@
-// pages/Admin/AdminBookings.tsx - UPDATED with accessible bulk actions and mobile responsiveness
+// pages/Admin/AdminBookings.tsx - UPDATED with token-based authentication
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   Filter, Calendar, Clock, User, Mail, Phone, MapPin, 
@@ -14,6 +14,7 @@ import ResponsiveTable from '../../components/ResponsiveTable';
 import EditBookingModal from '../../components/EditBookingModal';
 import BulkActionsModal from '../../components/BulkActionsModal';
 import DeleteBookingModal from '../../components/DeleteBookingModal';
+import { useAuth } from '../../hooks/useAuth'; // ✅ Import useAuth
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -85,7 +86,7 @@ const AdminBookings: React.FC = () => {
   const { isDarkMode } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const { user: authUser, getAccessToken, logout } = useAuth(); // ✅ Use auth context
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [filteredBookings, setFilteredBookings] = useState<Booking[]>([]);
   const [stats, setStats] = useState<BookingStats | null>(null);
@@ -147,6 +148,16 @@ const AdminBookings: React.FC = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [calendarBookings, setCalendarBookings] = useState<{ [date: string]: Booking[] }>({});
 
+  // ✅ Get token from auth context
+  const getAuthHeaders = () => {
+    const token = getAccessToken();
+    return {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      ...(token && { 'Authorization': `Bearer ${token}` })
+    };
+  };
+
   // Debounced search function
   const debouncedSearch = useDebounce((value: string) => {
     setSearchTerm(value);
@@ -170,18 +181,44 @@ const AdminBookings: React.FC = () => {
     return count;
   };
 
+  // ✅ Check authentication on component mount
   useEffect(() => {
-    fetchCurrentUser();
-    fetchStatuses();
-    fetchStaffUsers();
-    fetchStats();
-  }, []);
+    const checkAuthentication = async () => {
+      setIsLoading(true);
+      try {
+        // Wait a moment for auth context to initialize
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // If no user in auth context after initialization, redirect to login
+        if (!authUser) {
+          const token = getAccessToken();
+          if (!token) {
+            navigate('/admin/login');
+          }
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    checkAuthentication();
+  }, [authUser, getAccessToken, navigate]);
+
+  useEffect(() => {
+    if (authUser) {
+      fetchStatuses();
+      fetchStaffUsers();
+      fetchStats();
+    }
+  }, [authUser]);
 
   // Fetch bookings when filters change
   useEffect(() => {
-    fetchBookings();
-    if (isCalendarView) {
-      prepareCalendarData();
+    if (authUser) {
+      fetchBookings();
+      if (isCalendarView) {
+        prepareCalendarData();
+      }
     }
   }, [
     currentPage, 
@@ -191,7 +228,8 @@ const AdminBookings: React.FC = () => {
     statusFilter, 
     assignedFilter, 
     dateFrom, 
-    dateTo
+    dateTo,
+    authUser
   ]);
 
   // Update filtered bookings for instant UI feedback
@@ -199,24 +237,19 @@ const AdminBookings: React.FC = () => {
     filterBookings();
   }, [bookings, searchInput]);
 
-  const fetchCurrentUser = async () => {
-    try {
-      const response = await fetch(`${API_URL}/api/auth/me`, {
-        credentials: 'include',
-      });
-      if (!response.ok) throw new Error('Not authenticated');
-      const data = await response.json();
-      setCurrentUser(data);
-    } catch (err: any) {
-      setError(err.message);
-      navigate('/admin/login');
-    }
-  };
-
   const fetchStatuses = async () => {
     try {
-      const response = await fetch(`${API_URL}/booking-statuses`);
-      if (!response.ok) throw new Error('Failed to fetch statuses');
+      const response = await fetch(`${API_URL}/booking-statuses`, {
+        headers: getAuthHeaders(),
+      });
+      if (!response.ok) {
+        if (response.status === 401) {
+          await logout();
+          navigate('/admin/login');
+          return;
+        }
+        throw new Error('Failed to fetch statuses');
+      }
       const data = await response.json();
       setStatuses(data.statuses || []);
     } catch (err: any) {
@@ -231,10 +264,12 @@ const AdminBookings: React.FC = () => {
   };
 
   const fetchStaffUsers = async () => {
+    if (!authUser) return;
+    
     setIsLoadingUsers(true);
     try {
       const response = await fetch(`${API_URL}/api/auth/users/media-staff`, {
-        credentials: 'include'
+        headers: getAuthHeaders(),
       });
       
       if (response.ok) {
@@ -255,8 +290,13 @@ const AdminBookings: React.FC = () => {
         })) || [];
         setStaffUsers(processedUsers);
       } else {
+        if (response.status === 401) {
+          await logout();
+          navigate('/admin/login');
+          return;
+        }
         const fallbackResponse = await fetch(`${API_URL}/api/auth/users`, {
-          credentials: 'include'
+          headers: getAuthHeaders(),
         });
         
         if (fallbackResponse.ok) {
@@ -286,6 +326,8 @@ const AdminBookings: React.FC = () => {
   };
 
   const fetchBookings = async () => {
+    if (!authUser) return;
+    
     setIsLoading(true);
     setIsFilteringLoading(true);
     try {
@@ -322,10 +364,15 @@ const AdminBookings: React.FC = () => {
       }
 
       const response = await fetch(`${API_URL}/admin/bookings?${params}`, {
-        credentials: 'include',
+        headers: getAuthHeaders(),
       });
       
       if (!response.ok) {
+        if (response.status === 401) {
+          await logout();
+          navigate('/admin/login');
+          return;
+        }
         if (response.status === 403) {
           throw new Error('Only admins can access bookings');
         }
@@ -349,11 +396,20 @@ const AdminBookings: React.FC = () => {
   };
 
   const fetchStats = async () => {
+    if (!authUser) return;
+    
     try {
       const response = await fetch(`${API_URL}/admin/bookings/stats`, {
-        credentials: 'include',
+        headers: getAuthHeaders(),
       });
-      if (!response.ok) throw new Error('Failed to fetch stats');
+      if (!response.ok) {
+        if (response.status === 401) {
+          await logout();
+          navigate('/admin/login');
+          return;
+        }
+        throw new Error('Failed to fetch stats');
+      }
       const data = await response.json();
       setStats(data.stats);
     } catch (err: any) {
@@ -469,14 +525,16 @@ const AdminBookings: React.FC = () => {
     try {
       const response = await fetch(`${API_URL}/bookings/${currentBooking.id}`, {
         method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
+        headers: getAuthHeaders(),
         body: JSON.stringify({ deletion_reason: reason })
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          await logout();
+          navigate('/admin/login');
+          return;
+        }
         const errorData = await response.json();
         throw new Error(errorData.message || 'Failed to delete booking');
       }
@@ -515,12 +573,16 @@ const AdminBookings: React.FC = () => {
 
       const response = await fetch(`${API_URL}/admin/bookings/bulk-action`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        headers: getAuthHeaders(),
         body: JSON.stringify(payload)
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          await logout();
+          navigate('/admin/login');
+          return;
+        }
         const errorData = await response.json();
         throw new Error(errorData.message || 'Bulk action failed');
       }
@@ -551,12 +613,16 @@ const AdminBookings: React.FC = () => {
     try {
       const response = await fetch(`${API_URL}/bookings/${currentBooking.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        headers: getAuthHeaders(),
         body: JSON.stringify(updatedData)
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          await logout();
+          navigate('/admin/login');
+          return;
+        }
         const errorData = await response.json();
         throw new Error(errorData.message || 'Update failed');
       }
@@ -1125,8 +1191,6 @@ const AdminBookings: React.FC = () => {
     </div>
   );
 
-  // UPDATED: Mobile filters with better spacing and touch targets
-  // UPDATED: Mobile filters with proper full-width styling and alignment
   const renderMobileFilters = () => (
     <div className="space-y-4 p-4 w-full">
       {!isPendingView && !isConfirmedView && (
@@ -1623,21 +1687,27 @@ const AdminBookings: React.FC = () => {
 
   const activeFilters = getActiveFilterCount();
 
-  if (isLoading && !currentUser) {
+  // ✅ Check if user is authenticated
+  if (!authUser && isLoading) {
     return (
       <div className={`min-h-screen flex items-center justify-center ${isDarkMode ? 'bg-stone-950' : 'bg-gray-50'}`}>
-        <div className="flex flex-col items-center">
-          <Loader2 className="h-10 w-10 text-gold-500 animate-spin mb-4" />
-          <p className={`font-serif ${isDarkMode ? 'text-stone-300' : 'text-stone-600'}`}>Loading...</p>
+        <div className="relative">
+          <div className="absolute inset-0 blur-3xl opacity-20 bg-gradient-to-r from-gold-500 to-amber-500 rounded-full animate-pulse" />
+          <Loader2 className={`relative animate-spin h-12 w-12 ${isDarkMode ? 'text-gold-500' : 'text-gold-600'}`} />
         </div>
       </div>
     );
   }
 
+  // ✅ Check if user is authenticated
+  if (!authUser) {
+    return null; // Will redirect via useEffect
+  }
+
   return (
     <div className={`flex min-h-screen ${isDarkMode ? 'bg-stone-950' : 'bg-gray-50'}`}>
       <AdminNavbar 
-        user={currentUser} 
+        user={authUser} // ✅ Use authUser from context
         onCollapsedChange={setSidebarCollapsed}
         bookingStats={stats}
       />
@@ -1796,7 +1866,6 @@ const AdminBookings: React.FC = () => {
                         >
                           <Filter className="w-5 h-5" />
                         </button>
-                        {/* REMOVED: The second bulk action button that was here */}
                       </div>
                     ) : undefined
                   }

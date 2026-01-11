@@ -1,9 +1,10 @@
-// Updated AdminUsers.tsx with VIDEOGRAPHY role support and Cloudinary profile picture upload
+// pages/Admin/AdminUsers.tsx - UPDATED with token-based authentication
 import React, { useState, useEffect, useRef } from 'react';
 import { Plus, Edit2, Trash2, Search, X, Check, AlertCircle, Loader2, Eye, EyeOff, User, Mail, Phone, Shield, Calendar, Clock, Filter, Users, Video, Camera, Briefcase, Upload, ImageIcon } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import AdminNavbar from '../../components/AdminNavbar';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth'; // ✅ Import useAuth
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -34,7 +35,7 @@ interface CloudinaryConfig {
 const AdminUsers: React.FC = () => {
   const { isDarkMode } = useTheme();
   const navigate = useNavigate();
-  const [currentAdmin, setCurrentAdmin] = useState<any>(null);
+  const { user: authUser, getAccessToken, logout } = useAuth(); // ✅ Use auth context
   const [users, setUsers] = useState<UserData[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<UserData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -98,6 +99,16 @@ const AdminUsers: React.FC = () => {
     confirmPassword: ''
   });
 
+  // ✅ Get token from auth context
+  const getAuthHeaders = () => {
+    const token = getAccessToken();
+    return {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      ...(token && { 'Authorization': `Bearer ${token}` })
+    };
+  };
+
   // Clear all filters
   const clearFilters = () => {
     setSearchTerm('');
@@ -110,23 +121,47 @@ const AdminUsers: React.FC = () => {
     return searchTerm.trim() !== '' || roleFilter !== 'all' || statusFilter !== 'all';
   };
 
+  // ✅ Check authentication on component mount
   useEffect(() => {
-    fetchCurrentAdmin();
-    fetchCloudinaryConfig();
-    
-    // Check for mobile viewport
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
+    const checkAuthentication = async () => {
+      setIsLoading(true);
+      try {
+        // Wait a moment for auth context to initialize
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // If no user in auth context after initialization, redirect to login
+        if (!authUser) {
+          const token = getAccessToken();
+          if (!token) {
+            navigate('/admin/login');
+          }
+        }
+      } finally {
+        setIsLoading(false);
+      }
     };
     
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+    checkAuthentication();
+  }, [authUser, getAccessToken, navigate]);
 
   useEffect(() => {
-    if (currentAdmin) {
+    if (authUser) {
+      fetchCloudinaryConfig();
+      
+      // Check for mobile viewport
+      const handleResize = () => {
+        setIsMobile(window.innerWidth < 768);
+      };
+      
+      handleResize();
+      window.addEventListener('resize', handleResize);
+      
+      return () => window.removeEventListener('resize', handleResize);
+    }
+  }, [authUser]);
+
+  useEffect(() => {
+    if (authUser) {
       switch (viewMode) {
         case 'list':
           fetchAllUsers();
@@ -152,30 +187,16 @@ const AdminUsers: React.FC = () => {
           break;
       }
     }
-  }, [viewMode, selectedRole, currentAdmin]);
+  }, [viewMode, selectedRole, authUser]);
 
   useEffect(() => {
     filterUsers();
   }, [users, searchTerm, roleFilter, statusFilter]);
 
-  const fetchCurrentAdmin = async () => {
-    try {
-      const response = await fetch(`${API_URL}/api/auth/me`, {
-        credentials: 'include',
-      });
-      if (!response.ok) throw new Error('Not authenticated');
-      const data = await response.json();
-      setCurrentAdmin(data);
-    } catch (err: any) {
-      setError(err.message);
-      navigate('/admin/login');
-    }
-  };
-
   const fetchCloudinaryConfig = async () => {
     try {
       const response = await fetch(`${API_URL}/api/auth/cloudinary/config`, {
-        credentials: 'include',
+        headers: getAuthHeaders(),
       });
       if (response.ok) {
         const data = await response.json();
@@ -192,9 +213,18 @@ const AdminUsers: React.FC = () => {
     setIsLoading(true);
     try {
       const response = await fetch(`${API_URL}/api/auth/users`, {
-        credentials: 'include',
+        headers: getAuthHeaders(),
       });
-      if (!response.ok) throw new Error('Failed to fetch users');
+      
+      if (!response.ok) {
+        if (response.status === 401) {
+          await logout();
+          navigate('/admin/login');
+          return;
+        }
+        throw new Error('Failed to fetch users');
+      }
+      
       const data = await response.json();
       setUsers(data || []);
     } catch (err: any) {
@@ -208,9 +238,18 @@ const AdminUsers: React.FC = () => {
     setIsLoading(true);
     try {
       const response = await fetch(`${API_URL}/api/auth/users/non-admins`, {
-        credentials: 'include',
+        headers: getAuthHeaders(),
       });
-      if (!response.ok) throw new Error('Failed to fetch non-admin users');
+      
+      if (!response.ok) {
+        if (response.status === 401) {
+          await logout();
+          navigate('/admin/login');
+          return;
+        }
+        throw new Error('Failed to fetch non-admin users');
+      }
+      
       const data = await response.json();
       setUsers(data.users || []);
     } catch (err: any) {
@@ -224,9 +263,18 @@ const AdminUsers: React.FC = () => {
     setIsLoading(true);
     try {
       const response = await fetch(`${API_URL}/api/auth/users/by-role/${role}`, {
-        credentials: 'include',
+        headers: getAuthHeaders(),
       });
-      if (!response.ok) throw new Error(`Failed to fetch ${role} users`);
+      
+      if (!response.ok) {
+        if (response.status === 401) {
+          await logout();
+          navigate('/admin/login');
+          return;
+        }
+        throw new Error(`Failed to fetch ${role} users`);
+      }
+      
       const data = await response.json();
       setUsers(data.users || []);
     } catch (err: any) {
@@ -240,9 +288,18 @@ const AdminUsers: React.FC = () => {
     setIsLoading(true);
     try {
       const response = await fetch(`${API_URL}/api/auth/users/photographers`, {
-        credentials: 'include',
+        headers: getAuthHeaders(),
       });
-      if (!response.ok) throw new Error('Failed to fetch photographers');
+      
+      if (!response.ok) {
+        if (response.status === 401) {
+          await logout();
+          navigate('/admin/login');
+          return;
+        }
+        throw new Error('Failed to fetch photographers');
+      }
+      
       const data = await response.json();
       setUsers(data.photographers || []);
     } catch (err: any) {
@@ -256,9 +313,18 @@ const AdminUsers: React.FC = () => {
     setIsLoading(true);
     try {
       const response = await fetch(`${API_URL}/api/auth/users/videographers`, {
-        credentials: 'include',
+        headers: getAuthHeaders(),
       });
-      if (!response.ok) throw new Error('Failed to fetch videographers');
+      
+      if (!response.ok) {
+        if (response.status === 401) {
+          await logout();
+          navigate('/admin/login');
+          return;
+        }
+        throw new Error('Failed to fetch videographers');
+      }
+      
       const data = await response.json();
       setUsers(data.videographers || []);
     } catch (err: any) {
@@ -272,9 +338,18 @@ const AdminUsers: React.FC = () => {
     setIsLoading(true);
     try {
       const response = await fetch(`${API_URL}/api/auth/users/media-staff`, {
-        credentials: 'include',
+        headers: getAuthHeaders(),
       });
-      if (!response.ok) throw new Error('Failed to fetch media staff');
+      
+      if (!response.ok) {
+        if (response.status === 401) {
+          await logout();
+          navigate('/admin/login');
+          return;
+        }
+        throw new Error('Failed to fetch media staff');
+      }
+      
       const data = await response.json();
       setUsers(data.media_staff || []);
     } catch (err: any) {
@@ -416,13 +491,26 @@ const AdminUsers: React.FC = () => {
         ? `${API_URL}/api/auth/users/${currentUser.id}/avatar`
         : `${API_URL}/api/auth/users/upload-avatar`;
 
+      const token = getAccessToken();
+      const headers: any = {
+        'Accept': 'application/json',
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const response = await fetch(url, {
         method: 'POST',
-        credentials: 'include',
+        headers,
         body: formDataToSend,
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          await logout();
+          navigate('/admin/login');
+          return;
+        }
         const errorData = await response.json();
         throw new Error(errorData.msg || errorData.error || 'Upload failed');
       }
@@ -468,10 +556,15 @@ const AdminUsers: React.FC = () => {
     try {
       const response = await fetch(`${API_URL}/api/auth/users/${currentUser.id}/avatar`, {
         method: 'DELETE',
-        credentials: 'include',
+        headers: getAuthHeaders(),
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          await logout();
+          navigate('/admin/login');
+          return;
+        }
         const errorData = await response.json();
         throw new Error(errorData.msg || 'Delete failed');
       }
@@ -584,12 +677,16 @@ const AdminUsers: React.FC = () => {
 
       const response = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        headers: getAuthHeaders(),
         body: JSON.stringify(payload)
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          await logout();
+          navigate('/admin/login');
+          return;
+        }
         const errorData = await response.json();
         throw new Error(errorData.msg || errorData.error || 'Operation failed');
       }
@@ -633,7 +730,8 @@ const AdminUsers: React.FC = () => {
   };
 
   const handleDeleteClick = (userId: number, userName: string) => {
-    const isSelf = currentAdmin?.id === userId;
+    // ✅ FIXED: Compare IDs as strings to avoid TypeScript error
+    const isSelf = authUser?.id?.toString() === userId.toString();
     setDeleteModal({
       isOpen: true,
       userId,
@@ -649,10 +747,17 @@ const AdminUsers: React.FC = () => {
     try {
       const response = await fetch(`${API_URL}/api/auth/users/${deleteModal.userId}`, {
         method: 'DELETE',
-        credentials: 'include',
+        headers: getAuthHeaders(),
       });
 
-      if (!response.ok) throw new Error('Failed to delete user');
+      if (!response.ok) {
+        if (response.status === 401) {
+          await logout();
+          navigate('/admin/login');
+          return;
+        }
+        throw new Error('Failed to delete user');
+      }
 
       setSuccessMessage('User deactivated successfully!');
       setTimeout(() => setSuccessMessage(''), 3000);
@@ -692,7 +797,8 @@ const AdminUsers: React.FC = () => {
   };
 
   const handleActivationClick = (user: UserData, action: 'activate' | 'deactivate') => {
-    const isSelf = currentAdmin?.id === user.id;
+    // ✅ FIXED: Compare IDs as strings to avoid TypeScript error
+    const isSelf = authUser?.id?.toString() === user.id.toString();
     if (isSelf && action === 'deactivate') {
       setError('Cannot deactivate your own account');
       return;
@@ -714,10 +820,17 @@ const AdminUsers: React.FC = () => {
       const url = `${API_URL}/api/auth/users/${activationModal.userId}/activate`;
       const response = await fetch(url, {
         method: 'POST',
-        credentials: 'include',
+        headers: getAuthHeaders(),
       });
 
-      if (!response.ok) throw new Error(`Failed to ${activationModal.action} user`);
+      if (!response.ok) {
+        if (response.status === 401) {
+          await logout();
+          navigate('/admin/login');
+          return;
+        }
+        throw new Error(`Failed to ${activationModal.action} user`);
+      }
 
       setSuccessMessage(`User ${activationModal.action === 'activate' ? 'activated' : 'deactivated'} successfully!`);
       setTimeout(() => setSuccessMessage(''), 3000);
@@ -1117,20 +1230,29 @@ const AdminUsers: React.FC = () => {
     );
   };
 
-  if (isLoading && !currentAdmin) {
+  // ✅ Check if user is authenticated
+  if (!authUser && isLoading) {
     return (
       <div className={`min-h-screen flex items-center justify-center ${isDarkMode ? 'bg-stone-950' : 'bg-gray-50'}`}>
-        <div className="flex flex-col items-center">
-          <Loader2 className="h-10 w-10 text-gold-500 animate-spin mb-4" />
-          <p className={`font-serif ${isDarkMode ? 'text-stone-300' : 'text-stone-600'}`}>Loading...</p>
+        <div className="relative">
+          <div className="absolute inset-0 blur-3xl opacity-20 bg-gradient-to-r from-gold-500 to-amber-500 rounded-full animate-pulse" />
+          <Loader2 className={`relative animate-spin h-12 w-12 ${isDarkMode ? 'text-gold-500' : 'text-gold-600'}`} />
         </div>
       </div>
     );
   }
 
+  // ✅ Check if user is authenticated
+  if (!authUser) {
+    return null; // Will redirect via useEffect
+  }
+
   return (
     <div className={`flex min-h-screen ${isDarkMode ? 'bg-stone-950' : 'bg-gray-50'}`}>
-      <AdminNavbar user={currentAdmin} onCollapsedChange={setSidebarCollapsed} />
+      <AdminNavbar 
+        user={authUser} // ✅ Use authUser from context
+        onCollapsedChange={setSidebarCollapsed}
+      />
       
       <main className={`flex-1 min-h-screen overflow-y-auto transition-all duration-300 pt-20 lg:pt-0 ${sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-72'}`}>
         <div className="p-4 sm:p-6 lg:p-8 max-w-[1600px] mx-auto">
@@ -1273,7 +1395,8 @@ const AdminUsers: React.FC = () => {
                 {/* Desktop/Tablet Grid View */}
                 <div className="hidden md:grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
                   {filteredUsers.map((user) => {
-                    const isCurrentUser = currentAdmin?.id === user.id;
+                    // ✅ FIXED: Compare IDs as strings to avoid TypeScript error
+                    const isCurrentUser = authUser?.id?.toString() === user.id.toString();
                     
                     return (
                       <div key={user.id} className={`rounded-xl shadow-sm border p-4 sm:p-6 transition-all hover:shadow-lg ${isDarkMode ? 'bg-stone-900 border-stone-800' : 'bg-white border-gray-200'}`}>
@@ -1414,7 +1537,8 @@ const AdminUsers: React.FC = () => {
                 {/* Mobile Card View - Improved Responsive Design */}
                 <div className="md:hidden space-y-4">
                   {filteredUsers.map((user) => {
-                    const isCurrentUser = currentAdmin?.id === user.id;
+                    // ✅ FIXED: Compare IDs as strings to avoid TypeScript error
+                    const isCurrentUser = authUser?.id?.toString() === user.id.toString();
                     
                     return (
                       <div

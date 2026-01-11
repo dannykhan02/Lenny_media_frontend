@@ -8,6 +8,7 @@ import {
 import { useTheme } from '../../context/ThemeContext';
 import AdminNavbar from '../../components/AdminNavbar';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth'; // ✅ Import useAuth
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -36,7 +37,7 @@ interface CleanupStats {
 const BookingCleanup: React.FC = () => {
   const { isDarkMode } = useTheme();
   const navigate = useNavigate();
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const { user: authUser, getAccessToken, logout } = useAuth(); // ✅ Use auth context
   const [monthsThreshold, setMonthsThreshold] = useState(3);
   const [previewBookings, setPreviewBookings] = useState<CleanupPreview[]>([]);
   const [stats, setStats] = useState<CleanupStats | null>(null);
@@ -45,35 +46,51 @@ const BookingCleanup: React.FC = () => {
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [expandedBookings, setExpandedBookings] = useState<number[]>([]);
-  const [showConfirmation, setShowConfirmation] = useState(false);
   const [statusFilter, setStatusFilter] = useState<'all' | 'COMPLETED' | 'CANCELLED'>('all');
+  const [isLoading, setIsLoading] = useState(true);
+
+  // ✅ Get token from auth context
+  const getAuthHeaders = () => {
+    const token = getAccessToken();
+    return {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      ...(token && { 'Authorization': `Bearer ${token}` })
+    };
+  };
 
   useEffect(() => {
-    fetchCurrentUser();
-  }, []);
+    // ✅ Check authentication
+    const checkAuthentication = async () => {
+      setIsLoading(true);
+      try {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // If no user in auth context after initialization, redirect to login
+        if (!authUser) {
+          const token = getAccessToken();
+          if (!token) {
+            navigate('/admin/login');
+          }
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    checkAuthentication();
+  }, [authUser, getAccessToken, navigate]);
 
   useEffect(() => {
-    if (currentUser) {
+    if (authUser) {
       fetchPreview();
       fetchStats();
     }
-  }, [monthsThreshold, statusFilter, currentUser]);
-
-  const fetchCurrentUser = async () => {
-    try {
-      const response = await fetch(`${API_URL}/api/auth/me`, {
-        credentials: 'include',
-      });
-      if (!response.ok) throw new Error('Not authenticated');
-      const data = await response.json();
-      setCurrentUser(data);
-    } catch (err: any) {
-      setError(err.message);
-      navigate('/admin/login');
-    }
-  };
+  }, [monthsThreshold, statusFilter, authUser]);
 
   const fetchPreview = async () => {
+    if (!authUser) return;
+    
     setIsLoadingPreview(true);
     setError('');
     try {
@@ -87,10 +104,21 @@ const BookingCleanup: React.FC = () => {
 
       const response = await fetch(
         `${API_URL}/admin/bookings/cleanup/preview?${params}`,
-        { credentials: 'include' }
+        {
+          method: 'GET',
+          headers: getAuthHeaders(), // ✅ Use token-based headers
+        }
       );
       
-      if (!response.ok) throw new Error('Failed to fetch preview');
+      if (!response.ok) {
+        if (response.status === 401) {
+          // Token expired or invalid
+          await logout();
+          navigate('/admin/login');
+          return;
+        }
+        throw new Error(`Failed to fetch preview (HTTP ${response.status})`);
+      }
       
       const data = await response.json();
       setPreviewBookings(data.bookings || []);
@@ -102,6 +130,8 @@ const BookingCleanup: React.FC = () => {
   };
 
   const fetchStats = async () => {
+    if (!authUser) return;
+    
     try {
       const params = new URLSearchParams({
         months_threshold: monthsThreshold.toString(),
@@ -113,10 +143,20 @@ const BookingCleanup: React.FC = () => {
 
       const response = await fetch(
         `${API_URL}/admin/bookings/cleanup/stats?${params}`,
-        { credentials: 'include' }
+        {
+          method: 'GET',
+          headers: getAuthHeaders(), // ✅ Use token-based headers
+        }
       );
       
-      if (!response.ok) throw new Error('Failed to fetch stats');
+      if (!response.ok) {
+        if (response.status === 401) {
+          await logout();
+          navigate('/admin/login');
+          return;
+        }
+        throw new Error(`Failed to fetch stats (HTTP ${response.status})`);
+      }
       
       const data = await response.json();
       setStats(data.stats);
@@ -126,6 +166,8 @@ const BookingCleanup: React.FC = () => {
   };
 
   const handleCleanup = async () => {
+    if (!authUser) return;
+    
     if (!confirm(`Are you sure you want to delete ${previewBookings.length} bookings older than ${monthsThreshold} months? This action cannot be undone.`)) {
       return;
     }
@@ -143,11 +185,17 @@ const BookingCleanup: React.FC = () => {
 
       const response = await fetch(`${API_URL}/admin/bookings/cleanup?${params}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        headers: getAuthHeaders(), // ✅ Use token-based headers
       });
 
-      if (!response.ok) throw new Error('Cleanup failed');
+      if (!response.ok) {
+        if (response.status === 401) {
+          await logout();
+          navigate('/admin/login');
+          return;
+        }
+        throw new Error(`Cleanup failed (HTTP ${response.status})`);
+      }
 
       const data = await response.json();
       setSuccessMessage(`✅ Successfully deleted ${data.deleted_count} bookings older than ${monthsThreshold} months`);
@@ -222,20 +270,25 @@ const BookingCleanup: React.FC = () => {
     window.URL.revokeObjectURL(url);
   };
 
-  if (!currentUser) {
+  if (isLoading) {
     return (
       <div className={`min-h-screen flex items-center justify-center ${isDarkMode ? 'bg-stone-950' : 'bg-gray-50'}`}>
-        <div className="flex flex-col items-center">
-          <Loader2 className="h-10 w-10 text-gold-500 animate-spin mb-4" />
-          <p className={`font-serif ${isDarkMode ? 'text-stone-300' : 'text-stone-600'}`}>Loading...</p>
+        <div className="relative">
+          <div className="absolute inset-0 blur-3xl opacity-20 bg-gradient-to-r from-gold-500 to-amber-500 rounded-full animate-pulse" />
+          <Loader2 className={`relative animate-spin h-12 w-12 ${isDarkMode ? 'text-gold-500' : 'text-gold-600'}`} />
         </div>
       </div>
     );
   }
 
+  // ✅ Check if user is authenticated
+  if (!authUser) {
+    return null; // Will redirect via useEffect
+  }
+
   return (
     <div className={`flex min-h-screen ${isDarkMode ? 'bg-stone-950' : 'bg-gray-50'}`}>
-      <AdminNavbar user={currentUser} />
+      <AdminNavbar user={authUser} />
       
       <main className="flex-1 min-h-screen overflow-y-auto pt-20 lg:pt-0 lg:ml-72">
         <div className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto">

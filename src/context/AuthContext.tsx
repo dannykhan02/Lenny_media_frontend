@@ -19,11 +19,13 @@ export interface AuthContextType {
   adminExists: boolean | null;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
-  checkAuth: () => Promise<boolean>; // Changed from Promise<void> to Promise<boolean>
+  checkAuth: () => Promise<boolean>;
   registerFirstAdmin: (email: string, password: string, full_name: string) => Promise<void>;
   checkAdminExists: () => Promise<void>;
   error: string | null;
   refreshAuth: () => Promise<void>;
+  setAccessToken: (token: string) => void;
+  getAccessToken: () => string | null;
 }
 
 export const AuthContext = createContext<AuthContextType | null>(null);
