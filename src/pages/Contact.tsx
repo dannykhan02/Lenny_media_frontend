@@ -30,7 +30,7 @@ const STUDIO_HOURS = {
 const CONTACT_INFO = {
   phone: '+254 705 459768',
   email: 'dannykhan614@gmail.com',
-  address: 'Juja Square Building, 1st Floor, Juja, Kenya',
+  address: 'Juja Square, 1st Floor, Gatundu-Juja Road, Juja Kiambu',
   coordinates: {
     lat: -1.1067,
     lng: 37.0149
@@ -282,7 +282,7 @@ const Contact: React.FC = () => {
               }`} />
               <div>
                 <p className={`text-xs sm:text-sm ${isDarkMode ? 'text-blue-300' : 'text-blue-700'}`}>
-                  <strong>📍 Easy to Find:</strong> We're located on the 1st floor of Juja Square Building, right next to the main highway. Free parking available for clients.
+                  <strong>📍 Easy to Find:</strong> We're located on the 1st floor of Juja Square Building, right next to Gatundu-Juja Road. Free parking available for clients.
                 </p>
               </div>
             </div>
